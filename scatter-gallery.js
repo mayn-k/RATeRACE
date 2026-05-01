@@ -97,6 +97,10 @@
     codeInput: null,
     recoverCodeInput: null,
     errorEl: null,
+    loadingStatusEl: null,
+    loadingBackBtn: null,
+    cardImageEl: null,
+    cardCodeEl: null,
     token: null,
     cardId: null,
     imageUrl: null
@@ -594,6 +598,103 @@
         text-align: center;
         font-weight: 700;
       }
+
+      /* LOADING VIEW */
+      .rr-mode-loading:not(.rr-hidden) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .rr-loading-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid #333;
+        border-top-color: #ff0000;
+        border-radius: 50%;
+        animation: rr-spin 0.9s linear infinite;
+        margin-bottom: 18px;
+      }
+
+      @keyframes rr-spin {
+        to { transform: rotate(360deg); }
+      }
+
+      .rr-loading-status {
+        font-size: 10px;
+        color: #cccccc;
+        letter-spacing: 0.12em;
+        text-align: center;
+        line-height: 1.5;
+        max-width: 200px;
+      }
+
+      .rr-loading-back {
+        margin-top: 20px;
+        background: transparent;
+        border: 1px solid #555;
+        color: #aaaaaa;
+        font-family: "Pixelify Sans", monospace;
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        padding: 6px 14px;
+        cursor: pointer;
+      }
+
+      /* CARD VIEW */
+      .rr-card-image-wrap {
+        position: absolute;
+        top: 10px;
+        left: 0;
+        width: 245px;
+        height: 305px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .rr-card-image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+
+      .rr-card-code-label {
+        position: absolute;
+        top: 322px;
+        left: 0;
+        width: 245px;
+        text-align: center;
+        font-size: 9px;
+        letter-spacing: 0.22em;
+        color: #888888;
+        font-weight: 700;
+      }
+
+      .rr-card-code-value {
+        position: absolute;
+        top: 338px;
+        left: 0;
+        width: 245px;
+        text-align: center;
+        font-size: 18px;
+        letter-spacing: 0.18em;
+        color: #ff0000;
+        font-weight: 700;
+      }
+
+      .rr-card-code-hint {
+        position: absolute;
+        top: 368px;
+        left: 0;
+        width: 245px;
+        text-align: center;
+        font-size: 7px;
+        color: #666666;
+        letter-spacing: 0.08em;
+      }
     `;
 
     document.head.appendChild(style);
@@ -634,24 +735,36 @@
     if (actions) actions.style.display = visible ? '' : 'none';
   }
 
+  function setLoadingStatus(msg) {
+    if (leadModal.loadingStatusEl) leadModal.loadingStatusEl.textContent = msg;
+  }
+
   async function runSignupFlow(email, getProfileFn) {
+    setLeadModalMode('loading');
+    if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.add('rr-hidden');
     try {
+      setLoadingStatus('Creating your account…');
       const name = nameFromEmail(email);
       const signupData = await apiPost('/api/auth/signup', { email, password: email + '_am', name });
       leadModal.token = signupData.token;
+
+      setLoadingStatus('Parsing your profile…');
       await getProfileFn(leadModal.token);
+
+      setLoadingStatus('Scoring your profile…');
       await apiPost('/api/score/generate', {}, leadModal.token);
+
+      setLoadingStatus('Generating your rate card…');
       const cardData = await apiPost('/api/card/generate', {}, leadModal.token);
       leadModal.cardId   = cardData.cardId;
       leadModal.imageUrl = cardData.imageUrl;
+
+      if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = cardData.amCode || '';
       setDownloadShareVisible(true);
-      setLeadModalMode('login');
-      const li = leadModal.el && leadModal.el.querySelector('.rr-login-email');
-      if (li) li.value = email;
-      if (leadModal.codeInput) leadModal.codeInput.value = cardData.amCode || '';
-      showModalError('Card created! Save your code ↑', '#2a7a2a');
+      setLeadModalMode('card');
     } catch (err) {
-      window.alert('Error: ' + err.message);
+      setLoadingStatus('Something went wrong: ' + err.message);
+      if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.remove('rr-hidden');
     }
   }
 
@@ -692,8 +805,9 @@
       leadModal.token    = data.token;
       leadModal.cardId   = data.cardId;
       leadModal.imageUrl = data.imageUrl;
+      if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = code;
       setDownloadShareVisible(true);
-      showModalError('');
+      setLeadModalMode('card');
     } catch (err) {
       showModalError(err.message);
     }
@@ -792,6 +906,21 @@
             </div>
           </div>
 
+          <div class="rr-lead-content rr-mode rr-mode-loading rr-hidden">
+            <div class="rr-loading-spinner"></div>
+            <div class="rr-loading-status">Setting up your profile…</div>
+            <button class="rr-loading-back rr-hidden" type="button">← Try again</button>
+          </div>
+
+          <div class="rr-lead-content rr-mode rr-mode-card rr-hidden">
+            <div class="rr-card-image-wrap">
+              <img class="rr-card-image" src="" alt="Your Rate Card" />
+            </div>
+            <div class="rr-card-code-label">YOUR CODE</div>
+            <div class="rr-card-code-value"></div>
+            <div class="rr-card-code-hint">Save this code — it’s your only way to log back in</div>
+          </div>
+
           <div class="rr-lead-footer">
             By submitting your email, you’re giving ADULTMONEY<br/>
             permission to send you email about future ADULTMONEY<br/>
@@ -823,6 +952,12 @@
     leadModal.codeInput = overlay.querySelector('.rr-code-input');
     leadModal.recoverCodeInput = overlay.querySelector('.rr-recover-code');
     leadModal.errorEl = overlay.querySelector('.rr-error-text');
+    leadModal.loadingStatusEl = overlay.querySelector('.rr-loading-status');
+    leadModal.loadingBackBtn = overlay.querySelector('.rr-loading-back');
+    leadModal.cardImageEl = overlay.querySelector('.rr-card-image');
+    leadModal.cardCodeEl = overlay.querySelector('.rr-card-code-value');
+
+    leadModal.loadingBackBtn.addEventListener('click', () => setLeadModalMode('signup'));
 
     overlay.querySelector('.rr-lead-close').addEventListener('click', closeLeadModal);
     overlay.querySelector('.rr-login-link').addEventListener('click', () => setLeadModalMode('login'));
@@ -908,6 +1043,9 @@
 
     leadModal.el.querySelector(`.rr-mode-${mode}`).classList.remove('rr-hidden');
 
+    const footer = leadModal.el.querySelector('.rr-lead-footer');
+    if (footer) footer.style.display = (mode === 'loading' || mode === 'card') ? 'none' : '';
+
     if (mode === 'login') {
       leadModal.codeInput.value = '';
       leadModal.errorEl.textContent = '';
@@ -915,6 +1053,10 @@
 
     if (mode === 'recover') {
       leadModal.recoverCodeInput.value = '';
+    }
+
+    if (mode === 'card' && leadModal.cardImageEl && leadModal.imageUrl) {
+      leadModal.cardImageEl.src = leadModal.imageUrl;
     }
   }
 
