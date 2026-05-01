@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RATe Card</title>
+  <style>
+    @font-face {
+      font-family: "RateDisplay";
+      src: url("../assets/fonts/rate-display.ttf") format("truetype");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "HelveticaNeueThin";
+      src: url("../assets/fonts/HelveticaNeueThin.otf") format("opentype");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "HelveticaNeueThinItalic";
+      src: url("../assets/fonts/HelveticaNeueThinItalic.otf") format("opentype");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "HelveticaNeueCondensedBold";
+      src: url("../assets/fonts/HelveticaNeue-CondensedBold.otf") format("opentype");
+      font-display: swap;
+    }
+
+    :root {
+      --card-w: 1053;
+      --card-h: 1470;
+
+      --bg: #efeee6;
+      --black: #111111;
+      --red: #bf0000;
+      --blue: #153dff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: #111;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+    }
+
+    .stage {
+      width: min(92vw, 560px);
+      aspect-ratio: 1053 / 1470;
+      position: relative;
+    }
+
+    .card {
+      position: absolute;
+      inset: 0;
+      background: var(--bg);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .artboard {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: calc(var(--card-w) * 1px);
+      height: calc(var(--card-h) * 1px);
+      transform-origin: top left;
+    }
+
+    .abs {
+      position: absolute;
+    }
+
+    .rate-label,
+    .replace-label {
+      font-family: "RateDisplay", monospace;
+      letter-spacing: 0.01em;
+      line-height: 1;
+    }
+
+    .rate-value,
+    .replace-value {
+      font-family: "RateDisplay", monospace;
+      line-height: 0.82;
+    }
+
+    .rate-label {
+      left: 88px;
+      top: 86px;
+      font-size: 27px;
+      color: #000;
+    }
+
+    .replace-label {
+      left: 592px;
+      top: 130px;
+      font-size: 24px;
+      color: var(--red);
+    }
+
+    .rate-value {
+      left: 76px;
+      top: 146px;
+      font-size: 252px;
+      color: #000;
+    }
+
+    .replace-value {
+      left: 590px;
+      top: 198px;
+      font-size: 186px;
+      color: var(--red);
+    }
+
+    .status-blocks {
+      position: absolute;
+      right: 30px;
+      top: 40px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .status-chip {
+      width: 31px;
+      height: 52px;
+      opacity: 0.42;
+    }
+
+    .status-chip.active {
+      opacity: 1;
+    }
+
+    .portrait-frame {
+      position: absolute;
+      left: 273px;
+      top: 378px;
+      width: 535px;
+      height: 526px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .portrait-frame img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .code-row {
+      position: absolute;
+      left: 405px;
+      top: 950px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: "HelveticaNeueCondensedBold", "Arial Narrow", Arial, sans-serif;
+      font-size: 27px;
+      letter-spacing: 0.05em;
+      color: #000;
+    }
+
+    .delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--red);
+      font-family: "HelveticaNeueThin", Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .delta-arrow {
+      width: 0;
+      height: 0;
+      border-left: 17px solid transparent;
+      border-right: 17px solid transparent;
+    }
+
+    .delta-arrow.down {
+      border-top: 30px solid var(--red);
+    }
+
+    .delta-arrow.up {
+      border-bottom: 30px solid #0b8e2b;
+    }
+
+    .logos-row {
+      position: absolute;
+      left: 430px;
+      top: 1017px;
+      display: flex;
+      align-items: center;
+      gap: 38px;
+    }
+
+    .logo-box {
+      width: 89px;
+      height: 89px;
+      border-radius: 6px;
+      background: #000;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .logo-box img {
+      max-width: 68%;
+      max-height: 68%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .cta-link {
+      position: absolute;
+      left: 0;
+      top: 1196px;
+      width: 100%;
+      text-align: center;
+      font-family: "HelveticaNeueThin", Arial, sans-serif;
+      font-size: 27px;
+      color: var(--blue);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .chess-frame {
+      position: absolute;
+      left: 40px;
+      top: 1288px;
+      width: 158px;
+      height: 146px;
+      border: 1.5px solid rgba(0,0,0,0.45);
+      display: grid;
+      place-items: center;
+      background: transparent;
+    }
+
+    .chess-frame img {
+      width: 88px;
+      height: 88px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .identity-block {
+      position: absolute;
+      left: 236px;
+      top: 1338px;
+      width: 600px;
+      color: #222;
+    }
+
+    .name {
+      margin: 0 0 10px 0;
+      font-family: "HelveticaNeueThin", Arial, sans-serif;
+      font-size: 41px;
+      line-height: 1.03;
+      font-weight: 300;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bio {
+      margin: 0;
+      font-family: "HelveticaNeueThinItalic", Arial, sans-serif;
+      font-size: 22px;
+      line-height: 1.2;
+      color: #555;
+      font-style: italic;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hourglass-wrap {
+      position: absolute;
+      right: 22px;
+      bottom: 28px;
+      width: 176px;
+      height: 220px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .hourglass-img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="card">
+      <div class="artboard" id="artboard">
+        <div class="abs rate-label" id="rateLabel">RATE</div>
+        <div class="abs replace-label" id="replaceLabel">REPLACEABILITY</div>
+
+        <div class="abs rate-value" id="rateValue">96</div>
+        <div class="abs replace-value" id="replaceValue">56</div>
+
+        <div class="status-blocks" id="statusBlocks"></div>
+
+        <div class="portrait-frame">
+          <img id="portraitImg" alt="portrait" />
+        </div>
+
+        <div class="code-row">
+          <span id="codeValue">ADMY 000</span>
+          <span class="delta" id="deltaWrap">
+            <span id="deltaValue">-0.030</span>
+            <span class="delta-arrow down" id="deltaArrow"></span>
+          </span>
+        </div>
+
+        <div class="logos-row" id="logosRow"></div>
+
+        <a class="cta-link" id="ctaLink" href="#" target="_blank" rel="noopener noreferrer">Click here</a>
+
+        <div class="chess-frame">
+          <img id="chessPieceImg" alt="chess piece" />
+        </div>
+
+        <div class="identity-block">
+          <h1 class="name" id="nameValue">Harsha Chandrashekar</h1>
+          <p class="bio" id="bioValue">"I’m CEO, Bitch"</p>
+        </div>
+
+        <div class="hourglass-wrap">
+          <img class="hourglass-img" id="hourglassImg" alt="hourglass" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*
+      Put your chess images here:
+      ./assets/chess/king.png
+      ./assets/chess/queen.png
+      ./assets/chess/rook.png
+      ./assets/chess/bishop.png
+      ./assets/chess/knight.png
+      ./assets/chess/pawn.png
+
+      Valid chessPiece values:
+      "king", "queen", "rook", "bishop", "knight", "pawn"
+
+      Portrait and logos should be filled by your LinkedIn/backend pipeline
+      into window.CARD_DATA before this script runs.
+    */
+
+    const CHESS_PIECE_MAP = {
+      king: "../assets/chess/king.png",
+      queen: "../assets/chess/queen.png",
+      rook: "../assets/chess/rook.png",
+      bishop: "../assets/chess/bishop.png",
+      knight: "../assets/chess/knight.png",
+      pawn: "../assets/chess/pawn.png"
+    };
+
+    const fallbackCardData = {
+      rateLabel: "RATE",
+      replaceLabel: "REPLACEABILITY",
+
+      rate: 96,
+      replaceability: 56,
+
+      portrait: "../assets/portraits/portrait.png",
+
+      code: "ADMY 000",
+
+      delta: {
+        value: -0.030,
+        direction: "down",
+        color: "#bf0000"
+      },
+
+      logos: [
+        "./assets/logos/logo-1.png",
+        "./assets/logos/logo-2.png"
+      ],
+
+      cta: {
+        label: "Click here",
+        url: "#"
+      },
+
+      chessPiece: "rook",
+
+      name: "Harsha Chandrashekar",
+      bio: "\"I’m CEO, Bitch\"",
+
+      statusBlocks: [
+        { color: "#ece4b4", active: false },
+        { color: "#cad8ea", active: false },
+        { color: "#c7ddb8", active: false },
+        { color: "#ff001a", active: true }
+      ],
+
+      hourglass: {
+        totalPerDiamond: 64,
+        remaining: 5,
+        elapsed: 59,
+        color: "#c40000",
+        cellSize: 10.4,
+        gap: 2.4
+      }
+    };
+
+    const cardData = window.CARD_DATA || fallbackCardData;
+
+    const artboard = document.getElementById("artboard");
+    const rateLabel = document.getElementById("rateLabel");
+    const replaceLabel = document.getElementById("replaceLabel");
+    const rateValue = document.getElementById("rateValue");
+    const replaceValue = document.getElementById("replaceValue");
+    const portraitImg = document.getElementById("portraitImg");
+    const codeValue = document.getElementById("codeValue");
+    const deltaValue = document.getElementById("deltaValue");
+    const deltaArrow = document.getElementById("deltaArrow");
+    const logosRow = document.getElementById("logosRow");
+    const ctaLink = document.getElementById("ctaLink");
+    const chessPieceImg = document.getElementById("chessPieceImg");
+    const nameValue = document.getElementById("nameValue");
+    const bioValue = document.getElementById("bioValue");
+    const statusBlocks = document.getElementById("statusBlocks");
+    const hourglassImg = document.getElementById("hourglassImg");
+
+    function fitArtboard() {
+      const stage = document.querySelector(".stage");
+      const scaleX = stage.clientWidth / 1053;
+      const scaleY = stage.clientHeight / 1470;
+      const scale = Math.min(scaleX, scaleY);
+      artboard.style.transform = `scale(${scale})`;
+    }
+
+    function renderStatusBlocks(blocks) {
+      statusBlocks.innerHTML = "";
+      (blocks || []).forEach(block => {
+        const el = document.createElement("div");
+        el.className = "status-chip" + (block.active ? " active" : "");
+        el.style.background = block.color;
+        statusBlocks.appendChild(el);
+      });
+    }
+
+    function renderLogos(logos) {
+      logosRow.innerHTML = "";
+      (logos || []).slice(0, 3).forEach(src => {
+        const box = document.createElement("div");
+        box.className = "logo-box";
+
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = "logo";
+
+        box.appendChild(img);
+        logosRow.appendChild(box);
+      });
+    }
+
+    function renderHourglass(cfg) {
+      const remaining = Math.max(0, Math.min(64, cfg?.remaining ?? 0));
+      // Map remaining (64=full → frame 1, 0=empty → frame 10)
+      const frame = Math.min(10, Math.max(1, Math.round(10 - (remaining / 64) * 9)));
+      hourglassImg.src = `../assets/hourglass/hourglass-${frame}.png`;
+    }
+
+    function renderCard(data) {
+      rateLabel.textContent = data.rateLabel || "RATE";
+      replaceLabel.textContent = data.replaceLabel || "REPLACEABILITY";
+
+      rateValue.textContent = data.rate ?? 0;
+      replaceValue.textContent = data.replaceability ?? 0;
+
+      portraitImg.src = data.portrait || "";
+      portraitImg.alt = data.name || "portrait";
+
+      codeValue.textContent = data.code || "";
+
+      const delta = data.delta || {};
+      const deltaNumber = typeof delta.value === "number" ? delta.value : 0;
+      deltaValue.textContent = (deltaNumber > 0 ? "+" : "") + deltaNumber.toFixed(3);
+      deltaValue.style.color = delta.color || "#bf0000";
+
+      deltaArrow.className = "delta-arrow " + (delta.direction === "up" ? "up" : "down");
+      if (delta.direction === "up") {
+        deltaArrow.style.borderBottomColor = delta.color || "#0b8e2b";
+        deltaArrow.style.borderTopColor = "transparent";
+      } else {
+        deltaArrow.style.borderTopColor = delta.color || "#bf0000";
+        deltaArrow.style.borderBottomColor = "transparent";
+      }
+
+      renderLogos(data.logos);
+      renderStatusBlocks(data.statusBlocks);
+      renderHourglass(data.hourglass);
+
+      ctaLink.textContent = data.cta?.label || "Click here";
+      ctaLink.href = data.cta?.url || "#";
+
+      const chessKey = String(data.chessPiece || "pawn").toLowerCase();
+      chessPieceImg.src = CHESS_PIECE_MAP[chessKey] || CHESS_PIECE_MAP.pawn;
+      chessPieceImg.alt = chessKey;
+
+      nameValue.textContent = data.name || "";
+      bioValue.textContent = data.bio || "";
+    }
+
+    window.addEventListener("resize", fitArtboard);
+
+    renderCard(cardData);
+    fitArtboard();
+  </script>
+</body>
+</html>

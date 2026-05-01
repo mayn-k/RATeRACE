@@ -1,0 +1,24 @@
+# Dependencies
+backend/node_modules/
+
+# Environment — never commit secrets
+backend/.env
+.env
+
+# Auto-generated at server start by scripts/copyTemplates.js
+backend/templates/
+
+# Puppeteer temp render files
+backend/templates/_render/
+
+# Logs and OS noise
+*.log
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# macOS
+__MACOSX/

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RATe RACE — SOOT Scatter Gallery</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anonymous+Pro:wght@400;700&family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #000000;
+      --panel: rgba(232, 230, 225, 0.92);
+      --border: rgba(0, 0, 0, 0.12);
+      --text: #f2f2f2;
+      --muted: rgba(255, 255, 255, 0.42);
+      --accent: #edf53d;
+      --shadow: rgba(0, 0, 0, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+      color: var(--text);
+    }
+
+    #root {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    canvas {
+      position: absolute;
+      inset: 0;
+      display: block;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .hint {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 14px;
+      z-index: 10;
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      pointer-events: none;
+      letter-spacing: 0.03em;
+    }
+
+    .panel {
+      position: absolute;
+      z-index: 40;
+      background: rgba(255,255,255,0.98);
+      border-radius: 14px;
+      box-shadow: 0 16px 50px rgba(0,0,0,0.18);
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    #linkPanel {
+      width: 260px;
+      padding: 14px;
+      display: none;
+    }
+
+    .panel-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      border: 0;
+      background: none;
+      font-size: 20px;
+      color: #bbb;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .field-label {
+      font-size: 10px;
+      color: #a1a1a1;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    input[type="text"], input[type="url"] {
+      width: 100%;
+      border: 0.5px solid rgba(0,0,0,0.13);
+      background: #fafaf8;
+      border-radius: 8px;
+      padding: 9px 10px;
+      font-size: 12px;
+      color: #111;
+      outline: none;
+      margin-bottom: 8px;
+      font-family: inherit;
+    }
+
+    .row { display: flex; gap: 8px; }
+
+    .btn {
+      flex: 1;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-dark { background: #111; color: white; }
+    .btn-accent { background: var(--accent); color: #111; }
+    .btn-light { background: #fafaf8; border: 0.5px solid rgba(0,0,0,0.12); color: #8d8d8d; }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <canvas id="canvas"></canvas>
+
+    <div id="linkPanel" class="panel">
+      <button class="panel-close" id="closeLinkPanel">×</button>
+      <div class="field-label">Item settings</div>
+      <input id="inpTitle" type="text" placeholder="Label (optional)">
+      <input id="inpUrl" type="url" placeholder="https://...">
+      <div class="row">
+        <button id="saveBtn" class="btn btn-dark">Save</button>
+        <button id="openBtn" class="btn btn-accent">Open ↗</button>
+        <button id="delBtn" class="btn btn-light">Del</button>
+      </div>
+    </div>
+<div class="hint">
+  Hold and drag or scroll to travel through the scatter · Hover over the images in scatter to preview · Pinch to Zoom
+</div>
+
+  <script>
+    // Folder route:
+    // Create this folder next to this HTML file: scatter-images
+    // Add exactly 50 images as: image1.jpg, image2.jpg, image3.jpg ... image50.jpg
+    // Supported extensions: jpg, jpeg, png, webp, gif
+    // Refresh the browser after adding new files.
+    window.GALLERY_IMAGE_FOLDER = './scatter-images/';
+    window.GALLERY_IMAGE_SCAN_LIMIT = 50;
+    window.GALLERY_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+
+    // Optional manual list, only needed if you want custom names instead of image1.jpg etc.
+    window.GALLERY_IMAGES = [
+      // { src: './scatter-images/custom-name.jpg', title: 'Custom Name', link: 'https://example.com' },
+    ];
+
+
+    // Hero carousel route:
+    // Create this folder next to this HTML file: rate-card-carousel
+    // Add exactly three images as: rate-card-1.png, rate-card-2.png, rate-card-3.png
+    window.RATE_CARD_CAROUSEL_IMAGES = [
+      './rate-card-carousel/rate-card-1.png',
+      './rate-card-carousel/rate-card-2.png',
+      './rate-card-carousel/rate-card-3.png'
+    ];
+
+    // Optional: add a URL here later if the CTA should open a real page.
+    window.RATE_CARD_CTA_URL = '';
+
+    // Backend API base URL — change to production URL when deployed.
+    window.BACKEND_URL = 'http://localhost:3000';
+  </script>
+
+  <script src="./ascii-logo.js"></script>
+  <script src="./scatter-gallery.js"></script>
+</body>
+</html>
