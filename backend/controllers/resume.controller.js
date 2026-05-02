@@ -2,6 +2,7 @@
 const { parseResume }    = require('../services/resumeParser');
 const { parseLinkedIn }  = require('../services/linkedin');
 const Card               = require('../models/Card');
+const User               = require('../models/User');
 
 async function _persistAndRespond(userId, profile, res) {
   await Card.findOneAndUpdate(
@@ -31,6 +32,11 @@ async function linkedinResume(req, res, next) {
       return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'urlOrText is required' } });
     }
     const profile = await parseLinkedIn(urlOrText);
+
+    if (profile.photoUrl) {
+      await User.findByIdAndUpdate(req.user.userId, { $set: { portraitUrl: profile.photoUrl } });
+    }
+
     await _persistAndRespond(req.user.userId, profile, res);
   } catch (err) {
     next(err);

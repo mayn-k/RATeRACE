@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema(
     bio:          { type: String, maxlength: 80, default: null },
     portfolioUrl: { type: String, default: null },
     portraitUrl:  { type: String, default: null },
+    photoLocked:  { type: Boolean, default: false },
   },
   { timestamps: true }
 );

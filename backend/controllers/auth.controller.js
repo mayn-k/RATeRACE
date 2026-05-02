@@ -1,12 +1,23 @@
 'use strict';
-const bcrypt = require('bcrypt');
-const jwt    = require('jsonwebtoken');
-const User   = require('../models/User');
-const Card   = require('../models/Card');
-const config = require('../config');
+const crypto   = require('crypto');
+const bcrypt   = require('bcrypt');
+const jwt      = require('jsonwebtoken');
+const User     = require('../models/User');
+const Card     = require('../models/Card');
+const config   = require('../config');
+const logger   = require('../utils/logger');
+const oauthSessions          = require('../utils/oauthSessions');
+const { buildAuthUrl, exchangeCode, getUserInfo } = require('../services/linkedin-oauth');
 
 const SALT_ROUNDS = 12;
 const TOKEN_TTL   = '30d';
+
+// CSRF nonces for OAuth state validation (in-memory, 10 min TTL)
+const nonces = new Map();
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of nonces) if (now > v.exp) nonces.delete(k);
+}, 600_000);
 
 function signToken(user) {
   return jwt.sign(
@@ -85,10 +96,112 @@ async function codeLogin(req, res, next) {
     if (!card?.amCode || card.amCode !== code.toUpperCase()) {
       return res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Invalid email or code' } });
     }
-    res.json({ token: signToken(user), cardId: card._id.toString(), imageUrl: card.imageUrl || null });
+    res.json({
+      token:       signToken(user),
+      cardId:      card._id.toString(),
+      imageUrl:    card.imageUrl || null,
+      amCode:      card.amCode,
+      photoLocked: user.photoLocked || false,
+    });
   } catch (err) {
     next(err);
   }
 }
 
-module.exports = { signup, login, me, codeLogin };
+// ── LinkedIn OAuth ────────────────────────────────────────────────────────────
+
+function linkedinAuth(req, res) {
+  if (!config.LINKEDIN_CLIENT_ID) {
+    return res.status(503).json({ error: 'LinkedIn OAuth not configured' });
+  }
+  const intent = req.query.intent === 'existing' ? 'existing' : 'new';
+  const nonce  = crypto.randomBytes(16).toString('hex');
+  nonces.set(nonce, { intent, exp: Date.now() + 600_000 });
+  const state = Buffer.from(JSON.stringify({ intent, nonce })).toString('base64url');
+  res.redirect(buildAuthUrl(state));
+}
+
+async function linkedinCallback(req, res) {
+  const frontendOrigin = config.FRONTEND_ORIGIN === '*' ? 'http://localhost:8000' : config.FRONTEND_ORIGIN;
+
+  try {
+    const { code, state, error } = req.query;
+
+    if (error) {
+      return res.redirect(`${frontendOrigin}?oauth_error=${encodeURIComponent(error)}`);
+    }
+    if (!code || !state) {
+      return res.redirect(`${frontendOrigin}?oauth_error=missing_params`);
+    }
+
+    let intent, nonce;
+    try {
+      ({ intent, nonce } = JSON.parse(Buffer.from(state, 'base64url').toString()));
+    } catch {
+      return res.redirect(`${frontendOrigin}?oauth_error=bad_state`);
+    }
+
+    const nonceData = nonces.get(nonce);
+    nonces.delete(nonce);
+    if (!nonceData || Date.now() > nonceData.exp) {
+      return res.redirect(`${frontendOrigin}?oauth_error=expired`);
+    }
+
+    const tokenData  = await exchangeCode(code);
+    const liProfile  = await getUserInfo(tokenData.access_token);
+
+    const email = liProfile.email?.toLowerCase();
+    if (!email) {
+      return res.redirect(`${frontendOrigin}?oauth_error=no_email`);
+    }
+
+    let user  = await User.findOne({ email });
+    let isNew = false;
+
+    if (!user) {
+      if (intent === 'existing') {
+        return res.redirect(`${frontendOrigin}?oauth_error=not_found`);
+      }
+      const passwordHash = await bcrypt.hash(email + '_am', SALT_ROUNDS);
+      user = await User.create({
+        email,
+        passwordHash,
+        name:       liProfile.name || email.split('@')[0],
+        portraitUrl: liProfile.picture || null,
+      });
+      isNew = true;
+    }
+
+    const card = await Card.findOne({ userId: user._id });
+
+    const sessionCode = oauthSessions.store({
+      token:       signToken(user),
+      name:        user.name,
+      email:       user.email,
+      photo:       user.portraitUrl,
+      photoLocked: user.photoLocked || false,
+      isNew,
+      hasCard:     !!(card?.imageUrl),
+      cardId:      card?._id?.toString() || null,
+      imageUrl:    card?.imageUrl || null,
+      amCode:      card?.amCode  || null,
+    });
+
+    res.redirect(`${frontendOrigin}?oauth=${sessionCode}`);
+  } catch (err) {
+    logger.error(err, 'LinkedIn callback error');
+    const frontendFallback = config.FRONTEND_ORIGIN === '*' ? 'http://localhost:8000' : config.FRONTEND_ORIGIN;
+    res.redirect(`${frontendFallback}?oauth_error=server`);
+  }
+}
+
+async function linkedinExchange(req, res) {
+  const { code } = req.query;
+  if (!code) return res.status(400).json({ error: 'code required' });
+  const session = oauthSessions.consume(code);
+  if (!session) return res.status(410).json({ error: 'Code expired or already used' });
+  const { exp: _, ...data } = session;
+  res.json(data);
+}
+
+module.exports = { signup, login, me, codeLogin, linkedinAuth, linkedinCallback, linkedinExchange };

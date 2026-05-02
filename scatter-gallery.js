@@ -122,7 +122,7 @@
   }
 
   function modalScale() {
-    const totalH = 401 + 84 + 64 + 32;
+    const totalH = 440 + 84 + 64 + 32;
     const totalW = 350;
 
     return clamp(
@@ -695,6 +695,218 @@
         color: #666666;
         letter-spacing: 0.08em;
       }
+
+      /* ── height overrides for new modes ── */
+      .rr-lead-panel   { height: 440px; }
+      .rr-lead-content { height: 440px; }
+      .rr-modal-actions { top: 470px; }
+      .rr-leader-strip  { top: 524px; }
+
+      /* ── ENTRY MODE ── */
+      .rr-mode-entry:not(.rr-hidden) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+      }
+      .rr-entry-headline {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        color: #fff;
+        margin-bottom: 6px;
+      }
+      .rr-entry-sub {
+        font-size: 8px;
+        color: #666;
+        letter-spacing: 0.14em;
+        margin-bottom: 44px;
+      }
+      .rr-entry-buttons { display: flex; gap: 14px; }
+      .rr-entry-btn {
+        width: 108px;
+        height: 36px;
+        background: #000;
+        border: 1px solid #444;
+        color: #fff;
+        font-family: "Pixelify Sans", monospace;
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        cursor: pointer;
+      }
+      .rr-entry-btn:hover { border-color: #fff; }
+      .rr-entry-btn.rr-entry-primary {
+        background: #fff;
+        color: #000;
+        border-color: #fff;
+      }
+      .rr-entry-btn.rr-entry-primary:hover { background: #edf53d; border-color: #edf53d; color: #000; }
+
+      /* ── EXISTING-LOGIN MODE ── */
+      .rr-mode-existing-login .rr-el-subtitle {
+        position: absolute; top: 14px; left: 0;
+        font-size: 8px; color: #555; letter-spacing: .16em;
+      }
+      .rr-mode-existing-login .rr-el-title {
+        position: absolute; top: 32px; left: 0;
+        font-size: 13px; font-weight: 700; color: #fff; letter-spacing: .14em;
+      }
+      .rr-el-li-btn {
+        position: absolute; top: 68px; left: 0;
+        width: 245px; height: 34px;
+        background: #0a66c2; border: 0;
+        color: #fff; font-family: "Pixelify Sans", monospace;
+        font-size: 9px; letter-spacing: .12em; cursor: pointer;
+      }
+      .rr-el-li-btn:hover { background: #0958a8; }
+      .rr-el-or {
+        position: absolute; top: 114px; left: 0;
+        width: 245px; text-align: center;
+        font-size: 8px; color: #444; letter-spacing: .1em;
+      }
+      .rr-el-email-label { position: absolute; top: 144px; left: 0; }
+      .rr-el-email { position: absolute; top: 162px; left: 0; width: 245px; }
+      .rr-el-code-label  { position: absolute; top: 206px; left: 0; }
+      .rr-el-code  { position: absolute; top: 224px; left: 0; width: 245px; }
+      .rr-el-submit {
+        position: absolute; top: 274px; left: 0;
+        width: 245px; height: 32px;
+        background: #fff; border: 0; color: #000;
+        font-family: "Pixelify Sans", monospace;
+        font-size: 10px; letter-spacing: .14em; cursor: pointer;
+      }
+      .rr-el-submit:hover { background: #edf53d; }
+      .rr-el-error {
+        position: absolute; top: 318px; left: 0;
+        width: 245px; text-align: center;
+        font-size: 8px; color: #c40000; min-height: 12px;
+      }
+      .rr-el-back {
+        position: absolute; top: 370px; left: 0;
+        width: 245px; text-align: center;
+        font-size: 8px; color: #555;
+      }
+
+      /* ── CONFIRM MODE ── */
+      .rr-mode-confirm .rr-cf-step {
+        position: absolute; top: 10px; left: 0;
+        font-size: 8px; color: #555; letter-spacing: .16em;
+      }
+      .rr-mode-confirm .rr-cf-title {
+        position: absolute; top: 28px; left: 0;
+        font-size: 13px; font-weight: 700; color: #fff; letter-spacing: .14em;
+      }
+      .rr-cf-photo-wrap {
+        position: absolute; top: 56px;
+        left: calc(50% - 26px);
+        width: 52px; height: 52px;
+      }
+      .rr-cf-photo {
+        width: 52px; height: 52px; border-radius: 50%;
+        border: 1px solid #444; object-fit: cover;
+        background: #1a1a1a; display: block;
+      }
+      .rr-cf-photo-lbl {
+        position: absolute; top: 114px; left: 0;
+        width: 245px; text-align: center;
+        font-size: 8px; color: #666; letter-spacing: .08em;
+      }
+      .rr-cf-photo-url-label { position: absolute; top: 134px; left: 0; }
+      .rr-cf-photo-url { position: absolute; top: 152px; left: 0; width: 245px; }
+      .rr-cf-name-label { position: absolute; top: 196px; left: 0; }
+      .rr-cf-name  { position: absolute; top: 214px; left: 0; width: 245px; }
+      .rr-cf-bio-label   { position: absolute; top: 256px; left: 0; }
+      .rr-cf-bio   { position: absolute; top: 274px; left: 0; width: 245px; }
+      .rr-cf-port-label  { position: absolute; top: 316px; left: 0; }
+      .rr-cf-port  { position: absolute; top: 334px; left: 0; width: 245px; }
+      .rr-cf-next {
+        position: absolute; top: 382px; left: 0;
+        width: 245px; height: 32px;
+        background: #fff; border: 0; color: #000;
+        font-family: "Pixelify Sans", monospace;
+        font-size: 10px; letter-spacing: .14em; cursor: pointer;
+      }
+      .rr-cf-next:hover { background: #edf53d; }
+      .rr-cf-back {
+        position: absolute; top: 424px; left: 0;
+        font-size: 8px; color: #555; cursor: pointer;
+      }
+      .rr-cf-back:hover { color: #fff; }
+
+      /* ── UPLOAD-CV MODE ── */
+      .rr-mode-upload-cv .rr-uv-step {
+        position: absolute; top: 26px; left: 0;
+        font-size: 8px; color: #555; letter-spacing: .16em;
+      }
+      .rr-mode-upload-cv .rr-uv-title {
+        position: absolute; top: 44px; left: 0;
+        font-size: 13px; font-weight: 700; color: #fff; letter-spacing: .14em;
+      }
+      .rr-uv-desc {
+        position: absolute; top: 80px; left: 0; width: 245px;
+        font-size: 9px; color: #888; line-height: 1.5; letter-spacing: .06em;
+      }
+      .rr-uv-area {
+        position: absolute; top: 152px; left: 0;
+        width: 245px; height: 88px;
+        border: 1.5px dashed #444;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 6px; cursor: pointer;
+      }
+      .rr-uv-area:hover, .rr-uv-area.has-file { border-color: #fff; }
+      .rr-uv-area.has-file { border-color: #3dde6e; }
+      .rr-uv-area-icon { font-size: 20px; line-height: 1; }
+      .rr-uv-area-lbl { font-size: 9px; color: #888; letter-spacing: .1em; }
+      .rr-uv-filename {
+        position: absolute; top: 254px; left: 0; width: 245px;
+        font-size: 8px; color: #3dde6e; text-align: center;
+        letter-spacing: .06em; white-space: nowrap;
+        overflow: hidden; text-overflow: ellipsis;
+        min-height: 12px;
+      }
+      .rr-uv-analyze {
+        position: absolute; top: 280px; left: 0;
+        width: 245px; height: 32px;
+        background: #fff; border: 0; color: #000;
+        font-family: "Pixelify Sans", monospace;
+        font-size: 10px; letter-spacing: .14em;
+        cursor: pointer; opacity: .3; pointer-events: none;
+      }
+      .rr-uv-analyze.ready { opacity: 1; pointer-events: auto; }
+      .rr-uv-analyze.ready:hover { background: #edf53d; }
+      .rr-uv-back {
+        position: absolute; top: 328px; left: 0;
+        font-size: 8px; color: #555; cursor: pointer;
+      }
+      .rr-uv-back:hover { color: #fff; }
+
+      /* ── CARD MODE – photo change row ── */
+      .rr-card-photo-change-row {
+        position: absolute; top: 384px; left: 0; width: 245px;
+        text-align: center; font-size: 8px;
+        color: #555; letter-spacing: .08em;
+      }
+      .rr-card-photo-change-row span {
+        cursor: pointer; color: #ff0000;
+        text-decoration: underline;
+      }
+      .rr-card-photo-change-input {
+        position: absolute; top: 400px; left: 0; width: 245px;
+        display: none;
+      }
+      .rr-card-photo-change-input .rr-lead-input {
+        position: relative; top: auto;
+        font-size: 9px; margin-bottom: 4px;
+      }
+      .rr-card-photo-change-input button {
+        width: 100%; height: 26px;
+        background: #333; border: 1px solid #555; color: #ccc;
+        font-family: "Pixelify Sans", monospace;
+        font-size: 9px; letter-spacing: .1em; cursor: pointer;
+      }
+      .rr-card-photo-change-input button:hover { border-color: #fff; color: #fff; }
     `;
 
     document.head.appendChild(style);
@@ -706,6 +918,22 @@
     const res = await fetch(`${BACKEND_URL}${path}`, { method: 'POST', headers, body: JSON.stringify(body) });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(json?.error?.message || `Request failed (${res.status})`);
+    return json;
+  }
+
+  async function apiPatch(path, body, token) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${BACKEND_URL}${path}`, { method: 'PATCH', headers, body: JSON.stringify(body) });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json?.error?.message || `Request failed (${res.status})`);
+    return json;
+  }
+
+  async function apiGet(path) {
+    const res = await fetch(`${BACKEND_URL}${path}`);
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json?.error || `Request failed (${res.status})`);
     return json;
   }
 
@@ -739,17 +967,84 @@
     if (leadModal.loadingStatusEl) leadModal.loadingStatusEl.textContent = msg;
   }
 
-  async function runSignupFlow(email, getProfileFn) {
+  // ── OAuth return handler (called on page load when ?oauth= param is present) ──
+  async function handleOAuthReturn(code) {
+    openLeadModal('loading');
+    setLoadingStatus('Connecting to LinkedIn…');
+    if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.add('rr-hidden');
+    try {
+      const data = await apiGet(`/api/auth/linkedin/exchange?code=${encodeURIComponent(code)}`);
+      leadModal.token      = data.token;
+      leadModal.photoLocked = data.photoLocked;
+
+      if (data.isNew) {
+        const el = leadModal.el;
+        const photoEl    = el.querySelector('.rr-cf-photo');
+        const photoUrlEl = el.querySelector('.rr-cf-photo-url');
+        const nameEl     = el.querySelector('.rr-cf-name');
+        if (photoEl && data.photo)  photoEl.src = data.photo;
+        if (photoUrlEl) photoUrlEl.value = data.photo || '';
+        if (nameEl)     nameEl.value     = data.name  || '';
+        leadModal.originalPhoto = data.photo || '';
+        setLeadModalMode('confirm');
+      } else if (!data.hasCard) {
+        leadModal.uploadCvBackMode = 'existing-login';
+        setLeadModalMode('upload-cv');
+      } else {
+        leadModal.cardId   = data.cardId;
+        leadModal.imageUrl = data.imageUrl;
+        if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = data.amCode || '';
+        setDownloadShareVisible(true);
+        setLeadModalMode('card');
+        updateCardPhotoChangeRow();
+      }
+    } catch (err) {
+      setLoadingStatus('LinkedIn error: ' + err.message);
+      if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.remove('rr-hidden');
+    }
+  }
+
+  function updateCardPhotoChangeRow() {
+    if (!leadModal.el) return;
+    const row = leadModal.el.querySelector('.rr-card-photo-change-row');
+    if (row) row.style.display = leadModal.photoLocked ? 'none' : '';
+  }
+
+  async function handleConfirmSubmit() {
+    const el = leadModal.el;
+    const name         = el.querySelector('.rr-cf-name').value.trim();
+    const bio          = el.querySelector('.rr-cf-bio').value.trim();
+    const portfolioUrl = el.querySelector('.rr-cf-port').value.trim();
+    const newPhoto     = el.querySelector('.rr-cf-photo-url').value.trim();
+
+    setLeadModalMode('loading');
+    setLoadingStatus('Saving your details…');
+    if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.add('rr-hidden');
+
+    try {
+      await apiPost('/api/user/bio', { name, bio, portfolioUrl }, leadModal.token);
+
+      if (newPhoto && newPhoto !== leadModal.originalPhoto) {
+        await apiPatch('/api/user/photo', { portraitUrl: newPhoto }, leadModal.token);
+        leadModal.photoLocked = true;
+      }
+
+      leadModal.uploadCvBackMode = 'confirm';
+      setLeadModalMode('upload-cv');
+    } catch (err) {
+      setLoadingStatus('Error: ' + err.message);
+      if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.remove('rr-hidden');
+    }
+  }
+
+  async function handleCVAnalyze(file) {
     setLeadModalMode('loading');
     if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.add('rr-hidden');
     try {
-      setLoadingStatus('Creating your account…');
-      const name = nameFromEmail(email);
-      const signupData = await apiPost('/api/auth/signup', { email, password: email + '_am', name });
-      leadModal.token = signupData.token;
-
-      setLoadingStatus('Parsing your profile…');
-      await getProfileFn(leadModal.token);
+      setLoadingStatus('Parsing your CV…');
+      const form = new FormData();
+      form.append('file', file);
+      await apiPostForm('/api/resume/upload', form, leadModal.token);
 
       setLoadingStatus('Scoring your profile…');
       await apiPost('/api/score/generate', {}, leadModal.token);
@@ -762,54 +1057,69 @@
       if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = cardData.amCode || '';
       setDownloadShareVisible(true);
       setLeadModalMode('card');
+      updateCardPhotoChangeRow();
     } catch (err) {
-      setLoadingStatus('Something went wrong: ' + err.message);
+      setLoadingStatus('Error: ' + err.message);
       if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.remove('rr-hidden');
     }
   }
 
-  function handleSignupWithLinkedIn(email) {
-    const text = window.prompt('Paste your LinkedIn profile text here (copy from your LinkedIn page):');
-    if (!text || !text.trim()) return;
-    runSignupFlow(email, token => apiPost('/api/resume/linkedin', { urlOrText: text }, token));
-  }
+  async function handleExistingCodeLogin() {
+    const el     = leadModal.el;
+    const email  = el.querySelector('.rr-el-email').value.trim();
+    const raw    = el.querySelector('.rr-el-code').value.trim().toUpperCase();
+    const errEl  = el.querySelector('.rr-el-error');
 
-  function handleSignupWithCV(email) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.pdf';
-    input.style.display = 'none';
-    document.body.appendChild(input);
-    input.addEventListener('change', () => {
-      document.body.removeChild(input);
-      const file = input.files[0];
-      if (!file) return;
-      runSignupFlow(email, token => {
-        const form = new FormData();
-        form.append('file', file);
-        return apiPostForm('/api/resume/upload', form, token);
-      });
-    });
-    input.click();
-  }
+    if (!email || !raw)                       { errEl.textContent = 'Enter your email and code.'; return; }
+    if (!/^[A-Z]{4}[0-9]{4}$/.test(raw))     { errEl.textContent = '4 letters + 4 digits (e.g. ABCD1234).'; return; }
 
-  async function handleCodeLogin() {
-    const emailEl = leadModal.el ? leadModal.el.querySelector('.rr-login-email') : null;
-    const email = emailEl ? emailEl.value.trim() : '';
-    const code  = leadModal.codeInput ? leadModal.codeInput.value.trim() : '';
-    if (!email || !code) { showModalError('Please enter your email and code.'); return; }
-    if (!/^[A-Z]{4}[0-9]{4}$/.test(code)) { showModalError('Please enter a valid code.'); return; }
+    errEl.textContent = '';
+    setLeadModalMode('loading');
+    setLoadingStatus('Logging in…');
+    if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.add('rr-hidden');
+
     try {
-      showModalError('Logging in…', '#555');
-      const data = await apiPost('/api/auth/code-login', { email, code });
-      leadModal.token    = data.token;
-      leadModal.cardId   = data.cardId;
-      leadModal.imageUrl = data.imageUrl;
-      if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = code;
+      const data = await apiPost('/api/auth/code-login', { email, code: raw });
+      leadModal.token      = data.token;
+      leadModal.photoLocked = data.photoLocked || false;
+
+      if (data.imageUrl) {
+        leadModal.cardId   = data.cardId;
+        leadModal.imageUrl = data.imageUrl;
+        if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = data.amCode || raw;
+        setDownloadShareVisible(true);
+        setLeadModalMode('card');
+        updateCardPhotoChangeRow();
+      } else {
+        leadModal.uploadCvBackMode = 'existing-login';
+        setLeadModalMode('upload-cv');
+      }
+    } catch (err) {
+      setLeadModalMode('existing-login');
+      const errEl2 = leadModal.el.querySelector('.rr-el-error');
+      if (errEl2) errEl2.textContent = err.message;
+    }
+  }
+
+  async function handleCardPhotoChange(newUrl) {
+    if (!newUrl || leadModal.photoLocked) return;
+    setLeadModalMode('loading');
+    setLoadingStatus('Updating photo…');
+    if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.add('rr-hidden');
+    try {
+      await apiPatch('/api/user/photo', { portraitUrl: newUrl }, leadModal.token);
+      leadModal.photoLocked = true;
+      setLoadingStatus('Regenerating card…');
+      const cardData = await apiPost('/api/card/generate', {}, leadModal.token);
+      leadModal.cardId   = cardData.cardId;
+      leadModal.imageUrl = cardData.imageUrl;
+      if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = cardData.amCode || '';
       setDownloadShareVisible(true);
       setLeadModalMode('card');
+      updateCardPhotoChangeRow();
     } catch (err) {
-      showModalError(err.message);
+      setLoadingStatus('Error: ' + err.message);
+      if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.remove('rr-hidden');
     }
   }
 
@@ -852,7 +1162,67 @@
         <button class="rr-lead-close" type="button">×</button>
 
         <div class="rr-lead-panel">
-          <div class="rr-lead-content rr-mode rr-mode-signup">
+
+          <!-- ENTRY -->
+          <div class="rr-lead-content rr-mode rr-mode-entry">
+            <div class="rr-entry-headline">KNOW YOUR WORTH</div>
+            <div class="rr-entry-sub">GET YOUR RATE RACE CARD</div>
+            <div class="rr-entry-buttons">
+              <button class="rr-entry-btn rr-entry-primary" data-entry="new">NEW USER</button>
+              <button class="rr-entry-btn" data-entry="existing">RETURNING?</button>
+            </div>
+          </div>
+
+          <!-- EXISTING LOGIN -->
+          <div class="rr-lead-content rr-mode rr-mode-existing-login rr-hidden">
+            <div class="rr-lead-label rr-el-subtitle">RETURNING USER</div>
+            <div class="rr-lead-label rr-el-title">WELCOME BACK</div>
+            <button class="rr-el-li-btn" type="button">CONTINUE WITH LINKEDIN</button>
+            <div class="rr-el-or">— or enter your code —</div>
+            <div class="rr-lead-label rr-el-email-label">E-MAIL</div>
+            <input class="rr-lead-input rr-el-email" type="email" placeholder="you@email.com" />
+            <div class="rr-lead-label rr-el-code-label">YOUR CODE</div>
+            <input class="rr-lead-input rr-el-code" maxlength="8" placeholder="ABCD1234" autocomplete="off" />
+            <button class="rr-el-submit" type="button">LOGIN →</button>
+            <div class="rr-el-error"></div>
+            <div class="rr-el-back">New here? <span class="rr-red-link rr-el-to-entry">← back</span></div>
+          </div>
+
+          <!-- CONFIRM DETAILS -->
+          <div class="rr-lead-content rr-mode rr-mode-confirm rr-hidden">
+            <div class="rr-lead-label rr-cf-step">STEP 2 OF 3</div>
+            <div class="rr-lead-label rr-cf-title">YOUR DETAILS</div>
+            <div class="rr-cf-photo-wrap">
+              <img class="rr-cf-photo" src="" alt="" onerror="this.style.display='none'">
+            </div>
+            <div class="rr-cf-photo-lbl">PHOTO URL</div>
+            <input class="rr-lead-input rr-cf-photo-url" type="url" placeholder="https://…" />
+            <div class="rr-lead-label rr-cf-name-label">NAME</div>
+            <input class="rr-lead-input rr-cf-name" type="text" maxlength="80" />
+            <div class="rr-lead-label rr-cf-bio-label">BIO (max 80 chars)</div>
+            <input class="rr-lead-input rr-cf-bio" type="text" maxlength="80" placeholder="What you do in one line" />
+            <div class="rr-lead-label rr-cf-port-label">PORTFOLIO (optional)</div>
+            <input class="rr-lead-input rr-cf-port" type="url" placeholder="https://…" />
+            <button class="rr-cf-next" type="button">NEXT →</button>
+            <span class="rr-red-link rr-cf-back rr-cf-back-lnk">← back</span>
+          </div>
+
+          <!-- UPLOAD CV -->
+          <div class="rr-lead-content rr-mode rr-mode-upload-cv rr-hidden">
+            <div class="rr-lead-label rr-uv-step">STEP 3 OF 3</div>
+            <div class="rr-lead-label rr-uv-title">UPLOAD YOUR CV</div>
+            <div class="rr-uv-desc">Upload your PDF CV. We'll analyze it with AI to generate your rate card. Takes ~20 seconds.</div>
+            <div class="rr-uv-area" tabindex="0">
+              <div class="rr-uv-area-icon">📄</div>
+              <div class="rr-uv-area-lbl">CLICK TO UPLOAD PDF</div>
+            </div>
+            <div class="rr-uv-filename"></div>
+            <button class="rr-uv-analyze" type="button">ANALYZE →</button>
+            <span class="rr-red-link rr-uv-back-lnk rr-uv-back">← back</span>
+          </div>
+
+          <!-- SIGNUP (kept for compat, hidden) -->
+          <div class="rr-lead-content rr-mode rr-mode-signup rr-hidden">
             <div class="rr-lead-label rr-email-label">E-MAIL</div>
             <input class="rr-lead-input rr-signup-email" type="email" placeholder="saulgoodman@gmail.com" />
 
@@ -874,7 +1244,7 @@
             <input class="rr-lead-input rr-login-email" type="email" placeholder="saulgoodman@gmail.com" />
 
             <div class="rr-lead-label rr-code-label">ENTER YOUR CODE</div>
-            <input class="rr-lead-input rr-code-input" type="text" maxlength="8" placeholder="ADMY-0000" autocomplete="off" />
+            <input class="rr-lead-input rr-code-input" type="text" maxlength="8" placeholder="ABCD1234" autocomplete="off" />
 
             <div class="rr-code-help-line">
               <span class="rr-red-link rr-code-help">Don’t know your code?</span>
@@ -899,7 +1269,7 @@
             </div>
 
             <div class="rr-lead-label rr-recover-code-label">ENTER YOUR CODE</div>
-            <input class="rr-lead-input rr-recover-code" type="text" maxlength="8" placeholder="ADMY-0000" autocomplete="off" />
+            <input class="rr-lead-input rr-recover-code" type="text" maxlength="8" placeholder="ABCD1234" autocomplete="off" />
 
             <div class="rr-bottom-account-row">
               Don’t have an account ? <span class="rr-red-link rr-signup-link">Sign-up</span>
@@ -919,6 +1289,13 @@
             <div class="rr-card-code-label">YOUR CODE</div>
             <div class="rr-card-code-value"></div>
             <div class="rr-card-code-hint">Save this code — it’s your only way to log back in</div>
+            <div class="rr-card-photo-change-row">
+              <span class="rr-card-photo-change-toggle">change photo</span>
+            </div>
+            <div class="rr-card-photo-change-input">
+              <input class="rr-lead-input rr-card-photo-url" type="url" placeholder="https://new-photo-url…" />
+              <button class="rr-card-photo-submit" type="button">UPDATE PHOTO + REGENERATE</button>
+            </div>
           </div>
 
           <div class="rr-lead-footer">
@@ -947,81 +1324,111 @@
 
     root.appendChild(overlay);
 
-    leadModal.el = overlay;
-    leadModal.panel = overlay.querySelector('.rr-lead-stage');
-    leadModal.codeInput = overlay.querySelector('.rr-code-input');
+    leadModal.el             = overlay;
+    leadModal.panel          = overlay.querySelector('.rr-lead-stage');
+    leadModal.codeInput      = overlay.querySelector('.rr-code-input');
     leadModal.recoverCodeInput = overlay.querySelector('.rr-recover-code');
-    leadModal.errorEl = overlay.querySelector('.rr-error-text');
+    leadModal.errorEl        = overlay.querySelector('.rr-error-text');
     leadModal.loadingStatusEl = overlay.querySelector('.rr-loading-status');
     leadModal.loadingBackBtn = overlay.querySelector('.rr-loading-back');
-    leadModal.cardImageEl = overlay.querySelector('.rr-card-image');
-    leadModal.cardCodeEl = overlay.querySelector('.rr-card-code-value');
+    leadModal.cardImageEl    = overlay.querySelector('.rr-card-image');
+    leadModal.cardCodeEl     = overlay.querySelector('.rr-card-code-value');
 
-    leadModal.loadingBackBtn.addEventListener('click', () => setLeadModalMode('signup'));
-
+    // Close
     overlay.querySelector('.rr-lead-close').addEventListener('click', closeLeadModal);
-    overlay.querySelector('.rr-login-link').addEventListener('click', () => setLeadModalMode('login'));
-    overlay.querySelector('.rr-code-help').addEventListener('click', () => setLeadModalMode('recover'));
 
-    overlay.querySelectorAll('.rr-signup-link').forEach(el => {
-      el.addEventListener('click', () => setLeadModalMode('signup'));
+    // Loading back → entry
+    leadModal.loadingBackBtn.addEventListener('click', () => setLeadModalMode('entry'));
+
+    // Entry buttons
+    overlay.querySelectorAll('[data-entry]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.entry === 'new') {
+          window.location.href = `${BACKEND_URL}/api/auth/linkedin?intent=new`;
+        } else {
+          setLeadModalMode('existing-login');
+        }
+      });
     });
 
-    function formatCodeInput(input, errorEl = null) {
-      const raw = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
-      input.value = raw;
+    // Existing login
+    overlay.querySelector('.rr-el-li-btn').addEventListener('click', () => {
+      window.location.href = `${BACKEND_URL}/api/auth/linkedin?intent=existing`;
+    });
+    overlay.querySelector('.rr-el-submit').addEventListener('click', handleExistingCodeLogin);
+    overlay.querySelector('.rr-el-code').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleExistingCodeLogin();
+    });
+    overlay.querySelector('.rr-el-to-entry').addEventListener('click', () => setLeadModalMode('entry'));
 
-      if (!errorEl) return;
+    // Confirm
+    overlay.querySelector('.rr-cf-next').addEventListener('click', handleConfirmSubmit);
+    overlay.querySelector('.rr-cf-back-lnk').addEventListener('click', () => setLeadModalMode('entry'));
+    const cfPhotoEl  = overlay.querySelector('.rr-cf-photo');
+    const cfPhotoUrl = overlay.querySelector('.rr-cf-photo-url');
+    cfPhotoUrl.addEventListener('input', () => {
+      if (cfPhotoEl && cfPhotoUrl.value) cfPhotoEl.src = cfPhotoUrl.value;
+    });
 
-      if (!raw.length) {
-        errorEl.textContent = '';
-        return;
-      }
+    // Upload CV
+    const uvArea    = overlay.querySelector('.rr-uv-area');
+    const uvAnalyze = overlay.querySelector('.rr-uv-analyze');
+    const uvFilename = overlay.querySelector('.rr-uv-filename');
+    let selectedCvFile = null;
+    const cvFileInput = document.createElement('input');
+    cvFileInput.type = 'file'; cvFileInput.accept = '.pdf'; cvFileInput.style.display = 'none';
+    document.body.appendChild(cvFileInput);
 
-      const valid = /^[A-Z]{4}[0-9]{4}$/.test(raw);
-      errorEl.textContent = valid ? '' : 'Please enter a valid code.';
+    function pickCvFile() { cvFileInput.value = ''; cvFileInput.click(); }
+    uvArea.addEventListener('click', pickCvFile);
+    uvArea.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') pickCvFile(); });
+    cvFileInput.addEventListener('change', () => {
+      const f = cvFileInput.files[0];
+      if (!f) return;
+      selectedCvFile = f;
+      uvArea.classList.add('has-file');
+      uvFilename.textContent = f.name;
+      uvAnalyze.classList.add('ready');
+    });
+    uvAnalyze.addEventListener('click', () => {
+      if (selectedCvFile) handleCVAnalyze(selectedCvFile);
+    });
+    overlay.querySelector('.rr-uv-back-lnk').addEventListener('click', () => {
+      setLeadModalMode(leadModal.uploadCvBackMode || 'entry');
+    });
+
+    // Card – photo change
+    const photoChangeToggle = overlay.querySelector('.rr-card-photo-change-toggle');
+    const photoChangeInput  = overlay.querySelector('.rr-card-photo-change-input');
+    const photoUrlInput     = overlay.querySelector('.rr-card-photo-url');
+    const photoSubmitBtn    = overlay.querySelector('.rr-card-photo-submit');
+    photoChangeToggle.addEventListener('click', () => {
+      photoChangeInput.style.display = photoChangeInput.style.display === 'block' ? 'none' : 'block';
+    });
+    photoSubmitBtn.addEventListener('click', () => {
+      handleCardPhotoChange(photoUrlInput.value.trim());
+    });
+
+    // Legacy compat wiring (login/recover still present in DOM)
+    const loginLink = overlay.querySelector('.rr-login-link');
+    if (loginLink) loginLink.addEventListener('click', () => setLeadModalMode('login'));
+    const codeHelp = overlay.querySelector('.rr-code-help');
+    if (codeHelp) codeHelp.addEventListener('click', () => setLeadModalMode('recover'));
+    overlay.querySelectorAll('.rr-signup-link').forEach(el => {
+      el.addEventListener('click', () => setLeadModalMode('entry'));
+    });
+    if (leadModal.codeInput) {
+      leadModal.codeInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleExistingCodeLogin();
+      });
     }
 
-    leadModal.codeInput.addEventListener('input', () => {
-      formatCodeInput(leadModal.codeInput, leadModal.errorEl);
-    });
-
-    leadModal.recoverCodeInput.addEventListener('input', () => {
-      formatCodeInput(leadModal.recoverCodeInput, null);
-    });
-
-    // Login: Enter key on code input submits
-    leadModal.codeInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') handleCodeLogin();
-    });
-
-    // Signup: LinkedIn button
-    const linkedinBtn = overlay.querySelector('.rr-linkedin-logo').closest('button');
-    linkedinBtn.addEventListener('click', () => {
-      const emailEl = overlay.querySelector('.rr-signup-email');
-      const email   = emailEl ? emailEl.value.trim() : '';
-      if (!email) { showModalError('Please enter your email first.'); return; }
-      handleSignupWithLinkedIn(email);
-    });
-
-    // Signup: CV button (second mini-button)
-    const miniButtons = overlay.querySelectorAll('.rr-lead-mini-button');
-    const cvBtn = miniButtons[1];
-    cvBtn.addEventListener('click', () => {
-      const emailEl = overlay.querySelector('.rr-signup-email');
-      const email   = emailEl ? emailEl.value.trim() : '';
-      if (!email) { showModalError('Please enter your email first.'); return; }
-      handleSignupWithCV(email);
-    });
-
-    // Download / Share action buttons
+    // Download / Share
     const actionBtns = overlay.querySelectorAll('.rr-modal-action');
     if (actionBtns[0]) actionBtns[0].addEventListener('click', handleDownload);
     if (actionBtns[1]) actionBtns[1].addEventListener('click', handleShare);
 
-    // Initially hide download/share until card is ready
     setDownloadShareVisible(false);
-
     updateLeadModalScale();
   }
 
@@ -1044,23 +1451,36 @@
     leadModal.el.querySelector(`.rr-mode-${mode}`).classList.remove('rr-hidden');
 
     const footer = leadModal.el.querySelector('.rr-lead-footer');
-    if (footer) footer.style.display = (mode === 'loading' || mode === 'card') ? 'none' : '';
+    const hideFooterModes = ['loading', 'card', 'entry', 'existing-login', 'confirm', 'upload-cv'];
+    if (footer) footer.style.display = hideFooterModes.includes(mode) ? 'none' : '';
 
     if (mode === 'login') {
-      leadModal.codeInput.value = '';
-      leadModal.errorEl.textContent = '';
+      if (leadModal.codeInput) leadModal.codeInput.value = '';
+      if (leadModal.errorEl)   leadModal.errorEl.textContent = '';
     }
 
-    if (mode === 'recover') {
+    if (mode === 'recover' && leadModal.recoverCodeInput) {
       leadModal.recoverCodeInput.value = '';
     }
 
     if (mode === 'card' && leadModal.cardImageEl && leadModal.imageUrl) {
       leadModal.cardImageEl.src = leadModal.imageUrl;
+      // reset photo change UI
+      const photoInput = leadModal.el.querySelector('.rr-card-photo-change-input');
+      if (photoInput) photoInput.style.display = 'none';
+    }
+
+    if (mode === 'upload-cv') {
+      const uvArea    = leadModal.el.querySelector('.rr-uv-area');
+      const uvFilename = leadModal.el.querySelector('.rr-uv-filename');
+      const uvAnalyze = leadModal.el.querySelector('.rr-uv-analyze');
+      if (uvArea)     uvArea.classList.remove('has-file');
+      if (uvFilename) uvFilename.textContent = '';
+      if (uvAnalyze)  uvAnalyze.classList.remove('ready');
     }
   }
 
-  function openLeadModal(mode = 'signup') {
+  function openLeadModal(mode = 'entry') {
     if (!leadModal.el) createLeadModalDOM();
 
     leadModal.open = true;
@@ -2211,7 +2631,7 @@
 
     if (!inside) return false;
 
-    openLeadModal('signup');
+    openLeadModal('entry');
     return true;
   }
 
@@ -2622,4 +3042,26 @@
   preloadManifest();
   createLeadModalDOM();
   animate();
+
+  // Handle LinkedIn OAuth callback (?oauth=CODE or ?oauth_error=...)
+  (function checkOAuthReturn() {
+    const params = new URLSearchParams(window.location.search);
+    const oauthCode  = params.get('oauth');
+    const oauthError = params.get('oauth_error');
+    if (!oauthCode && !oauthError) return;
+    history.replaceState({}, '', window.location.pathname);
+    if (oauthCode) {
+      handleOAuthReturn(oauthCode);
+    } else {
+      const msgs = {
+        not_found: 'No account found with this LinkedIn email. Please sign up.',
+        expired:   'Session expired. Please try again.',
+        no_email:  'LinkedIn did not share your email. Please allow email access.',
+        server:    'LinkedIn sign-in failed. Please try again.',
+      };
+      openLeadModal('existing-login');
+      const errEl = leadModal.el && leadModal.el.querySelector('.rr-el-error');
+      if (errEl) errEl.textContent = msgs[oauthError] || 'LinkedIn sign-in failed.';
+    }
+  })();
 })();

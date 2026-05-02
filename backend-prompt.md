@@ -174,7 +174,7 @@ Puppeteer browser must be a **singleton** launched once at server boot with `--n
 
   portrait: <absolute URL or data URI; Puppeteer will fetch it>,
 
-  code: "ADMY " + <amCode>,        // e.g. "ADMY ABCD123"
+  code: <amCode>,                  // e.g. "ABCD1234"
 
   delta: {
     value: <Float, e.g. -0.030 or 0.045>,

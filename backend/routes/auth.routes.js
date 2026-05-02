@@ -5,9 +5,12 @@ const ctrl       = require('../controllers/auth.controller');
 
 const router = Router();
 
-router.post('/signup',     ctrl.signup);
-router.post('/login',      ctrl.login);
-router.post('/code-login', ctrl.codeLogin);
-router.get('/me',          auth, ctrl.me);
+router.post('/signup',              ctrl.signup);
+router.post('/login',               ctrl.login);
+router.post('/code-login',          ctrl.codeLogin);
+router.get('/me',                   auth, ctrl.me);
+router.get('/linkedin',             ctrl.linkedinAuth);
+router.get('/linkedin/callback',    ctrl.linkedinCallback);
+router.get('/linkedin/exchange',    ctrl.linkedinExchange);
 
 module.exports = router;

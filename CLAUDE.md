@@ -80,10 +80,14 @@ Server starts on `http://localhost:3000`. Verify with `GET /healthz`.
 | `NODE_ENV` | no | `development` or `production` |
 | `MONGODB_URI` | **yes** | Atlas connection string |
 | `JWT_SECRET` | **yes** | Long random string for signing tokens |
+| `ADMIN_SECRET` | **yes** | Password for the `/admin` panel |
 | `GEMINI_API_KEY` | **yes** | Gemini API key — use `gemini-2.5-flash` model |
 | `CLOUDINARY_CLOUD_NAME` | **yes** | Cloudinary cloud name |
 | `CLOUDINARY_API_KEY` | **yes** | Cloudinary API key |
 | `CLOUDINARY_API_SECRET` | **yes** | Cloudinary API secret |
+| `LINKEDIN_CLIENT_ID` | no | LinkedIn OAuth app client ID |
+| `LINKEDIN_CLIENT_SECRET` | no | LinkedIn OAuth app client secret |
+| `LINKEDIN_REDIRECT_URI` | no | LinkedIn OAuth callback URL (default `http://localhost:3000/api/auth/linkedin/callback`) |
 | `FRONTEND_ORIGIN` | no | CORS allowed origin (default `*`; set to `http://localhost:8000` locally) |
 | `BASE_URL` | no | Base URL Puppeteer uses to load templates (default `http://127.0.0.1:PORT`) |
 
@@ -146,14 +150,18 @@ curl -s -X POST http://localhost:3000/api/auth/code-login \
 
 ### 3 — Frontend modal flow
 
-1. Open `http://localhost:8000`
-2. Click the hero card's "Get my rate card" button
-3. Enter your email → click LinkedIn (paste text in prompt) or "Add your CV" (pick a PDF)
-4. Wait ~20 s — card is generated; modal switches to login view and pre-fills your amCode
+**New user (LinkedIn OAuth):**
+1. Open `http://localhost:8000` → click hero card → modal opens on **Entry** screen
+2. Click **NEW USER** → redirected to LinkedIn OAuth
+3. On return: confirm/edit your name, bio, portfolio URL, and photo
+4. Upload your PDF CV → AI analyzes it and generates your rate card (~20 s)
 5. **Save the 8-character code** (format: 4 letters + 4 digits, e.g. `ABCD1234`) — it's the only way to log back in
 6. Download or Share the card via the action buttons at the bottom
 
-To log in later: open modal → click "Login" → enter email + code → Enter
+**Returning user:**
+- Click **RETURNING?** → enter email + code, or click "Continue with LinkedIn"
+
+**LinkedIn OAuth not configured?** The LinkedIn button redirects to the OAuth flow; if `LINKEDIN_CLIENT_ID` is not set, that endpoint returns 503 and the user must use email+code login instead.
 
 ---
 
@@ -164,15 +172,24 @@ To log in later: open modal → click "Login" → enter email + code → Enter
 | GET | `/healthz` | — | Health check |
 | POST | `/api/auth/signup` | — | Register `{ email, password, name }` |
 | POST | `/api/auth/login` | — | Password login (internal) |
-| POST | `/api/auth/code-login` | — | Login with `{ email, code }` — returns `{ token, cardId, imageUrl }` |
+| POST | `/api/auth/code-login` | — | Login with `{ email, code }` — returns `{ token, cardId, imageUrl, amCode, photoLocked }` |
 | GET | `/api/auth/me` | JWT | Current user |
+| GET | `/api/auth/linkedin` | — | Start LinkedIn OAuth (`?intent=new` or `?intent=existing`) |
+| GET | `/api/auth/linkedin/callback` | — | LinkedIn OAuth callback — redirects to frontend with `?oauth=CODE` |
+| GET | `/api/auth/linkedin/exchange` | — | Exchange short-lived `code` for session data (`?code=…`) |
 | POST | `/api/resume/upload` | JWT | Upload PDF resume (`multipart file`) |
 | POST | `/api/resume/linkedin` | JWT | Parse LinkedIn text `{ urlOrText }` |
 | POST | `/api/score/generate` | JWT | Score stored profile via Gemini (10/hr) |
-| POST | `/api/user/bio` | JWT | Update `{ bio, portfolioUrl, portraitUrl }` or upload `portrait` file |
+| POST | `/api/user/bio` | JWT | Update `{ name, bio, portfolioUrl, portraitUrl }` or upload `portrait` file |
+| PATCH | `/api/user/photo` | JWT | Update portrait URL once — sets `photoLocked = true` afterwards |
 | POST | `/api/card/generate` | JWT | Render + upload card PNG (10/hr) — returns `{ cardId, imageUrl, amCode }` |
 | GET | `/api/card/:id` | — | Public card data |
 | GET | `/api/card/:id/image` | — | 302 redirect to Cloudinary PNG |
+| GET | `/admin` | — | Admin panel UI |
+| POST | `/admin/api/auth` | — | Admin login `{ secret }` — returns short-lived JWT |
+| GET | `/admin/api/stats` | Admin JWT | User/card counts |
+| GET/PATCH/DELETE | `/admin/api/users/:id` | Admin JWT | User CRUD |
+| GET/PATCH/DELETE | `/admin/api/cards/:id` | Admin JWT | Card CRUD |
 
 ---
 
@@ -181,9 +198,12 @@ To log in later: open modal → click "Login" → enter email + code → Enter
 ### Auth strategy
 
 The frontend is passwordless from the user's perspective. Internally:
-- **Signup**: password is derived as `email + '_am'` (never shown to user)
-- **Login**: user supplies their email + 8-char `amCode`; the `/api/auth/code-login` endpoint verifies `amCode` against the stored card and returns a JWT
+- **Signup via LinkedIn OAuth**: user clicks "New User" → LinkedIn redirects back with `?oauth=CODE` → frontend exchanges code via `/api/auth/linkedin/exchange` → gets JWT + profile data → confirms details → uploads CV → generates card
+- **Signup fallback**: password is derived as `email + '_am'` (never shown to user) — used when creating an account via the LinkedIn callback (the OAuth flow handles signup transparently)
+- **Login**: user supplies email + 8-char `amCode`, or clicks "Continue with LinkedIn" (intent=existing)
+- **LinkedIn OAuth session**: after the OAuth redirect, a one-time 2-min session code is stored server-side; the frontend exchanges it immediately via `/api/auth/linkedin/exchange` — the code is consumed on first use
 - **amCode format**: 4 uppercase letters + 4 digits (e.g. `ABCD1234`), regenerated on every `POST /api/card/generate`
+- **photoLocked**: users can change their portrait URL once via `PATCH /api/user/photo`; after that the field is locked
 
 ### Key services
 
@@ -191,16 +211,20 @@ The frontend is passwordless from the user's perspective. Internally:
 |---|---|
 | `services/llm.js` | Gemini adapter — `complete(systemPrompt, userPrompt, { json, model })` |
 | `services/resumeParser.js` | pdf-parse → LLM → structured profile |
-| `services/linkedin.js` | LLM from pasted text → structured profile |
+| `services/linkedin.js` | LLM from pasted text → structured profile (also extracts `photoUrl`) |
+| `services/linkedin-oauth.js` | LinkedIn OAuth helpers — `buildAuthUrl`, `exchangeCode`, `getUserInfo` |
 | `services/scoring.js` | LLM → score fields + org logos in parallel |
 | `services/logos.js` | Clearbit logo lookup → monogram SVG fallback |
 | `services/cardData.js` | `buildCardData(user, card)` → `window.CARD_DATA` shape for the template |
 | `services/puppeteer.js` | Singleton browser; `renderCard(cardData)` screenshots `#artboard` at 2× DPI |
 | `services/cloudinary.js` | `uploadCardImage` / `uploadPortrait` — overwrites on re-generate |
+| `utils/oauthSessions.js` | In-memory store for short-lived OAuth session codes (2-min TTL, consumed on use) |
+| `utils/logger.js` | Pino logger instance |
+| `middleware/adminAuth.js` | Verifies admin JWT on `/admin/api/*` routes |
 
 ### Data models
 
-- **User**: email (unique lowercase), passwordHash, name, bio (max 80 chars), portfolioUrl, portraitUrl
+- **User**: email (unique lowercase), passwordHash, name, bio (max 80 chars), portfolioUrl, portraitUrl, photoLocked (bool — true after portrait is changed once)
 - **Card** (1-per-user): userId, rate/replaceability (13–99), chessPiece, employmentStatus, amCode, delta, educationOrg/workOrg (name + domain + logoUrl), ctaUrl, portraitUrl, rawProfile, imageUrl
 
 ### Rate limits
@@ -225,9 +249,12 @@ Score and card generation are limited to **10 requests/hour per user** (keyed by
 - Custom perspective projection (`FOCAL = 920`), camera `(x, y, zoom)`, depth-sorted render loop
 - Deterministic layout via seeded PRNG (stable across reloads)
 - Hero billboard with Canvas-drawn 3-image carousel (2400 ms rotation)
-- Lead modal (signup/login/recover) wired to backend — no DOM overlays, rendered on canvas
-- Signup flow: email → LinkedIn paste or PDF upload → score → card → switches to login, pre-fills amCode
-- Login flow: email + amCode → Enter key → JWT stored in `leadModal.token`
+- Lead modal wired to backend — no DOM overlays, rendered on canvas
+- Modal modes: `entry` → `existing-login` | `confirm` → `upload-cv` → `loading` → `card`
+- New user flow: entry → LinkedIn OAuth redirect → confirm details → upload CV → card
+- Returning user flow: entry → existing-login (LinkedIn or email+code) → card
+- On page load, checks `?oauth=CODE` / `?oauth_error=…` query params to complete OAuth redirect
+- JWT stored in `leadModal.token`; photo-change row hidden after `photoLocked` is set
 - Download/Share buttons appear only after card is generated or user logs in
 - Touch: drag to pan, pinch to zoom; `passive: false` on all touch listeners
 - Zoom range: 0.22×–3.2×

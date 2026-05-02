@@ -9,6 +9,7 @@ function buildPrompt(urlOrText) {
     `Return JSON with exactly these keys:\n` +
     `  name        (string)\n` +
     `  headline    (string — professional title or tagline)\n` +
+    `  photoUrl    (string or null — profile photo URL if present in the text, e.g. media.licdn.com image URL; null if not found)\n` +
     `  skills      (array of strings)\n` +
     `  experience  (array of { title, company, duration })\n` +
     `  education   (array of { school, degree })`

@@ -26,6 +26,7 @@ app.use('/api/resume', require('./routes/resume.routes'));
 app.use('/api/score',  require('./routes/score.routes'));
 app.use('/api/card',   require('./routes/card.routes'));
 app.use('/api/user',   require('./routes/user.routes'));
+app.use('/admin',      require('./routes/admin.routes'));
 
 // Serves templates/ so Puppeteer can load rate-card.html over HTTP
 app.use('/_internal/template', express.static(path.join(__dirname, 'templates')));

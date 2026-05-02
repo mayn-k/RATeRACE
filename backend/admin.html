@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADMY Admin</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #000;
+    --s1:      #0d0d0d;
+    --s2:      #161616;
+    --s3:      #1f1f1f;
+    --border:  #2a2a2a;
+    --text:    #e8e6e1;
+    --muted:   #666;
+    --accent:  #edf53d;
+    --danger:  #ff4545;
+    --success: #3dde6e;
+    --radius:  6px;
+    --font:    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  /* ── Login ─────────────────────────────────────────────── */
+  #login-view {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+  }
+  .login-card {
+    background: var(--s1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 360px;
+  }
+  .login-card .logo {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .login-card .subtitle {
+    color: var(--muted);
+    margin-bottom: 32px;
+    font-size: 12px;
+  }
+  .login-card input {
+    width: 100%;
+    background: var(--s2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .login-card input:focus { border-color: var(--accent); }
+  .login-card .err {
+    color: var(--danger);
+    font-size: 12px;
+    min-height: 18px;
+    margin-bottom: 10px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    border: none;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.12s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:active { opacity: 0.7; }
+  .btn-accent { background: var(--accent); color: #111; }
+  .btn-ghost  { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-sm     { padding: 4px 10px; font-size: 12px; }
+  .btn-full   { width: 100%; justify-content: center; }
+
+  /* ── Shell ─────────────────────────────────────────────── */
+  #main-view { display: none; flex-direction: column; min-height: 100vh; }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 52px;
+    background: var(--s1);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header .brand {
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+  header .brand span { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 8px; }
+
+  .layout {
+    display: flex;
+    flex: 1;
+  }
+
+  /* ── Sidebar ───────────────────────────────────────────── */
+  .sidebar {
+    width: 180px;
+    flex-shrink: 0;
+    background: var(--s1);
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: color 0.12s, background 0.12s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .nav-item:hover { color: var(--text); background: var(--s2); }
+  .nav-item.active { color: var(--accent); background: var(--s2); }
+  .nav-item .icon { width: 16px; opacity: 0.7; }
+
+  .nav-section {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    padding: 16px 20px 6px;
+    text-transform: uppercase;
+  }
+
+  /* ── Main content ──────────────────────────────────────── */
+  .content {
+    flex: 1;
+    padding: 24px;
+    overflow: auto;
+  }
+
+  /* ── Stats bar ─────────────────────────────────────────── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--s1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .stat-card .label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .stat-card .value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  /* ── Tab section ───────────────────────────────────────── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 12px;
+  }
+  .section-title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .search-input {
+    background: var(--s1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 7px 12px;
+    width: 220px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+
+  /* ── Table ─────────────────────────────────────────────── */
+  .table-wrap {
+    background: var(--s1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--s2); }
+  tbody td {
+    padding: 10px 14px;
+    vertical-align: middle;
+    max-width: 220px;
+  }
+  .truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+    display: block;
+  }
+  .mono {
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* Badges */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    background: var(--s3);
+    color: var(--text);
+  }
+  .badge-pawn     { background: #1a1a2e; color: #8080c0; }
+  .badge-knight   { background: #1a2e1a; color: #60b060; }
+  .badge-bishop   { background: #2e1a1a; color: #c06060; }
+  .badge-rook     { background: #2e2a1a; color: #c0a060; }
+  .badge-queen    { background: #2a1a2e; color: #a060c0; }
+  .badge-king     { background: #2e2010; color: var(--accent); }
+  .badge-employed   { background: #0d2d1a; color: var(--success); }
+  .badge-unemployed { background: #2d0d0d; color: var(--danger); }
+  .badge-intern     { background: #1a1a0d; color: #c8c840; }
+  .badge-retired    { background: #1a1a1a; color: var(--muted); }
+
+  .rate-num {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--accent);
+  }
+
+  .thumb {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--s3);
+    border: 1px solid var(--border);
+  }
+  .thumb-placeholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--s3);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .actions { display: flex; gap: 6px; }
+
+  /* ── Pagination ─────────────────────────────────────────── */
+  .pagination {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 14px;
+    justify-content: flex-end;
+  }
+  .page-info { color: var(--muted); font-size: 12px; margin-right: 4px; }
+  .page-btn {
+    background: var(--s1);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--font);
+    transition: background 0.1s;
+  }
+  .page-btn:hover:not(:disabled) { background: var(--s2); }
+  .page-btn:disabled { opacity: 0.3; cursor: default; }
+  .page-btn.current { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Modal ─────────────────────────────────────────────── */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 24px;
+  }
+  .overlay.open { display: flex; }
+
+  .modal {
+    background: var(--s1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-title { font-weight: 600; font-size: 14px; }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0 4px;
+    transition: color 0.12s;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-body { padding: 20px; }
+  .modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .field {
+    margin-bottom: 14px;
+  }
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    background: var(--s2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus { border-color: var(--accent); }
+  .field select option { background: var(--s2); }
+  .field textarea { resize: vertical; min-height: 80px; }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* Confirm modal */
+  .confirm-msg { margin-bottom: 16px; line-height: 1.5; color: var(--muted); }
+  .confirm-msg strong { color: var(--text); }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 200;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+  #toast.success { background: var(--success); color: #000; }
+  #toast.error   { background: var(--danger);  color: #fff; }
+
+  /* Empty state */
+  .empty {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  /* Loading spinner */
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- ── Login ─────────────────────────────────────────────────────────────── -->
+<div id="login-view">
+  <div class="login-card">
+    <div class="logo">ADMY</div>
+    <div class="subtitle">Admin Panel</div>
+    <input type="password" id="secret-input" placeholder="Admin secret" autocomplete="current-password">
+    <div class="err" id="login-err"></div>
+    <button class="btn btn-accent btn-full" id="login-btn">Enter</button>
+  </div>
+</div>
+
+<!-- ── Main shell ─────────────────────────────────────────────────────────── -->
+<div id="main-view">
+  <header>
+    <div class="brand">ADMY <span>Admin</span></div>
+    <button class="btn btn-ghost btn-sm" id="logout-btn">Logout</button>
+  </header>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="nav-section">Overview</div>
+      <button class="nav-item active" data-tab="users">
+        <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm5 5.5a5 5 0 0 0-10 0 .5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5z"/></svg>
+        Users
+      </button>
+      <button class="nav-item" data-tab="cards">
+        <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M14 3a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h12zM2 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2z"/><path d="M2 5.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1H2.5a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1H2.5a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1H2.5a.5.5 0 0 1-.5-.5z"/></svg>
+        Cards
+      </button>
+    </nav>
+
+    <div class="content">
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="label">Total Users</div>
+          <div class="value" id="stat-users">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total Cards</div>
+          <div class="value" id="stat-cards">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Cards w/ Image</div>
+          <div class="value" id="stat-images">—</div>
+        </div>
+      </div>
+
+      <!-- ── Users tab ──────────────────────────────────────── -->
+      <div id="tab-users">
+        <div class="section-header">
+          <div class="section-title">Users</div>
+          <input class="search-input" id="users-search" placeholder="Search name or email…" type="search">
+        </div>
+        <div class="table-wrap">
+          <table id="users-table">
+            <thead>
+              <tr>
+                <th>Portrait</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Bio</th>
+                <th>Portfolio</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-body">
+              <tr><td colspan="7" class="empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="users-pagination"></div>
+      </div>
+
+      <!-- ── Cards tab ──────────────────────────────────────── -->
+      <div id="tab-cards" style="display:none">
+        <div class="section-header">
+          <div class="section-title">Cards</div>
+          <input class="search-input" id="cards-search" placeholder="Search amCode…" type="search">
+        </div>
+        <div class="table-wrap">
+          <table id="cards-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>User</th>
+                <th>Rate</th>
+                <th>Replace</th>
+                <th>Piece</th>
+                <th>Status</th>
+                <th>amCode</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="cards-body">
+              <tr><td colspan="9" class="empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="cards-pagination"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Edit User Modal ────────────────────────────────────────────────────── -->
+<div class="overlay" id="user-modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit User</div>
+      <button class="modal-close" data-close="user-modal-overlay">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-user-id">
+      <div class="field-row">
+        <div class="field">
+          <label>Name</label>
+          <input type="text" id="edit-user-name">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="edit-user-email">
+        </div>
+      </div>
+      <div class="field">
+        <label>Bio <small style="color:var(--muted)">(max 80 chars)</small></label>
+        <input type="text" id="edit-user-bio" maxlength="80">
+      </div>
+      <div class="field">
+        <label>Portfolio URL</label>
+        <input type="url" id="edit-user-portfolioUrl" placeholder="https://…">
+      </div>
+      <div class="field">
+        <label>Portrait URL</label>
+        <input type="url" id="edit-user-portraitUrl" placeholder="https://…">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="user-modal-overlay">Cancel</button>
+      <button class="btn btn-accent" id="save-user-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Edit Card Modal ────────────────────────────────────────────────────── -->
+<div class="overlay" id="card-modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Card</div>
+      <button class="modal-close" data-close="card-modal-overlay">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-card-id">
+      <div class="field-row">
+        <div class="field">
+          <label>Rate (13–99)</label>
+          <input type="number" id="edit-card-rate" min="13" max="99">
+        </div>
+        <div class="field">
+          <label>Replaceability (13–99)</label>
+          <input type="number" id="edit-card-replaceability" min="13" max="99">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Chess Piece</label>
+          <select id="edit-card-chessPiece">
+            <option value="">— none —</option>
+            <option value="pawn">Pawn</option>
+            <option value="knight">Knight</option>
+            <option value="bishop">Bishop</option>
+            <option value="rook">Rook</option>
+            <option value="queen">Queen</option>
+            <option value="king">King</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Employment Status</label>
+          <select id="edit-card-employmentStatus">
+            <option value="">— none —</option>
+            <option value="unemployed">Unemployed</option>
+            <option value="intern">Intern</option>
+            <option value="employed">Employed</option>
+            <option value="retired">Retired</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>amCode</label>
+        <input type="text" id="edit-card-amCode" maxlength="8" placeholder="ABCD1234">
+      </div>
+      <div class="field">
+        <label>CTA URL</label>
+        <input type="url" id="edit-card-ctaUrl" placeholder="https://…">
+      </div>
+      <div class="field">
+        <label>Portrait URL</label>
+        <input type="url" id="edit-card-portraitUrl" placeholder="https://…">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="card-modal-overlay">Cancel</button>
+      <button class="btn btn-accent" id="save-card-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Confirm Delete Modal ───────────────────────────────────────────────── -->
+<div class="overlay" id="confirm-overlay">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title">Confirm Delete</div>
+      <button class="modal-close" data-close="confirm-overlay">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-msg" id="confirm-msg"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="confirm-overlay">Cancel</button>
+      <button class="btn btn-danger" id="confirm-delete-btn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ──────────────────────────────────────────────────────────────── -->
+<div id="toast"></div>
+
+<script>
+const BASE = '/admin';
+let TOKEN = localStorage.getItem('adminToken') || '';
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(BASE + path, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+document.getElementById('login-btn').addEventListener('click', doLogin);
+document.getElementById('secret-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+async function doLogin() {
+  const secret = document.getElementById('secret-input').value;
+  const errEl  = document.getElementById('login-err');
+  errEl.textContent = '';
+  try {
+    const data = await fetch(BASE + '/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secret }),
+    }).then(r => r.json());
+    if (!data.token) throw new Error(data.error || 'Failed');
+    TOKEN = data.token;
+    localStorage.setItem('adminToken', TOKEN);
+    showMain();
+  } catch (e) {
+    errEl.textContent = e.message;
+  }
+}
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  TOKEN = '';
+  localStorage.removeItem('adminToken');
+  document.getElementById('main-view').style.display = 'none';
+  document.getElementById('login-view').style.display = 'flex';
+  document.getElementById('secret-input').value = '';
+});
+
+function showMain() {
+  document.getElementById('login-view').style.display = 'none';
+  document.getElementById('main-view').style.display = 'flex';
+  loadStats();
+  loadUsers();
+  loadCards();
+}
+
+// Auto-login if token exists
+if (TOKEN) {
+  showMain();
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const s = await api('GET', '/api/stats');
+    document.getElementById('stat-users').textContent  = s.users;
+    document.getElementById('stat-cards').textContent  = s.cards;
+    document.getElementById('stat-images').textContent = s.cardsWithImage;
+  } catch {}
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.getElementById('tab-users').style.display = tab === 'users' ? '' : 'none';
+    document.getElementById('tab-cards').style.display = tab === 'cards' ? '' : 'none';
+  });
+});
+
+// ── Close modals ──────────────────────────────────────────────────────────────
+document.querySelectorAll('[data-close]').forEach(el => {
+  el.addEventListener('click', () => {
+    document.getElementById(el.dataset.close).classList.remove('open');
+  });
+});
+document.querySelectorAll('.overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ── USERS ─────────────────────────────────────────────────────────────────────
+let usersState = { page: 1, q: '' };
+
+async function loadUsers() {
+  const { page, q } = usersState;
+  try {
+    const data = await api('GET', `/api/users?page=${page}&limit=20&q=${encodeURIComponent(q)}`);
+    renderUsers(data);
+  } catch (e) {
+    document.getElementById('users-body').innerHTML =
+      `<tr><td colspan="7" class="empty">Error: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+function renderUsers({ docs, total, page, pages }) {
+  const tbody = document.getElementById('users-body');
+  if (!docs.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">No users found.</td></tr>';
+    renderPagination('users-pagination', page, pages, p => { usersState.page = p; loadUsers(); });
+    return;
+  }
+  tbody.innerHTML = docs.map(u => `
+    <tr>
+      <td>
+        ${u.portraitUrl
+          ? `<img class="thumb" src="${esc(u.portraitUrl)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+          : ''}
+        <div class="thumb-placeholder" ${u.portraitUrl ? 'style="display:none"' : ''}>
+          ${esc((u.name || '?')[0].toUpperCase())}
+        </div>
+      </td>
+      <td><span class="truncate">${esc(u.name)}</span></td>
+      <td><span class="truncate">${esc(u.email)}</span></td>
+      <td><span class="truncate" style="max-width:140px;color:var(--muted)">${esc(u.bio) || '<span style="opacity:.3">—</span>'}</span></td>
+      <td>
+        ${u.portfolioUrl
+          ? `<a href="${esc(u.portfolioUrl)}" target="_blank" style="color:var(--accent);text-decoration:none;font-size:11px">Link ↗</a>`
+          : '<span style="opacity:.3">—</span>'}
+      </td>
+      <td><span class="mono">${fmtDate(u.createdAt)}</span></td>
+      <td>
+        <div class="actions">
+          <button class="btn btn-ghost btn-sm" onclick="openEditUser('${u._id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="confirmDeleteUser('${u._id}', '${esc(u.name)}')">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  renderPagination('users-pagination', page, pages, p => { usersState.page = p; loadUsers(); });
+}
+
+let usersSearchTimer;
+document.getElementById('users-search').addEventListener('input', e => {
+  clearTimeout(usersSearchTimer);
+  usersSearchTimer = setTimeout(() => {
+    usersState.q = e.target.value;
+    usersState.page = 1;
+    loadUsers();
+  }, 350);
+});
+
+// Edit user
+async function openEditUser(id) {
+  try {
+    const u = await api('GET', `/api/users/${id}`);
+    document.getElementById('edit-user-id').value          = u._id;
+    document.getElementById('edit-user-name').value        = u.name || '';
+    document.getElementById('edit-user-email').value       = u.email || '';
+    document.getElementById('edit-user-bio').value         = u.bio || '';
+    document.getElementById('edit-user-portfolioUrl').value = u.portfolioUrl || '';
+    document.getElementById('edit-user-portraitUrl').value  = u.portraitUrl || '';
+    document.getElementById('user-modal-overlay').classList.add('open');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+document.getElementById('save-user-btn').addEventListener('click', async () => {
+  const id = document.getElementById('edit-user-id').value;
+  const body = {
+    name:         document.getElementById('edit-user-name').value,
+    email:        document.getElementById('edit-user-email').value,
+    bio:          document.getElementById('edit-user-bio').value,
+    portfolioUrl: document.getElementById('edit-user-portfolioUrl').value,
+    portraitUrl:  document.getElementById('edit-user-portraitUrl').value,
+  };
+  try {
+    await api('PATCH', `/api/users/${id}`, body);
+    document.getElementById('user-modal-overlay').classList.remove('open');
+    toast('User saved');
+    loadUsers();
+    loadStats();
+  } catch (e) { toast(e.message, 'error'); }
+});
+
+// Delete user
+let pendingDeleteUser = null;
+function confirmDeleteUser(id, name) {
+  pendingDeleteUser = id;
+  document.getElementById('confirm-msg').innerHTML =
+    `Delete user <strong>${esc(name)}</strong> and their rate card? This cannot be undone.`;
+  document.getElementById('confirm-overlay').classList.add('open');
+  document.getElementById('confirm-delete-btn').onclick = async () => {
+    try {
+      await api('DELETE', `/api/users/${pendingDeleteUser}`);
+      document.getElementById('confirm-overlay').classList.remove('open');
+      toast('User deleted');
+      loadUsers();
+      loadCards();
+      loadStats();
+    } catch (e) { toast(e.message, 'error'); }
+  };
+}
+
+// ── CARDS ─────────────────────────────────────────────────────────────────────
+let cardsState = { page: 1, q: '' };
+
+async function loadCards() {
+  const { page, q } = cardsState;
+  try {
+    const data = await api('GET', `/api/cards?page=${page}&limit=20&q=${encodeURIComponent(q)}`);
+    renderCards(data);
+  } catch (e) {
+    document.getElementById('cards-body').innerHTML =
+      `<tr><td colspan="9" class="empty">Error: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+function renderCards({ docs, total, page, pages }) {
+  const tbody = document.getElementById('cards-body');
+  if (!docs.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">No cards found.</td></tr>';
+    renderPagination('cards-pagination', page, pages, p => { cardsState.page = p; loadCards(); });
+    return;
+  }
+  tbody.innerHTML = docs.map(c => {
+    const user = c.userId || {};
+    const piece = c.chessPiece || '';
+    const status = c.employmentStatus || '';
+    return `
+      <tr>
+        <td>
+          ${c.imageUrl
+            ? `<a href="${esc(c.imageUrl)}" target="_blank"><img class="thumb" src="${esc(c.imageUrl)}" style="border-radius:4px"></a>`
+            : '<div class="thumb-placeholder" style="border-radius:4px">—</div>'}
+        </td>
+        <td>
+          <span class="truncate" style="max-width:160px">
+            <div style="font-weight:500">${esc(user.name || '—')}</div>
+            <div class="mono" style="font-size:11px">${esc(user.email || '')}</div>
+          </span>
+        </td>
+        <td><span class="rate-num">${c.rate ?? '—'}</span></td>
+        <td><span class="rate-num" style="color:var(--muted)">${c.replaceability ?? '—'}</span></td>
+        <td>${piece ? `<span class="badge badge-${piece}">${piece}</span>` : '<span style="opacity:.3">—</span>'}</td>
+        <td>${status ? `<span class="badge badge-${status}">${status}</span>` : '<span style="opacity:.3">—</span>'}</td>
+        <td><span class="mono">${esc(c.amCode) || '<span style="opacity:.3">—</span>'}</span></td>
+        <td><span class="mono">${fmtDate(c.createdAt)}</span></td>
+        <td>
+          <div class="actions">
+            <button class="btn btn-ghost btn-sm" onclick="openEditCard('${c._id}')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="confirmDeleteCard('${c._id}', '${esc(c.amCode || c._id)}')">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+  renderPagination('cards-pagination', page, pages, p => { cardsState.page = p; loadCards(); });
+}
+
+let cardsSearchTimer;
+document.getElementById('cards-search').addEventListener('input', e => {
+  clearTimeout(cardsSearchTimer);
+  cardsSearchTimer = setTimeout(() => {
+    cardsState.q = e.target.value;
+    cardsState.page = 1;
+    loadCards();
+  }, 350);
+});
+
+// Edit card
+async function openEditCard(id) {
+  try {
+    const c = await api('GET', `/api/cards/${id}`);
+    document.getElementById('edit-card-id').value               = c._id;
+    document.getElementById('edit-card-rate').value             = c.rate ?? '';
+    document.getElementById('edit-card-replaceability').value   = c.replaceability ?? '';
+    document.getElementById('edit-card-chessPiece').value       = c.chessPiece || '';
+    document.getElementById('edit-card-employmentStatus').value = c.employmentStatus || '';
+    document.getElementById('edit-card-amCode').value           = c.amCode || '';
+    document.getElementById('edit-card-ctaUrl').value           = c.ctaUrl || '';
+    document.getElementById('edit-card-portraitUrl').value      = c.portraitUrl || '';
+    document.getElementById('card-modal-overlay').classList.add('open');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+document.getElementById('save-card-btn').addEventListener('click', async () => {
+  const id = document.getElementById('edit-card-id').value;
+  const body = {
+    rate:             document.getElementById('edit-card-rate').value,
+    replaceability:   document.getElementById('edit-card-replaceability').value,
+    chessPiece:       document.getElementById('edit-card-chessPiece').value,
+    employmentStatus: document.getElementById('edit-card-employmentStatus').value,
+    amCode:           document.getElementById('edit-card-amCode').value,
+    ctaUrl:           document.getElementById('edit-card-ctaUrl').value,
+    portraitUrl:      document.getElementById('edit-card-portraitUrl').value,
+  };
+  try {
+    await api('PATCH', `/api/cards/${id}`, body);
+    document.getElementById('card-modal-overlay').classList.remove('open');
+    toast('Card saved');
+    loadCards();
+  } catch (e) { toast(e.message, 'error'); }
+});
+
+// Delete card
+function confirmDeleteCard(id, code) {
+  document.getElementById('confirm-msg').innerHTML =
+    `Delete card <strong>${esc(code)}</strong>? This cannot be undone.`;
+  document.getElementById('confirm-overlay').classList.add('open');
+  document.getElementById('confirm-delete-btn').onclick = async () => {
+    try {
+      await api('DELETE', `/api/cards/${id}`);
+      document.getElementById('confirm-overlay').classList.remove('open');
+      toast('Card deleted');
+      loadCards();
+      loadStats();
+    } catch (e) { toast(e.message, 'error'); }
+  };
+}
+
+// ── Pagination ─────────────────────────────────────────────────────────────────
+const _pageCallbacks = {};
+
+function renderPagination(containerId, page, pages, onPage) {
+  const el = document.getElementById(containerId);
+  if (pages <= 1) { el.innerHTML = ''; return; }
+
+  _pageCallbacks[containerId] = onPage;
+
+  let html = `<span class="page-info">Page ${page} of ${pages}</span>`;
+  html += `<button class="page-btn" data-pid="${containerId}" data-p="${page - 1}" ${page <= 1 ? 'disabled' : ''}>‹ Prev</button>`;
+
+  const start = Math.max(1, page - 2);
+  const end   = Math.min(pages, page + 2);
+  for (let i = start; i <= end; i++) {
+    html += `<button class="page-btn ${i === page ? 'current' : ''}" data-pid="${containerId}" data-p="${i}">${i}</button>`;
+  }
+
+  html += `<button class="page-btn" data-pid="${containerId}" data-p="${page + 1}" ${page >= pages ? 'disabled' : ''}>Next ›</button>`;
+  el.innerHTML = html;
+  el.querySelectorAll('.page-btn[data-p]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cb = _pageCallbacks[btn.dataset.pid];
+      if (cb) cb(parseInt(btn.dataset.p));
+    });
+  });
+}
+</script>
+</body>
+</html>

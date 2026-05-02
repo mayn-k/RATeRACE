@@ -23,7 +23,7 @@ function buildCardData(user, card) {
 
     portrait: user.portraitUrl || card.portraitUrl || null,
 
-    code: `ADMY ${amCode}`,
+    code: amCode,
 
     delta: {
       value:     card.delta?.value     ?? 0,
