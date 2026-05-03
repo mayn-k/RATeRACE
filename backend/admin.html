@@ -563,12 +563,13 @@
                 <th>Piece</th>
                 <th>Status</th>
                 <th>amCode</th>
+                <th>LinkedIn</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody id="cards-body">
-              <tr><td colspan="9" class="empty">Loading…</td></tr>
+              <tr><td colspan="10" class="empty">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -665,6 +666,10 @@
         <input type="text" id="edit-card-amCode" maxlength="8" placeholder="ABCD1234">
       </div>
       <div class="field">
+        <label>LinkedIn URL</label>
+        <input type="url" id="edit-card-linkedinUrl" placeholder="https://linkedin.com/in/…">
+      </div>
+      <div class="field">
         <label>CTA URL</label>
         <input type="url" id="edit-card-ctaUrl" placeholder="https://…">
       </div>
@@ -720,6 +725,10 @@ async function api(method, path, body) {
   };
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(BASE + path, opts);
+  if (res.status === 401) {
+    doLogout();
+    throw new Error('Session expired — please log in again');
+  }
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Request failed');
   return data;
@@ -759,20 +768,25 @@ async function doLogin() {
   }
 }
 
-document.getElementById('logout-btn').addEventListener('click', () => {
+function doLogout() {
   TOKEN = '';
   localStorage.removeItem('adminToken');
+  cardsLoaded = false;
   document.getElementById('main-view').style.display = 'none';
   document.getElementById('login-view').style.display = 'flex';
   document.getElementById('secret-input').value = '';
-});
+}
+
+document.getElementById('logout-btn').addEventListener('click', doLogout);
+
+let cardsLoaded = false;
 
 function showMain() {
   document.getElementById('login-view').style.display = 'none';
   document.getElementById('main-view').style.display = 'flex';
+  cardsLoaded = false;
   loadStats();
-  loadUsers();
-  loadCards();
+  loadUsers(); // only load active tab on init
 }
 
 // Auto-login if token exists
@@ -798,6 +812,13 @@ document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
     const tab = btn.dataset.tab;
     document.getElementById('tab-users').style.display = tab === 'users' ? '' : 'none';
     document.getElementById('tab-cards').style.display = tab === 'cards' ? '' : 'none';
+    if (tab === 'cards') {
+      cardsLoaded = true;
+      loadCards();
+    }
+    if (tab === 'users') {
+      loadUsers();
+    }
   });
 });
 
@@ -940,7 +961,7 @@ async function loadCards() {
 function renderCards({ docs, total, page, pages }) {
   const tbody = document.getElementById('cards-body');
   if (!docs.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="empty">No cards found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">No cards found.</td></tr>';
     renderPagination('cards-pagination', page, pages, p => { cardsState.page = p; loadCards(); });
     return;
   }
@@ -948,11 +969,12 @@ function renderCards({ docs, total, page, pages }) {
     const user = c.userId || {};
     const piece = c.chessPiece || '';
     const status = c.employmentStatus || '';
+    const cardViewUrl = c.amCode ? `/card/${esc(c.amCode)}` : null;
     return `
       <tr>
         <td>
           ${c.imageUrl
-            ? `<a href="${esc(c.imageUrl)}" target="_blank"><img class="thumb" src="${esc(c.imageUrl)}" style="border-radius:4px"></a>`
+            ? `<a href="${cardViewUrl || esc(c.imageUrl)}" target="_blank"><img class="thumb" src="${esc(c.imageUrl)}" style="border-radius:4px"></a>`
             : '<div class="thumb-placeholder" style="border-radius:4px">—</div>'}
         </td>
         <td>
@@ -965,7 +987,16 @@ function renderCards({ docs, total, page, pages }) {
         <td><span class="rate-num" style="color:var(--muted)">${c.replaceability ?? '—'}</span></td>
         <td>${piece ? `<span class="badge badge-${piece}">${piece}</span>` : '<span style="opacity:.3">—</span>'}</td>
         <td>${status ? `<span class="badge badge-${status}">${status}</span>` : '<span style="opacity:.3">—</span>'}</td>
-        <td><span class="mono">${esc(c.amCode) || '<span style="opacity:.3">—</span>'}</span></td>
+        <td>
+          ${c.amCode
+            ? `<a href="${cardViewUrl}" target="_blank" class="mono" style="color:var(--accent);text-decoration:none">${esc(c.amCode)} ↗</a>`
+            : '<span style="opacity:.3">—</span>'}
+        </td>
+        <td>
+          ${c.linkedinUrl
+            ? `<a href="${esc(c.linkedinUrl)}" target="_blank" style="color:var(--accent);text-decoration:none;font-size:11px">LinkedIn ↗</a>`
+            : '<span style="opacity:.3">—</span>'}
+        </td>
         <td><span class="mono">${fmtDate(c.createdAt)}</span></td>
         <td>
           <div class="actions">
@@ -999,6 +1030,7 @@ async function openEditCard(id) {
     document.getElementById('edit-card-chessPiece').value       = c.chessPiece || '';
     document.getElementById('edit-card-employmentStatus').value = c.employmentStatus || '';
     document.getElementById('edit-card-amCode').value           = c.amCode || '';
+    document.getElementById('edit-card-linkedinUrl').value      = c.linkedinUrl || '';
     document.getElementById('edit-card-ctaUrl').value           = c.ctaUrl || '';
     document.getElementById('edit-card-portraitUrl').value      = c.portraitUrl || '';
     document.getElementById('card-modal-overlay').classList.add('open');
@@ -1013,6 +1045,7 @@ document.getElementById('save-card-btn').addEventListener('click', async () => {
     chessPiece:       document.getElementById('edit-card-chessPiece').value,
     employmentStatus: document.getElementById('edit-card-employmentStatus').value,
     amCode:           document.getElementById('edit-card-amCode').value,
+    linkedinUrl:      document.getElementById('edit-card-linkedinUrl').value,
     ctaUrl:           document.getElementById('edit-card-ctaUrl').value,
     portraitUrl:      document.getElementById('edit-card-portraitUrl').value,
   };

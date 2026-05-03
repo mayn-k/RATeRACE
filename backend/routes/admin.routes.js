@@ -152,7 +152,7 @@ router.patch('/api/cards/:id', async (req, res, next) => {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'Invalid id' });
     }
-    const allowed = ['rate', 'replaceability', 'chessPiece', 'employmentStatus', 'ctaUrl', 'portraitUrl', 'amCode'];
+    const allowed = ['rate', 'replaceability', 'chessPiece', 'employmentStatus', 'ctaUrl', 'linkedinUrl', 'portraitUrl', 'amCode'];
     const update  = {};
     for (const k of allowed) {
       if (req.body[k] !== undefined) update[k] = req.body[k] === '' ? null : req.body[k];

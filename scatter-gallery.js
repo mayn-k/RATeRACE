@@ -824,21 +824,12 @@
         border: 1px solid #444; object-fit: cover;
         background: #1a1a1a; display: block;
       }
-      .rr-cf-photo-lbl {
-        position: absolute; top: 114px; left: 0;
-        width: 245px; text-align: center;
-        font-size: 8px; color: #666; letter-spacing: .08em;
-      }
-      .rr-cf-photo-url-label { position: absolute; top: 134px; left: 0; }
-      .rr-cf-photo-url { position: absolute; top: 152px; left: 0; width: 245px; }
-      .rr-cf-name-label { position: absolute; top: 196px; left: 0; }
-      .rr-cf-name  { position: absolute; top: 214px; left: 0; width: 245px; }
-      .rr-cf-bio-label   { position: absolute; top: 256px; left: 0; }
-      .rr-cf-bio   { position: absolute; top: 274px; left: 0; width: 245px; }
-      .rr-cf-port-label  { position: absolute; top: 316px; left: 0; }
-      .rr-cf-port  { position: absolute; top: 334px; left: 0; width: 245px; }
+      .rr-cf-bio-label   { position: absolute; top: 122px; left: 0; }
+      .rr-cf-bio   { position: absolute; top: 140px; left: 0; width: 245px; }
+      .rr-cf-port-label  { position: absolute; top: 182px; left: 0; }
+      .rr-cf-port  { position: absolute; top: 200px; left: 0; width: 245px; }
       .rr-cf-next {
-        position: absolute; top: 382px; left: 0;
+        position: absolute; top: 244px; left: 0;
         width: 245px; height: 32px;
         background: #fff; border: 0; color: #000;
         font-family: "Pixelify Sans", monospace;
@@ -846,7 +837,7 @@
       }
       .rr-cf-next:hover { background: #edf53d; }
       .rr-cf-back {
-        position: absolute; top: 424px; left: 0;
+        position: absolute; top: 286px; left: 0;
         font-size: 8px; color: #555; cursor: pointer;
       }
       .rr-cf-back:hover { color: #fff; }
@@ -899,31 +890,6 @@
       }
       .rr-uv-back:hover { color: #fff; }
 
-      /* ── CARD MODE – photo change row ── */
-      .rr-card-photo-change-row {
-        position: absolute; top: 384px; left: 0; width: 245px;
-        text-align: center; font-size: 8px;
-        color: #555; letter-spacing: .08em;
-      }
-      .rr-card-photo-change-row span {
-        cursor: pointer; color: #ff0000;
-        text-decoration: underline;
-      }
-      .rr-card-photo-change-input {
-        position: absolute; top: 400px; left: 0; width: 245px;
-        display: none;
-      }
-      .rr-card-photo-change-input .rr-lead-input {
-        position: relative; top: auto;
-        font-size: 9px; margin-bottom: 4px;
-      }
-      .rr-card-photo-change-input button {
-        width: 100%; height: 26px;
-        background: #333; border: 1px solid #555; color: #ccc;
-        font-family: "Pixelify Sans", monospace;
-        font-size: 9px; letter-spacing: .1em; cursor: pointer;
-      }
-      .rr-card-photo-change-input button:hover { border-color: #fff; color: #fff; }
     `;
 
     document.head.appendChild(style);
@@ -991,18 +957,12 @@
     if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.add('rr-hidden');
     try {
       const data = await apiGet(`/api/auth/linkedin/exchange?code=${encodeURIComponent(code)}`);
-      leadModal.token      = data.token;
-      leadModal.photoLocked = data.photoLocked;
+      leadModal.token = data.token;
 
       if (data.isNew) {
         const el = leadModal.el;
-        const photoEl    = el.querySelector('.rr-cf-photo');
-        const photoUrlEl = el.querySelector('.rr-cf-photo-url');
-        const nameEl     = el.querySelector('.rr-cf-name');
-        if (photoEl && data.photo)  photoEl.src = data.photo;
-        if (photoUrlEl) photoUrlEl.value = data.photo || '';
-        if (nameEl)     nameEl.value     = data.name  || '';
-        leadModal.originalPhoto = data.photo || '';
+        const photoEl = el.querySelector('.rr-cf-photo');
+        if (photoEl && data.photo) photoEl.src = data.photo;
         setLeadModalMode('confirm');
       } else if (!data.hasCard) {
         leadModal.uploadCvBackMode = 'existing-login';
@@ -1014,7 +974,6 @@
         if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = data.amCode || '';
         setDownloadShareVisible(true);
         setLeadModalMode('card');
-        updateCardPhotoChangeRow();
       }
     } catch (err) {
       setLoadingStatus('LinkedIn error: ' + err.message);
@@ -1022,31 +981,17 @@
     }
   }
 
-  function updateCardPhotoChangeRow() {
-    if (!leadModal.el) return;
-    const row = leadModal.el.querySelector('.rr-card-photo-change-row');
-    if (row) row.style.display = leadModal.photoLocked ? 'none' : '';
-  }
-
   async function handleConfirmSubmit() {
     const el = leadModal.el;
-    const name         = el.querySelector('.rr-cf-name').value.trim();
     const bio          = el.querySelector('.rr-cf-bio').value.trim();
     const portfolioUrl = el.querySelector('.rr-cf-port').value.trim();
-    const newPhoto     = el.querySelector('.rr-cf-photo-url').value.trim();
 
     setLeadModalMode('loading');
     setLoadingStatus('Saving your details…');
     if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.add('rr-hidden');
 
     try {
-      await apiPost('/api/user/bio', { name, bio, portfolioUrl }, leadModal.token);
-
-      if (newPhoto && newPhoto !== leadModal.originalPhoto) {
-        await apiPatch('/api/user/photo', { portraitUrl: newPhoto }, leadModal.token);
-        leadModal.photoLocked = true;
-      }
-
+      await apiPost('/api/user/bio', { bio, portfolioUrl }, leadModal.token);
       leadModal.uploadCvBackMode = 'confirm';
       setLeadModalMode('upload-cv');
     } catch (err) {
@@ -1076,7 +1021,6 @@
       if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = cardData.amCode || '';
       setDownloadShareVisible(true);
       setLeadModalMode('card');
-      updateCardPhotoChangeRow();
     } catch (err) {
       setLoadingStatus('Error: ' + err.message);
       if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.remove('rr-hidden');
@@ -1099,8 +1043,7 @@
 
     try {
       const data = await apiPost('/api/auth/code-login', { email, code: raw });
-      leadModal.token      = data.token;
-      leadModal.photoLocked = data.photoLocked || false;
+      leadModal.token = data.token;
 
       if (data.imageUrl) {
         leadModal.cardId   = data.cardId;
@@ -1109,7 +1052,6 @@
         if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = data.amCode || raw;
         setDownloadShareVisible(true);
         setLeadModalMode('card');
-        updateCardPhotoChangeRow();
       } else {
         leadModal.uploadCvBackMode = 'existing-login';
         setLeadModalMode('upload-cv');
@@ -1118,29 +1060,6 @@
       setLeadModalMode('existing-login');
       const errEl2 = leadModal.el.querySelector('.rr-el-error');
       if (errEl2) errEl2.textContent = err.message;
-    }
-  }
-
-  async function handleCardPhotoChange(newUrl) {
-    if (!newUrl || leadModal.photoLocked) return;
-    setLeadModalMode('loading');
-    setLoadingStatus('Updating photo…');
-    if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.add('rr-hidden');
-    try {
-      await apiPatch('/api/user/photo', { portraitUrl: newUrl }, leadModal.token);
-      leadModal.photoLocked = true;
-      setLoadingStatus('Regenerating card…');
-      const cardData = await apiPost('/api/card/generate', {}, leadModal.token);
-      leadModal.cardId   = cardData.cardId;
-      leadModal.imageUrl = cardData.imageUrl;
-      leadModal.amCode   = cardData.amCode || '';
-      if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = cardData.amCode || '';
-      setDownloadShareVisible(true);
-      setLeadModalMode('card');
-      updateCardPhotoChangeRow();
-    } catch (err) {
-      setLoadingStatus('Error: ' + err.message);
-      if (leadModal.loadingBackBtn) leadModal.loadingBackBtn.classList.remove('rr-hidden');
     }
   }
 
@@ -1181,9 +1100,18 @@
       backdropFilter: 'blur(8px)',
       webkitBackdropFilter: 'blur(8px)',
       display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'flex-start',
-      overflowY: 'scroll', padding: '48px 16px 48px',
+      alignItems: 'center', justifyContent: 'center',
+      overflowY: 'auto', padding: '48px 16px 32px',
+      msOverflowStyle: 'none', scrollbarWidth: 'none',
     });
+
+    // Inject scrollbar-hiding rule scoped to the overlay
+    if (!document.getElementById('rr-overlay-scrollbar-style')) {
+      const st = document.createElement('style');
+      st.id = 'rr-overlay-scrollbar-style';
+      st.textContent = '#rr-card-fs-overlay::-webkit-scrollbar { display: none; }';
+      document.head.appendChild(st);
+    }
 
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '×';
@@ -1196,12 +1124,17 @@
     });
     closeBtn.addEventListener('click', closeCardModal);
 
+    // Size card to fit viewport: reserve space for close btn + share btn + padding
+    const overhead = 48 + 32 + 20 + 42; // padding top + bottom + share margin + share height
+    const maxH = Math.max(200, window.innerHeight - overhead);
+    const cardW = Math.round(Math.min(Math.max(240, maxH * (1053 / 1470)), Math.min(window.innerWidth * 0.92, 520)));
+    const cardH = Math.round(cardW * (1470 / 1053));
+
     const iframe = document.createElement('iframe');
     iframe.src = `${backendOrigin}/card/${encodeURIComponent(amCode)}?embed=1`;
     Object.assign(iframe.style, {
-      width: 'clamp(280px, 92vw, 560px)',
-      aspectRatio: '1053 / 1470',
-      border: 'none', borderRadius: '18px', display: 'block',
+      width: cardW + 'px', height: cardH + 'px',
+      border: 'none', borderRadius: '18px', display: 'block', flexShrink: '0',
     });
     iframe.setAttribute('frameborder', '0');
     iframe.setAttribute('scrolling', 'no');
@@ -1308,13 +1241,9 @@
             <div class="rr-cf-photo-wrap">
               <img class="rr-cf-photo" src="" alt="" onerror="this.style.display='none'">
             </div>
-            <div class="rr-cf-photo-lbl">PHOTO URL</div>
-            <input class="rr-lead-input rr-cf-photo-url" type="url" placeholder="https://…" />
-            <div class="rr-lead-label rr-cf-name-label">NAME</div>
-            <input class="rr-lead-input rr-cf-name" type="text" maxlength="80" />
             <div class="rr-lead-label rr-cf-bio-label">BIO (max 80 chars)</div>
             <input class="rr-lead-input rr-cf-bio" type="text" maxlength="80" placeholder="What you do in one line" />
-            <div class="rr-lead-label rr-cf-port-label">PORTFOLIO (optional)</div>
+            <div class="rr-lead-label rr-cf-port-label">PORTFOLIO / LINKEDIN</div>
             <input class="rr-lead-input rr-cf-port" type="url" placeholder="https://…" />
             <button class="rr-cf-next" type="button">NEXT →</button>
             <span class="rr-red-link rr-cf-back rr-cf-back-lnk">← back</span>
@@ -1402,13 +1331,6 @@
             <div class="rr-card-code-label">YOUR CODE</div>
             <div class="rr-card-code-value"></div>
             <div class="rr-card-code-hint">Save this code — it’s your only way to log back in</div>
-            <div class="rr-card-photo-change-row">
-              <span class="rr-card-photo-change-toggle">change photo</span>
-            </div>
-            <div class="rr-card-photo-change-input">
-              <input class="rr-lead-input rr-card-photo-url" type="url" placeholder="https://new-photo-url…" />
-              <button class="rr-card-photo-submit" type="button">UPDATE PHOTO + REGENERATE</button>
-            </div>
           </div>
 
           <div class="rr-lead-footer">
@@ -1473,11 +1395,6 @@
     // Confirm
     overlay.querySelector('.rr-cf-next').addEventListener('click', handleConfirmSubmit);
     overlay.querySelector('.rr-cf-back-lnk').addEventListener('click', () => setLeadModalMode('entry'));
-    const cfPhotoEl  = overlay.querySelector('.rr-cf-photo');
-    const cfPhotoUrl = overlay.querySelector('.rr-cf-photo-url');
-    cfPhotoUrl.addEventListener('input', () => {
-      if (cfPhotoEl && cfPhotoUrl.value) cfPhotoEl.src = cfPhotoUrl.value;
-    });
 
     // Upload CV
     const uvArea    = overlay.querySelector('.rr-uv-area');
@@ -1504,18 +1421,6 @@
     });
     overlay.querySelector('.rr-uv-back-lnk').addEventListener('click', () => {
       setLeadModalMode(leadModal.uploadCvBackMode || 'entry');
-    });
-
-    // Card – photo change
-    const photoChangeToggle = overlay.querySelector('.rr-card-photo-change-toggle');
-    const photoChangeInput  = overlay.querySelector('.rr-card-photo-change-input');
-    const photoUrlInput     = overlay.querySelector('.rr-card-photo-url');
-    const photoSubmitBtn    = overlay.querySelector('.rr-card-photo-submit');
-    photoChangeToggle.addEventListener('click', () => {
-      photoChangeInput.style.display = photoChangeInput.style.display === 'block' ? 'none' : 'block';
-    });
-    photoSubmitBtn.addEventListener('click', () => {
-      handleCardPhotoChange(photoUrlInput.value.trim());
     });
 
     // Legacy compat wiring (login/recover still present in DOM)
@@ -1576,8 +1481,6 @@
       if (viewBtn) {
         viewBtn.onclick = () => { if (leadModal.amCode) openCardModal(leadModal.amCode); };
       }
-      const photoInput = leadModal.el.querySelector('.rr-card-photo-change-input');
-      if (photoInput) photoInput.style.display = 'none';
     }
 
     if (mode === 'upload-cv') {
