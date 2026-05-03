@@ -648,23 +648,21 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 8px 0;
-      }
-
-      .rr-card-image-wrap {
-        width: 100%;
-        display: flex;
-        align-items: center;
         justify-content: center;
-        margin-bottom: 12px;
+        padding: 16px 0 8px;
+        gap: 0;
       }
 
-      .rr-card-image {
-        width: 100%;
-        height: auto;
-        object-fit: contain;
-        display: block;
-        border-radius: 12px;
+      .rr-card-image-wrap { display: none; }
+      .rr-card-image { display: none; }
+
+      .rr-card-ready-label {
+        font-size: 9px;
+        letter-spacing: 0.22em;
+        color: #888;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 6px;
       }
 
       .rr-card-code-label {
@@ -674,15 +672,17 @@
         letter-spacing: 0.22em;
         color: #888888;
         font-weight: 700;
+        margin-top: 18px;
       }
 
       .rr-card-code-value {
         text-align: center;
         width: 100%;
-        font-size: 18px;
+        font-size: 22px;
         letter-spacing: 0.18em;
         color: #ff0000;
         font-weight: 700;
+        margin-bottom: 4px;
       }
 
       .rr-card-code-hint {
@@ -691,7 +691,27 @@
         font-size: 7px;
         color: #666666;
         letter-spacing: 0.08em;
+        margin-bottom: 18px;
       }
+
+      .rr-card-view-btn {
+        display: block;
+        width: 100%;
+        padding: 11px 0;
+        background: #ff0000;
+        color: #fff;
+        font-family: "Pixelify Sans", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-align: center;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        margin-bottom: 10px;
+      }
+
+      .rr-card-view-btn:hover { background: #cc0000; }
 
       /* ── height overrides for new modes ── */
       .rr-lead-panel   { height: 440px; }
@@ -1269,9 +1289,9 @@
           </div>
 
           <div class="rr-lead-content rr-mode rr-mode-card rr-hidden">
-            <div class="rr-card-image-wrap">
-              <img class="rr-card-image" src="" alt="Your Rate Card" />
-            </div>
+            <div class="rr-card-image-wrap" style="display:none"><img class="rr-card-image" src="" alt="" /></div>
+            <div class="rr-card-ready-label">YOUR CARD IS READY</div>
+            <a class="rr-card-view-btn" id="cardViewBtn" href="#" target="_blank" rel="noopener noreferrer">VIEW YOUR CARD →</a>
             <div class="rr-card-code-label">YOUR CODE</div>
             <div class="rr-card-code-value"></div>
             <div class="rr-card-code-hint">Save this code — it’s your only way to log back in</div>
@@ -1444,8 +1464,13 @@
       leadModal.recoverCodeInput.value = '';
     }
 
-    if (mode === 'card' && leadModal.cardImageEl && leadModal.imageUrl) {
-      leadModal.cardImageEl.src = leadModal.imageUrl;
+    if (mode === 'card') {
+      // Wire up VIEW YOUR CARD button to the shareable page
+      const viewBtn = leadModal.el.querySelector('#cardViewBtn');
+      if (viewBtn && leadModal.amCode) {
+        const backendOrigin = window.location.origin.replace(':8000', ':3000');
+        viewBtn.href = `${backendOrigin}/card/${leadModal.amCode}`;
+      }
       // reset photo change UI
       const photoInput = leadModal.el.querySelector('.rr-card-photo-change-input');
       if (photoInput) photoInput.style.display = 'none';
