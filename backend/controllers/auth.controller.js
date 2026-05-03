@@ -8,6 +8,7 @@ const config   = require('../config');
 const logger   = require('../utils/logger');
 const oauthSessions          = require('../utils/oauthSessions');
 const { buildAuthUrl, exchangeCode, getUserInfo } = require('../services/linkedin-oauth');
+const { uploadLinkedInPortrait } = require('../services/cloudinary');
 
 const SALT_ROUNDS = 12;
 const TOKEN_TTL   = '30d';
@@ -155,6 +156,8 @@ async function linkedinCallback(req, res) {
       return res.redirect(`${frontendOrigin}?oauth_error=no_email`);
     }
 
+    const rawPhoto = liProfile.picture || null;
+
     let user  = await User.findOne({ email });
     let isNew = false;
 
@@ -166,10 +169,25 @@ async function linkedinCallback(req, res) {
       user = await User.create({
         email,
         passwordHash,
-        name:       liProfile.name || email.split('@')[0],
-        portraitUrl: liProfile.picture || null,
+        name:        liProfile.name || email.split('@')[0],
+        portraitUrl: rawPhoto,
       });
       isNew = true;
+    }
+
+    // Upload to Cloudinary with AI upscale — runs for both new and returning users
+    // (skipped if user has locked their own photo)
+    if (rawPhoto && !user.photoLocked) {
+      try {
+        const upscaledUrl = await uploadLinkedInPortrait(rawPhoto, user._id.toString());
+        user = await User.findByIdAndUpdate(
+          user._id,
+          { $set: { portraitUrl: upscaledUrl } },
+          { new: true }
+        );
+      } catch (err) {
+        logger.warn({ err }, 'Cloudinary portrait upload failed, using LinkedIn URL directly');
+      }
     }
 
     const card = await Card.findOne({ userId: user._id });

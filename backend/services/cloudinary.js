@@ -54,4 +54,23 @@ function uploadPortrait(buffer, userId) {
   });
 }
 
-module.exports = { uploadCardImage, uploadPortrait };
+async function uploadLinkedInPortrait(linkedInUrl, userId) {
+  const result = await cloudinary.uploader.upload(linkedInUrl, {
+    folder:     'portraits',
+    public_id:  `portrait_${userId}`,
+    overwrite:  true,
+  });
+  // Apply AI upscale + best quality on-the-fly via transformation URL
+  const upscaledUrl = cloudinary.url(result.public_id, {
+    transformation: [
+      { effect: 'upscale' },
+      { quality: 'auto:best' },
+    ],
+    secure: true,
+    format: 'jpg',
+  });
+  logger.info({ publicId: result.public_id }, 'LinkedIn portrait uploaded and upscaled via Cloudinary');
+  return upscaledUrl;
+}
+
+module.exports = { uploadCardImage, uploadPortrait, uploadLinkedInPortrait };
