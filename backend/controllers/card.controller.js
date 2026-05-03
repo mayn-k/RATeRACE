@@ -32,6 +32,7 @@ async function generate(req, res, next) {
       ? user.portfolioUrl
       : null;
     const linkedinUrl = rawLinkedin || portfolioIsLinkedin || null;
+    card.linkedinUrl = linkedinUrl; // available to buildCardData before DB write
 
     const cardData = buildCardData(user, card);
     const buffer   = await renderCard(cardData);

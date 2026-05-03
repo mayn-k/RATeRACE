@@ -38,7 +38,7 @@ function buildCardData(user, card) {
 
     cta: {
       label: 'Click here',
-      url:   card.ctaUrl || user.portfolioUrl || '#',
+      url:   card.ctaUrl || user.portfolioUrl || card.linkedinUrl || '#',
     },
 
     chessPiece: card.chessPiece,

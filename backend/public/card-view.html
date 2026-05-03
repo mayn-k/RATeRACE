@@ -7,6 +7,10 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html {
+      overflow-y: scroll;
+    }
+
     body {
       background: #111;
       color: #fff;
@@ -144,7 +148,6 @@
     <!-- overlays injected by JS -->
   </div>
 
-  <button id="share-button" style="display:none;margin-top:20px;padding:11px 32px;background:transparent;border:1px solid #fff;color:#fff;font-family:'Courier New',monospace;font-size:11px;font-weight:700;letter-spacing:0.18em;cursor:pointer;">SHARE</button>
   <a id="cta-button" href="#">
     CREATE YOUR OWN CARD
   </a>
@@ -166,14 +169,6 @@
       const cardContainer = document.getElementById('card-container');
       const cardImg       = document.getElementById('card-img');
       const ctaButton     = document.getElementById('cta-button');
-      const shareButton   = document.getElementById('share-button');
-
-      shareButton.addEventListener('click', async () => {
-        const shareUrl = `${BACKEND_URL}/card/${slug}`;
-        try { await navigator.clipboard.writeText(shareUrl); } catch (_) {}
-        shareButton.textContent = 'LINK COPIED';
-        setTimeout(() => { shareButton.textContent = 'SHARE'; }, 2000);
-      });
 
       function showError(msg) {
         stateLoading.style.display = 'none';
@@ -225,10 +220,7 @@
         }
 
         cardContainer.style.display = 'block';
-        if (!isEmbed) {
-          shareButton.style.display = 'inline-block';
-          ctaButton.style.display = 'inline-block';
-        }
+        if (!isEmbed) ctaButton.style.display = 'inline-block';
       }
 
       // Set up CTA button — same tab so user lands in onboarding flow

@@ -10,6 +10,7 @@ function buildPrompt(urlOrText) {
     `  name        (string)\n` +
     `  headline    (string — professional title or tagline)\n` +
     `  photoUrl    (string or null — profile photo URL if present in the text, e.g. media.licdn.com image URL; null if not found)\n` +
+    `  linkedinUrl (string or null — the linkedin.com/in/... profile URL if present in the text or derivable from the URL; null if not found)\n` +
     `  skills      (array of strings)\n` +
     `  experience  (array of { title, company, duration })\n` +
     `  education   (array of { school, degree })`

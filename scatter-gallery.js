@@ -1182,7 +1182,7 @@
       webkitBackdropFilter: 'blur(8px)',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'flex-start',
-      overflowY: 'auto', padding: '48px 16px 48px',
+      overflowY: 'scroll', padding: '48px 16px 48px',
     });
 
     const closeBtn = document.createElement('button');
