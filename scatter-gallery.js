@@ -1177,7 +1177,9 @@
     overlay.id = 'rr-card-fs-overlay';
     Object.assign(overlay.style, {
       position: 'fixed', inset: '0', zIndex: '9998',
-      background: 'rgba(0,0,0,0.97)',
+      background: 'rgba(17,17,17,0.55)',
+      backdropFilter: 'blur(8px)',
+      webkitBackdropFilter: 'blur(8px)',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'flex-start',
       overflowY: 'auto', padding: '48px 16px 48px',
@@ -1204,7 +1206,29 @@
     iframe.setAttribute('frameborder', '0');
     iframe.setAttribute('scrolling', 'no');
 
+    // Share button below the card
+    const shareBtn = document.createElement('button');
+    shareBtn.textContent = 'SHARE';
+    Object.assign(shareBtn.style, {
+      marginTop: '20px',
+      padding: '11px 32px',
+      background: 'transparent',
+      border: '1px solid #fff',
+      color: '#fff',
+      fontFamily: '"Pixelify Sans", monospace',
+      fontSize: '11px', fontWeight: '700',
+      letterSpacing: '0.18em',
+      cursor: 'pointer',
+    });
+    shareBtn.addEventListener('click', async () => {
+      const shareUrl = `${backendOrigin}/card/${amCode}`;
+      try { await navigator.clipboard.writeText(shareUrl); } catch (_) {}
+      shareBtn.textContent = 'LINK COPIED';
+      setTimeout(() => { shareBtn.textContent = 'SHARE'; }, 2000);
+    });
+
     overlay.appendChild(iframe);
+    overlay.appendChild(shareBtn);
     document.body.appendChild(overlay);
     document.body.appendChild(closeBtn);
     overlay._closeBtn = closeBtn;

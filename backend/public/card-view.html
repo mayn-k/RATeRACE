@@ -144,7 +144,8 @@
     <!-- overlays injected by JS -->
   </div>
 
-  <a id="cta-button" href="#" target="_blank" rel="noopener noreferrer">
+  <button id="share-button" style="display:none;margin-top:20px;padding:11px 32px;background:transparent;border:1px solid #fff;color:#fff;font-family:'Courier New',monospace;font-size:11px;font-weight:700;letter-spacing:0.18em;cursor:pointer;">SHARE</button>
+  <a id="cta-button" href="#">
     CREATE YOUR OWN CARD
   </a>
 
@@ -165,6 +166,14 @@
       const cardContainer = document.getElementById('card-container');
       const cardImg       = document.getElementById('card-img');
       const ctaButton     = document.getElementById('cta-button');
+      const shareButton   = document.getElementById('share-button');
+
+      shareButton.addEventListener('click', async () => {
+        const shareUrl = `${BACKEND_URL}/card/${slug}`;
+        try { await navigator.clipboard.writeText(shareUrl); } catch (_) {}
+        shareButton.textContent = 'LINK COPIED';
+        setTimeout(() => { shareButton.textContent = 'SHARE'; }, 2000);
+      });
 
       function showError(msg) {
         stateLoading.style.display = 'none';
@@ -190,32 +199,25 @@
           stateLoading.style.display = 'none';
         };
 
-        // Portrait + name overlay → LinkedIn or portfolio
-        const portraitHref = card.linkedinUrl || null;
-        if (portraitHref) {
+        // LinkedIn icon (CTA area) is the clickable target — portrait is NOT clickable
+        const linkHref = card.linkedinUrl || card.ctaUrl || data.user?.portfolioUrl || null;
+        if (linkHref && linkHref !== '#') {
           const a = document.createElement('a');
-          a.id        = 'overlay-portrait';
+          a.id        = 'overlay-cta';
           a.className = 'card-overlay-link';
-          a.href      = portraitHref;
+          a.href      = linkHref;
           a.target    = '_blank';
           a.rel       = 'noopener noreferrer';
           a.setAttribute('aria-label', 'View LinkedIn profile');
           cardContainer.appendChild(a);
         }
 
-        // CTA link overlay
-        const ctaHref = card.ctaUrl || data.user?.portfolioUrl || '#';
-        if (ctaHref && ctaHref !== '#') {
-          const b = document.createElement('a');
-          b.id        = 'overlay-cta';
-          b.className = 'card-overlay-link';
-          b.href      = ctaHref;
-          b.target    = '_blank';
-          b.rel       = 'noopener noreferrer';
-          b.setAttribute('aria-label', 'Visit portfolio / CTA link');
-          cardContainer.appendChild(b);
-
-          // Animated "click me" label for custom links
+        // "click me" animation for custom (non-LinkedIn) portfolio links
+        const customHref = card.ctaUrl || data.user?.portfolioUrl || null;
+        const hasCustom = customHref && customHref !== '#'
+          && customHref !== card.linkedinUrl
+          && !customHref.includes('linkedin.com');
+        if (hasCustom) {
           const label = document.createElement('div');
           label.className = 'card-clickme-label';
           label.textContent = 'click me';
@@ -223,12 +225,15 @@
         }
 
         cardContainer.style.display = 'block';
-        if (!isEmbed) ctaButton.style.display = 'inline-block';
+        if (!isEmbed) {
+          shareButton.style.display = 'inline-block';
+          ctaButton.style.display = 'inline-block';
+        }
       }
 
-      // Set up CTA button
+      // Set up CTA button — same tab so user lands in onboarding flow
       ctaButton.href = FRONTEND_ORIGIN;
-      ctaButton.setAttribute('target', '_blank');
+      ctaButton.removeAttribute('target');
 
       if (!slug) {
         showError('No card code found in URL.');
