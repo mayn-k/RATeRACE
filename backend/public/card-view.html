@@ -153,6 +153,7 @@
           showError('Could not load card image.');
           cardContainer.style.display = 'none';
           ctaButton.style.display = 'none';
+          stateLoading.style.display = 'none';
         };
 
         // Portrait + name overlay → LinkedIn or portfolio
@@ -181,8 +182,8 @@
           cardContainer.appendChild(b);
         }
 
-        cardContainer.style.display = '';
-        ctaButton.style.display = '';
+        cardContainer.style.display = 'block';
+        ctaButton.style.display = 'inline-block';
       }
 
       // Set up CTA button
