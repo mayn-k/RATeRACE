@@ -103,7 +103,8 @@
     cardCodeEl: null,
     token: null,
     cardId: null,
-    imageUrl: null
+    imageUrl: null,
+    amCode: null
   };
 
   const HOVER_EXPAND_DELAY = 1250;
@@ -643,30 +644,32 @@
       }
 
       /* CARD VIEW */
+      .rr-mode-card:not(.rr-hidden) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px 0;
+      }
+
       .rr-card-image-wrap {
-        position: absolute;
-        top: 10px;
-        left: 0;
-        width: 245px;
-        height: 305px;
+        width: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
+        margin-bottom: 12px;
       }
 
       .rr-card-image {
-        max-width: 100%;
-        max-height: 100%;
+        width: 100%;
+        height: auto;
         object-fit: contain;
         display: block;
+        border-radius: 12px;
       }
 
       .rr-card-code-label {
-        position: absolute;
-        top: 322px;
-        left: 0;
-        width: 245px;
         text-align: center;
+        width: 100%;
         font-size: 9px;
         letter-spacing: 0.22em;
         color: #888888;
@@ -674,11 +677,8 @@
       }
 
       .rr-card-code-value {
-        position: absolute;
-        top: 338px;
-        left: 0;
-        width: 245px;
         text-align: center;
+        width: 100%;
         font-size: 18px;
         letter-spacing: 0.18em;
         color: #ff0000;
@@ -686,11 +686,8 @@
       }
 
       .rr-card-code-hint {
-        position: absolute;
-        top: 368px;
-        left: 0;
-        width: 245px;
         text-align: center;
+        width: 100%;
         font-size: 7px;
         color: #666666;
         letter-spacing: 0.08em;
@@ -698,7 +695,7 @@
 
       /* ── height overrides for new modes ── */
       .rr-lead-panel   { height: 440px; }
-      .rr-lead-content { height: 440px; }
+      .rr-lead-content { height: 440px; overflow-y: auto; }
       .rr-modal-actions { top: 470px; }
       .rr-leader-strip  { top: 524px; }
 
@@ -993,6 +990,7 @@
       } else {
         leadModal.cardId   = data.cardId;
         leadModal.imageUrl = data.imageUrl;
+        leadModal.amCode   = data.amCode || '';
         if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = data.amCode || '';
         setDownloadShareVisible(true);
         setLeadModalMode('card');
@@ -1053,6 +1051,7 @@
       const cardData = await apiPost('/api/card/generate', {}, leadModal.token);
       leadModal.cardId   = cardData.cardId;
       leadModal.imageUrl = cardData.imageUrl;
+      leadModal.amCode   = cardData.amCode || '';
 
       if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = cardData.amCode || '';
       setDownloadShareVisible(true);
@@ -1086,6 +1085,7 @@
       if (data.imageUrl) {
         leadModal.cardId   = data.cardId;
         leadModal.imageUrl = data.imageUrl;
+        leadModal.amCode   = data.amCode || raw;
         if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = data.amCode || raw;
         setDownloadShareVisible(true);
         setLeadModalMode('card');
@@ -1113,6 +1113,7 @@
       const cardData = await apiPost('/api/card/generate', {}, leadModal.token);
       leadModal.cardId   = cardData.cardId;
       leadModal.imageUrl = cardData.imageUrl;
+      leadModal.amCode   = cardData.amCode || '';
       if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = cardData.amCode || '';
       setDownloadShareVisible(true);
       setLeadModalMode('card');
@@ -1123,30 +1124,15 @@
     }
   }
 
-  async function handleDownload() {
-    if (!leadModal.imageUrl) { showModalError('No card image available.'); return; }
-    try {
-      const res  = await fetch(leadModal.imageUrl);
-      const blob = await res.blob();
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = 'rate-card.png';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (_) {
-      window.open(leadModal.imageUrl, '_blank');
-    }
-  }
-
   async function handleShare() {
-    const url = leadModal.imageUrl || window.location.href;
+    const slug    = leadModal.amCode;
+    const cardUrl = slug
+      ? `${window.location.origin.replace(':8000', ':3000')}/card/${slug}`
+      : leadModal.imageUrl || window.location.href;
     if (navigator.share) {
-      navigator.share({ title: 'My Rate Card', url }).catch(() => {});
+      navigator.share({ title: 'My Rate Card', url: cardUrl }).catch(() => {});
     } else {
-      await navigator.clipboard.writeText(url).catch(() => {});
+      await navigator.clipboard.writeText(cardUrl).catch(() => {});
       showModalError('Link copied!', '#2a7a2a');
     }
   }
@@ -1307,10 +1293,6 @@
 
         <div class="rr-modal-actions">
           <div class="rr-modal-action">
-            <img src="${DOWNLOAD_ICON_SRC}" alt="Download" />
-            Download
-          </div>
-          <div class="rr-modal-action">
             <img src="${SHARE_ICON_SRC}" alt="Share" />
             Share
           </div>
@@ -1423,10 +1405,9 @@
       });
     }
 
-    // Download / Share
+    // Share
     const actionBtns = overlay.querySelectorAll('.rr-modal-action');
-    if (actionBtns[0]) actionBtns[0].addEventListener('click', handleDownload);
-    if (actionBtns[1]) actionBtns[1].addEventListener('click', handleShare);
+    if (actionBtns[0]) actionBtns[0].addEventListener('click', handleShare);
 
     setDownloadShareVisible(false);
     updateLeadModalScale();

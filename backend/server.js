@@ -31,6 +31,12 @@ app.use('/admin',      require('./routes/admin.routes'));
 // Serves templates/ so Puppeteer can load rate-card.html over HTTP
 app.use('/_internal/template', express.static(path.join(__dirname, 'templates')));
 
+// Public card view page
+app.get('/card/:slug', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'card-view.html'));
+});
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use(errorHandler);
 
 async function start() {

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rate Card</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #111;
+      color: #fff;
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 32px 16px 48px;
+    }
+
+    #state-loading,
+    #state-error {
+      margin-top: 40px;
+      font-size: 14px;
+      letter-spacing: 0.12em;
+      color: #888;
+      text-align: center;
+    }
+
+    #state-error {
+      color: #c44;
+    }
+
+    #card-container {
+      position: relative;
+      width: clamp(280px, 92vw, 560px);
+      aspect-ratio: 1053 / 1470;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 8px 48px rgba(0, 0, 0, 0.7);
+      display: none;
+    }
+
+    #card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      border-radius: 18px;
+    }
+
+    /* Clickable overlay links — coordinates as % of 1053×1470 artboard */
+    .card-overlay-link {
+      position: absolute;
+      text-decoration: none;
+      background: transparent;
+      cursor: pointer;
+      /* outline for debugging: outline: 1px solid rgba(255,0,0,0.3); */
+    }
+
+    /* Portrait + name area: top=25%, left=25%, width=52%, height=42% */
+    #overlay-portrait {
+      top: 25%;
+      left: 25%;
+      width: 52%;
+      height: 42%;
+    }
+
+    /* CTA link area: top=80%, left=5%, width=90%, height=6% */
+    #overlay-cta {
+      top: 80%;
+      left: 5%;
+      width: 90%;
+      height: 6%;
+    }
+
+    #cta-button {
+      margin-top: 28px;
+      padding: 14px 32px;
+      background: transparent;
+      border: 1px solid #fff;
+      color: #fff;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: background 0.15s, color 0.15s;
+      display: none;
+    }
+
+    #cta-button:hover {
+      background: #fff;
+      color: #111;
+    }
+  </style>
+</head>
+<body>
+  <div id="state-loading">Loading card&hellip;</div>
+  <div id="state-error" style="display:none;"></div>
+
+  <div id="card-container">
+    <img id="card-img" src="" alt="Rate Card" />
+    <!-- overlays injected by JS -->
+  </div>
+
+  <a id="cta-button" href="#" target="_blank" rel="noopener noreferrer">
+    CREATE YOUR OWN CARD
+  </a>
+
+  <script>
+    (function () {
+      // Determine backend URL — since this page is served from the backend itself,
+      // window.location.origin is the backend.
+      const BACKEND_URL = window.location.origin;
+
+      // Determine frontend origin for the CTA button
+      const FRONTEND_ORIGIN = (typeof window.FRONTEND_ORIGIN !== 'undefined' && window.FRONTEND_ORIGIN)
+        ? window.FRONTEND_ORIGIN
+        : 'http://localhost:8000';
+
+      // Extract slug from pathname, e.g. /card/ABCD1234 → ABCD1234
+      const slug = window.location.pathname.split('/').filter(Boolean).pop() || '';
+
+      const stateLoading  = document.getElementById('state-loading');
+      const stateError    = document.getElementById('state-error');
+      const cardContainer = document.getElementById('card-container');
+      const cardImg       = document.getElementById('card-img');
+      const ctaButton     = document.getElementById('cta-button');
+
+      function showError(msg) {
+        stateLoading.style.display = 'none';
+        stateError.textContent = msg;
+        stateError.style.display = '';
+      }
+
+      function showCard(data) {
+        const { card } = data;
+
+        stateLoading.style.display = 'none';
+
+        // Set card image
+        if (!card.imageUrl) {
+          showError('Card image not available.');
+          return;
+        }
+        cardImg.src = card.imageUrl;
+        cardImg.onerror = () => {
+          showError('Could not load card image.');
+          cardContainer.style.display = 'none';
+          ctaButton.style.display = 'none';
+        };
+
+        // Portrait + name overlay → LinkedIn or portfolio
+        const portraitHref = card.linkedinUrl || null;
+        if (portraitHref) {
+          const a = document.createElement('a');
+          a.id        = 'overlay-portrait';
+          a.className = 'card-overlay-link';
+          a.href      = portraitHref;
+          a.target    = '_blank';
+          a.rel       = 'noopener noreferrer';
+          a.setAttribute('aria-label', 'View LinkedIn profile');
+          cardContainer.appendChild(a);
+        }
+
+        // CTA link overlay
+        const ctaHref = card.ctaUrl || data.user?.portfolioUrl || '#';
+        if (ctaHref && ctaHref !== '#') {
+          const b = document.createElement('a');
+          b.id        = 'overlay-cta';
+          b.className = 'card-overlay-link';
+          b.href      = ctaHref;
+          b.target    = '_blank';
+          b.rel       = 'noopener noreferrer';
+          b.setAttribute('aria-label', 'Visit portfolio / CTA link');
+          cardContainer.appendChild(b);
+        }
+
+        cardContainer.style.display = '';
+        ctaButton.style.display = '';
+      }
+
+      // Set up CTA button
+      ctaButton.href = FRONTEND_ORIGIN;
+      ctaButton.setAttribute('target', '_blank');
+
+      if (!slug) {
+        showError('No card code found in URL.');
+        return;
+      }
+
+      fetch(`${BACKEND_URL}/api/card/view/${encodeURIComponent(slug)}`)
+        .then(res => {
+          if (!res.ok) {
+            if (res.status === 404) throw new Error('Card not found.');
+            throw new Error(`Server error (${res.status}).`);
+          }
+          return res.json();
+        })
+        .then(showCard)
+        .catch(err => showError(err.message || 'Failed to load card.'));
+    })();
+  </script>
+</body>
+</html>

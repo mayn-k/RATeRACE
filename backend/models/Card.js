@@ -38,8 +38,9 @@ const cardSchema = new mongoose.Schema(
     educationOrg: { type: orgSchema, default: () => ({}) },
     workOrg:      { type: orgSchema, default: () => ({}) },
 
-    ctaUrl:     { type: String, default: null },
-    portraitUrl:{ type: String, default: null },
+    ctaUrl:      { type: String, default: null },
+    linkedinUrl: { type: String, default: null },
+    portraitUrl: { type: String, default: null },
 
     rawProfile: { type: mongoose.Schema.Types.Mixed, default: null },
     imageUrl:   { type: String, default: null },

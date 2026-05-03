@@ -7,6 +7,7 @@ const ctrl                   = require('../controllers/card.controller');
 const router = Router();
 
 router.post('/generate', auth, cardLimiter, ctrl.generate);
+router.get('/view/:code',        ctrl.getCardByCode);
 router.get('/:id',               ctrl.getCard);
 router.get('/:id/image',         ctrl.redirectToImage);
 
