@@ -230,14 +230,18 @@
     .cta-link {
       position: absolute;
       left: 0;
-      top: 1196px;
+      top: 1180px;
       width: 100%;
-      text-align: center;
-      font-family: "HelveticaNeueThin", Arial, sans-serif;
-      font-size: 27px;
-      color: var(--blue);
-      text-decoration: underline;
-      text-underline-offset: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+
+    .cta-linkedin-icon {
+      width: 72px;
+      height: 72px;
+      display: block;
     }
 
     .chess-frame {
@@ -348,7 +352,12 @@
 
         <div class="logos-row" id="logosRow"></div>
 
-        <a class="cta-link" id="ctaLink" href="#" target="_blank" rel="noopener noreferrer">Click here</a>
+        <a class="cta-link" id="ctaLink" href="#" target="_blank" rel="noopener noreferrer">
+          <svg class="cta-linkedin-icon" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+            <rect width="72" height="72" rx="8" fill="#0A66C2"/>
+            <path d="M27 55H18V28H27V55ZM22.5 24.5C19.9 24.5 18 22.6 18 20C18 17.4 19.9 15.5 22.5 15.5C25.1 15.5 27 17.4 27 20C27 22.6 25.1 24.5 22.5 24.5ZM54 55H45V40.5C45 37.5 43.7 35.5 41 35.5C38.5 35.5 37 37.3 37 40.5V55H28V28H37V31.8C38.3 29.5 40.9 28 44.5 28C50.1 28 54 31.8 54 39.5V55Z" fill="white"/>
+          </svg>
+        </a>
 
         <div class="chess-frame">
           <img id="chessPieceImg" alt="chess piece" />
@@ -530,7 +539,6 @@
       renderStatusBlocks(data.statusBlocks);
       renderHourglass(data.hourglass);
 
-      ctaLink.textContent = data.cta?.label || "Click here";
       ctaLink.href = data.cta?.url || "#";
 
       const chessKey = String(data.chessPiece || "pawn").toLowerCase();

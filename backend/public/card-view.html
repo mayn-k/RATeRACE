@@ -97,6 +97,42 @@
       background: #fff;
       color: #111;
     }
+
+    /* Animated "click me" label for custom CTA links */
+    @keyframes pulse-cta {
+      0%, 100% { opacity: 0.55; transform: translateX(-50%) scale(1); }
+      50%       { opacity: 1;    transform: translateX(-50%) scale(1.06); }
+    }
+
+    .card-clickme-label {
+      position: absolute;
+      top: 83.5%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: clamp(8px, 1.4vw, 12px);
+      color: #153dff;
+      letter-spacing: 0.12em;
+      pointer-events: none;
+      white-space: nowrap;
+      animation: pulse-cta 1.6s ease-in-out infinite;
+    }
+
+    /* Embed mode — no padding, transparent bg, fills iframe */
+    body.embed {
+      padding: 0;
+      min-height: 0;
+      background: transparent;
+      justify-content: center;
+    }
+
+    body.embed #card-container {
+      width: 100%;
+      height: 100vh;
+      aspect-ratio: unset;
+      border-radius: 0;
+      box-shadow: none;
+    }
   </style>
 </head>
 <body>
@@ -114,16 +150,14 @@
 
   <script>
     (function () {
-      // Determine backend URL — since this page is served from the backend itself,
-      // window.location.origin is the backend.
       const BACKEND_URL = window.location.origin;
-
-      // Determine frontend origin for the CTA button
       const FRONTEND_ORIGIN = (typeof window.FRONTEND_ORIGIN !== 'undefined' && window.FRONTEND_ORIGIN)
         ? window.FRONTEND_ORIGIN
         : 'http://localhost:8000';
 
-      // Extract slug from pathname, e.g. /card/ABCD1234 → ABCD1234
+      const isEmbed = new URLSearchParams(window.location.search).has('embed');
+      if (isEmbed) document.body.classList.add('embed');
+
       const slug = window.location.pathname.split('/').filter(Boolean).pop() || '';
 
       const stateLoading  = document.getElementById('state-loading');
@@ -180,10 +214,16 @@
           b.rel       = 'noopener noreferrer';
           b.setAttribute('aria-label', 'Visit portfolio / CTA link');
           cardContainer.appendChild(b);
+
+          // Animated "click me" label for custom links
+          const label = document.createElement('div');
+          label.className = 'card-clickme-label';
+          label.textContent = 'click me';
+          cardContainer.appendChild(label);
         }
 
         cardContainer.style.display = 'block';
-        ctaButton.style.display = 'inline-block';
+        if (!isEmbed) ctaButton.style.display = 'inline-block';
       }
 
       // Set up CTA button

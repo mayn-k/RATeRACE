@@ -1144,17 +1144,100 @@
     }
   }
 
+  function showToast(message, duration = 2500) {
+    const prev = document.getElementById('rr-toast');
+    if (prev) prev.remove();
+    const toast = document.createElement('div');
+    toast.id = 'rr-toast';
+    toast.textContent = message;
+    Object.assign(toast.style, {
+      position: 'fixed', right: '20px', top: '50%',
+      transform: 'translateY(-50%)',
+      background: '#1a1a1a', color: '#fff',
+      border: '1px solid #444',
+      padding: '10px 18px',
+      fontFamily: '"Pixelify Sans", monospace',
+      fontSize: '11px', letterSpacing: '0.14em',
+      zIndex: '99999', opacity: '1',
+      transition: 'opacity 0.4s',
+      pointerEvents: 'none',
+    });
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 400);
+    }, duration);
+  }
+
+  function openCardModal(amCode) {
+    if (document.getElementById('rr-card-fs-overlay')) return;
+    const backendOrigin = window.location.origin.replace(':8000', ':3000');
+
+    const overlay = document.createElement('div');
+    overlay.id = 'rr-card-fs-overlay';
+    Object.assign(overlay.style, {
+      position: 'fixed', inset: '0', zIndex: '9998',
+      background: 'rgba(0,0,0,0.97)',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'flex-start',
+      overflowY: 'auto', padding: '48px 16px 48px',
+    });
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '×';
+    Object.assign(closeBtn.style, {
+      position: 'fixed', top: '14px', right: '18px',
+      background: 'transparent', border: 'none',
+      color: '#ff0000', fontSize: '44px', lineHeight: '1',
+      cursor: 'pointer', zIndex: '9999', padding: '0',
+      fontFamily: 'Arial, sans-serif',
+    });
+    closeBtn.addEventListener('click', closeCardModal);
+
+    const iframe = document.createElement('iframe');
+    iframe.src = `${backendOrigin}/card/${encodeURIComponent(amCode)}?embed=1`;
+    Object.assign(iframe.style, {
+      width: 'clamp(280px, 92vw, 560px)',
+      aspectRatio: '1053 / 1470',
+      border: 'none', borderRadius: '18px', display: 'block',
+    });
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('scrolling', 'no');
+
+    overlay.appendChild(iframe);
+    document.body.appendChild(overlay);
+    document.body.appendChild(closeBtn);
+    overlay._closeBtn = closeBtn;
+
+    document.documentElement.style.overflow = 'hidden';
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeCardModal(); });
+  }
+
+  function closeCardModal() {
+    const overlay = document.getElementById('rr-card-fs-overlay');
+    if (!overlay) return;
+    if (overlay._closeBtn) overlay._closeBtn.remove();
+    overlay.remove();
+    document.documentElement.style.overflow = '';
+  }
+
   async function handleShare() {
     const slug    = leadModal.amCode;
+    const backendOrigin = window.location.origin.replace(':8000', ':3000');
     const cardUrl = slug
-      ? `${window.location.origin.replace(':8000', ':3000')}/card/${slug}`
+      ? `${backendOrigin}/card/${slug}`
       : leadModal.imageUrl || window.location.href;
-    if (navigator.share) {
-      navigator.share({ title: 'My Rate Card', url: cardUrl }).catch(() => {});
-    } else {
-      await navigator.clipboard.writeText(cardUrl).catch(() => {});
-      showModalError('Link copied!', '#2a7a2a');
+    try {
+      await navigator.clipboard.writeText(cardUrl);
+    } catch (_) {
+      const inp = document.createElement('input');
+      inp.value = cardUrl;
+      document.body.appendChild(inp);
+      inp.select();
+      document.execCommand('copy');
+      inp.remove();
     }
+    showToast('Link copied');
   }
 
   function createLeadModalDOM() {
@@ -1291,7 +1374,7 @@
           <div class="rr-lead-content rr-mode rr-mode-card rr-hidden">
             <div class="rr-card-image-wrap" style="display:none"><img class="rr-card-image" src="" alt="" /></div>
             <div class="rr-card-ready-label">YOUR CARD IS READY</div>
-            <a class="rr-card-view-btn" id="cardViewBtn" href="#" target="_blank" rel="noopener noreferrer">VIEW YOUR CARD →</a>
+            <button class="rr-card-view-btn" id="cardViewBtn" type="button">VIEW YOUR CARD →</button>
             <div class="rr-card-code-label">YOUR CODE</div>
             <div class="rr-card-code-value"></div>
             <div class="rr-card-code-hint">Save this code — it’s your only way to log back in</div>
@@ -1465,13 +1548,10 @@
     }
 
     if (mode === 'card') {
-      // Wire up VIEW YOUR CARD button to the shareable page
       const viewBtn = leadModal.el.querySelector('#cardViewBtn');
-      if (viewBtn && leadModal.amCode) {
-        const backendOrigin = window.location.origin.replace(':8000', ':3000');
-        viewBtn.href = `${backendOrigin}/card/${leadModal.amCode}`;
+      if (viewBtn) {
+        viewBtn.onclick = () => { if (leadModal.amCode) openCardModal(leadModal.amCode); };
       }
-      // reset photo change UI
       const photoInput = leadModal.el.querySelector('.rr-card-photo-change-input');
       if (photoInput) photoInput.style.display = 'none';
     }
