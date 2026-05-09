@@ -38,6 +38,12 @@ const cardSchema = new mongoose.Schema(
     educationOrg: { type: orgSchema, default: () => ({}) },
     workOrg:      { type: orgSchema, default: () => ({}) },
 
+    marketVerdict:             { type: String, default: null },
+    primaryRisk:               { type: String, default: null },
+    humanEdge:                 { type: String, default: null },
+    recommendedAction:         { type: String, default: null },
+    replaceabilityPercentile:  { type: Number, min: 0, max: 100, default: null },
+
     ctaUrl:      { type: String, default: null },
     linkedinUrl: { type: String, default: null },
     portraitUrl: { type: String, default: null },

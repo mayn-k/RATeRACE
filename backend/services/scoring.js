@@ -28,7 +28,17 @@ For a given profile, produce:
 
 8. bioRewrite (string, ≤40 chars, first-person voice — rewrite their headline if it is corporate jargon; preserve their voice if already clean).
 
-Return a single JSON object with keys: rate, replaceability, chessPiece, employmentStatus, delta, educationOrg, workOrg, bioRewrite. Nothing else.`;
+9. marketVerdict (string, ≤140 chars): The blunt, specific market verdict on this person's position. Reference their actual field, role, or signals — not generic filler. This is the harsh red-text headline on the card. E.g. "Subject's full-stack output is reproducible; the bottleneck they solve can be prompted away in 2025." Be precise and uncomfortable.
+
+10. primaryRisk (string, ≤140 chars): The specific AI/automation/market threat to their actual work based on the profile. Name the technology, trend, or competitive pressure. Not a generic "AI is coming" statement — be specific to their tech stack, role, or industry.
+
+11. humanEdge (string, ≤140 chars): What the resume actually signals as defensible. Be honest — if there is no clear edge, say so in a pointed way. If there is one, name it precisely.
+
+12. recommendedAction (string, ≤140 chars): One concrete, actionable recommendation specific to this person's profile. Not generic advice — reference their actual situation.
+
+13. replaceabilityPercentile (int, 0–100): Estimated percentage of working professionals this person is MORE replaceable than, based on their specific field, skills, and seniority. 0 = almost no one is more replaceable; 100 = almost everyone is more replaceable. Calibrate against the full working population, not just knowledge workers. A commodity CRUD developer: ~55. An ML infrastructure engineer: ~15. A junior Excel analyst at a bank: ~80. A senior trial lawyer: ~10.
+
+Return a single JSON object with keys: rate, replaceability, chessPiece, employmentStatus, delta, educationOrg, workOrg, bioRewrite, marketVerdict, primaryRisk, humanEdge, recommendedAction, replaceabilityPercentile. Nothing else.`;
 
 function buildPrompt(profile) {
   return `Profile:\n${JSON.stringify(profile, null, 2)}\n\nScore this person.`;
@@ -42,8 +52,9 @@ async function scoreProfile(profile) {
   const raw    = await complete(SYSTEM, buildPrompt(profile), { json: true });
   const result = JSON.parse(raw);
 
-  result.rate           = clamp(result.rate, 13, 99);
-  result.replaceability = clamp(result.replaceability, 13, 99);
+  result.rate                    = clamp(result.rate, 13, 99);
+  result.replaceability          = clamp(result.replaceability, 13, 99);
+  result.replaceabilityPercentile = Math.max(0, Math.min(100, Math.round(Number(result.replaceabilityPercentile) || 50)));
 
   if (result.delta) {
     result.delta.value     = Math.max(-0.10, Math.min(0.10, parseFloat(result.delta.value) || 0));

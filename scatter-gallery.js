@@ -950,6 +950,62 @@
     if (leadModal.loadingStatusEl) leadModal.loadingStatusEl.textContent = msg;
   }
 
+  // ── Auth persistence ─────────────────────────────────────────────────────────
+  function saveAuthToStorage() {
+    if (!leadModal.token) return;
+    localStorage.setItem('rr_auth', JSON.stringify({
+      token:    leadModal.token,
+      cardId:   leadModal.cardId   || null,
+      imageUrl: leadModal.imageUrl || null,
+      amCode:   leadModal.amCode   || null,
+    }));
+  }
+
+  function clearAuthFromStorage() {
+    localStorage.removeItem('rr_auth');
+  }
+
+  async function hydrateAuthFromStorage() {
+    let stored;
+    try { stored = JSON.parse(localStorage.getItem('rr_auth') || 'null'); } catch (_) {}
+    if (!stored?.token) return;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/auth/me`, {
+        headers: { 'Authorization': `Bearer ${stored.token}` },
+      });
+
+      if (res.status === 401) {
+        clearAuthFromStorage();
+        showToast('Session expired — please sign in again.', 3500);
+        return;
+      }
+
+      if (!res.ok) return;
+
+      leadModal.token    = stored.token;
+      leadModal.cardId   = stored.cardId   || null;
+      leadModal.imageUrl = stored.imageUrl || null;
+      leadModal.amCode   = stored.amCode   || null;
+
+      // Refresh card data in case imageUrl or amCode changed server-side
+      if (stored.amCode) {
+        try {
+          const cardRes = await fetch(`${BACKEND_URL}/api/card/view/${encodeURIComponent(stored.amCode)}`);
+          if (cardRes.ok) {
+            const cardData = await cardRes.json();
+            if (cardData.card?.imageUrl) {
+              leadModal.imageUrl = cardData.card.imageUrl;
+              saveAuthToStorage();
+            }
+          }
+        } catch (_) {}
+      }
+    } catch (_) {
+      // Network error — leave stored auth intact for next load
+    }
+  }
+
   // ── OAuth return handler (called on page load when ?oauth= param is present) ──
   async function handleOAuthReturn(code) {
     openLeadModal('loading');
@@ -972,6 +1028,7 @@
         leadModal.imageUrl = data.imageUrl;
         leadModal.amCode   = data.amCode || '';
         if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = data.amCode || '';
+        saveAuthToStorage();
         setDownloadShareVisible(true);
         setLeadModalMode('card');
       }
@@ -1019,6 +1076,7 @@
       leadModal.amCode   = cardData.amCode || '';
 
       if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = cardData.amCode || '';
+      saveAuthToStorage();
       setDownloadShareVisible(true);
       setLeadModalMode('card');
     } catch (err) {
@@ -1050,6 +1108,7 @@
         leadModal.imageUrl = data.imageUrl;
         leadModal.amCode   = data.amCode || raw;
         if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = data.amCode || raw;
+        saveAuthToStorage();
         setDownloadShareVisible(true);
         setLeadModalMode('card');
       } else {
@@ -1137,33 +1196,19 @@
         font-size: 46px; line-height: 1; cursor: pointer; padding: 0;
       }
       .rr-final-header {
-        position: sticky; top: 0; left: 50%; transform: translateX(-50%);
+        position: sticky; top: 0;
         display: flex; align-items: center; justify-content: center;
         gap: clamp(28px, 4.6vw, 78px); z-index: 15; user-select: none;
         padding-top: clamp(18px, 2.5vw, 34px); width: 100%;
       }
       .rr-top-pill, .rr-leader-pill {
         font-family: var(--rr-pixel); font-size: clamp(15px, 1.45vw, 24px);
-        line-height: 1; letter-spacing: 0.05em; padding: 0.34em 0.62em 0.42em; white-space: nowrap;
+        line-height: 1; letter-spacing: 0.05em; padding: 0.34em 0.62em 0.42em;
+        white-space: nowrap; cursor: pointer;
       }
       .rr-top-pill { color: #000; background: #f4dd34; }
       .rr-leader-pill { color: #fff; background: var(--rr-blue); }
-      .rr-adultmoney-logo { display: flex; align-items: center; gap: 11px; white-space: nowrap; }
-      .rr-brand-stripes {
-        display: grid; grid-template-columns: repeat(4, 7px); gap: 4px;
-        transform: skewX(-14deg); height: clamp(24px, 2.5vw, 40px);
-      }
-      .rr-brand-stripes span { display: block; height: 100%; }
-      .rr-brand-stripes span:nth-child(1) { background: #f7d21f; }
-      .rr-brand-stripes span:nth-child(2) { background: #f01010; }
-      .rr-brand-stripes span:nth-child(3) { background: #006ee6; }
-      .rr-brand-stripes span:nth-child(4) { background: #fff; opacity: 0.75; }
-      .rr-logo-text {
-        font-family: Impact, "Arial Black", var(--rr-sans);
-        font-size: clamp(26px, 3.4vw, 54px); font-style: italic; font-weight: 900;
-        letter-spacing: -0.05em; transform: skewX(-10deg);
-        color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.12);
-      }
+      .rr-header-logo-img { height: clamp(26px, 2.8vw, 40px); width: auto; object-fit: contain; display: block; }
       .rr-final-layout {
         position: relative; z-index: 4;
         width: min(92vw, 1560px); margin: 0 auto;
@@ -1259,7 +1304,7 @@
       .rr-card-hotspot {
         position: absolute; z-index: 5; border: 1px solid transparent; cursor: help; pointer-events: auto;
       }
-      .rr-card-hotspot:hover { border-color: rgba(230,0,0,0.5); background: rgba(230,0,0,0.035); }
+      .rr-card-hotspot:hover { }
       .hotspot-rate         { left: 7%;  top: 5%;    width: 23%; height: 14%; }
       .hotspot-replaceability { right: 7%; top: 6%;  width: 30%; height: 13%; }
       .hotspot-portrait     { left: 22%; top: 29%;   width: 56%; height: 42%; }
@@ -1404,9 +1449,8 @@
       }
       @media (max-width: 720px) {
         .rr-final-modal { --rr-card-w: min(75vw, 330px); }
-        .rr-final-header { gap: 12px; transform: translateX(-50%) scale(0.82); transform-origin: center top; }
-        .rr-logo-text { font-size: 33px; }
-        .rr-brand-stripes { grid-template-columns: repeat(4, 5px); gap: 3px; height: 28px; }
+        .rr-final-header { gap: 12px; }
+        .rr-header-logo-img { height: 24px; }
         .rr-final-layout { width: min(92vw, 430px); padding-top: 16px; }
         .rr-section-title { font-size: 34px; }
         .rr-meter-panel { grid-template-columns: 1fr; }
@@ -1422,10 +1466,7 @@
 
       <header class="rr-final-header">
         <div class="rr-top-pill">MANIFESTO</div>
-        <div class="rr-adultmoney-logo" aria-label="ADULTMONEY">
-          <div class="rr-brand-stripes" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-          <div class="rr-logo-text">ADULTMONEY</div>
-        </div>
+        <img class="rr-header-logo-img" src="./adultmoney-header-logo.png" alt="ADULTMONEY" />
         <div class="rr-leader-pill">LEADERBOARD</div>
       </header>
 
@@ -1435,19 +1476,19 @@
           <div class="rr-review-copy">
             <div class="rr-case-line">
               <span class="rr-case-label">Market Verdict</span>
-              <span class="rr-case-value red">SUBJECT SHOWS HIGH EXPOSURE TO REPEATABLE KNOWLEDGE WORK.</span>
+              <span class="rr-case-value red" id="rrMarketVerdict">SUBJECT SHOWS HIGH EXPOSURE TO REPEATABLE KNOWLEDGE WORK.</span>
             </div>
             <div class="rr-case-line">
               <span class="rr-case-label">Primary Risk</span>
-              <span class="rr-case-value">Tasks can be explained, copied, packaged, and automated.</span>
+              <span class="rr-case-value" id="rrPrimaryRisk">Tasks can be explained, copied, packaged, and automated.</span>
             </div>
             <div class="rr-case-line">
               <span class="rr-case-label">Human Edge</span>
-              <span class="rr-case-value">Taste / judgment / trust / original context.</span>
+              <span class="rr-case-value" id="rrHumanEdge">Taste / judgment / trust / original context.</span>
             </div>
             <div class="rr-case-line">
               <span class="rr-case-label">Recommended Action</span>
-              <span class="rr-case-value">Build non-automatable leverage before the market reprices you.</span>
+              <span class="rr-case-value" id="rrRecommendedAction">Build non-automatable leverage before the market reprices you.</span>
             </div>
           </div>
         </aside>
@@ -1565,6 +1606,10 @@
     _modalEscHandler = e => { if (e.key === 'Escape') closeCardModal(); };
     window.addEventListener('keydown', _modalEscHandler);
 
+    // Header pill clicks — coming soon
+    overlay.querySelector('.rr-top-pill')?.addEventListener('click', () => showToast('Coming soon.'));
+    overlay.querySelector('.rr-leader-pill')?.addEventListener('click', () => showToast('Coming soon.'));
+
     // Fetch card data and populate meters + image
     fetch(`${BACKEND_URL}/api/card/view/${encodeURIComponent(amCode)}`)
       .then(r => r.ok ? r.json() : null)
@@ -1591,6 +1636,21 @@
         if (replScoreEl) replScoreEl.textContent = repl;
         if (rateNeedle)  rateNeedle.style.setProperty('--needle-rot',  `${toRot(rate)}deg`);
         if (replNeedle)  replNeedle.style.setProperty('--needle-rot',  `${toRot(repl)}deg`);
+
+        // Populate RATING REVIEW with personalized analysis
+        const reviewFields = {
+          rrMarketVerdict:    card.marketVerdict,
+          rrPrimaryRisk:      card.primaryRisk,
+          rrHumanEdge:        card.humanEdge,
+          rrRecommendedAction: card.recommendedAction,
+        };
+        Object.entries(reviewFields).forEach(([id, val]) => {
+          if (val) { const el = overlay.querySelector(`#${id}`); if (el) el.textContent = val; }
+        });
+        if (card.replaceabilityPercentile != null) {
+          const pEl = overlay.querySelector('#rrPercentileText');
+          if (pEl) pEl.textContent = `${card.replaceabilityPercentile}%`;
+        }
       })
       .catch(() => {});
 
@@ -2002,6 +2062,9 @@
       const viewBtn = leadModal.el.querySelector('#cardViewBtn');
       if (viewBtn) {
         viewBtn.onclick = () => { if (leadModal.amCode) openCardModal(leadModal.amCode); };
+      }
+      if (leadModal.cardCodeEl && leadModal.amCode) {
+        leadModal.cardCodeEl.textContent = leadModal.amCode;
       }
     }
 
@@ -3166,7 +3229,11 @@
 
     if (!inside) return false;
 
-    openLeadModal('entry');
+    if (leadModal.token && leadModal.amCode) {
+      openLeadModal('card');
+    } else {
+      openLeadModal('entry');
+    }
     return true;
   }
 
@@ -3579,7 +3646,7 @@
   animate();
 
   // Handle LinkedIn OAuth callback (?oauth=CODE or ?oauth_error=...)
-  (function checkOAuthReturn() {
+  function checkOAuthReturn() {
     const params = new URLSearchParams(window.location.search);
     const oauthCode  = params.get('oauth');
     const oauthError = params.get('oauth_error');
@@ -3598,5 +3665,8 @@
       const errEl = leadModal.el && leadModal.el.querySelector('.rr-el-error');
       if (errEl) errEl.textContent = msgs[oauthError] || 'LinkedIn sign-in failed.';
     }
-  })();
+  }
+
+  // Hydrate saved session first, then handle any OAuth callback
+  hydrateAuthFromStorage().then(checkOAuthReturn);
 })();

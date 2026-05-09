@@ -22,3 +22,6 @@ Thumbs.db
 
 # macOS
 __MACOSX/
+
+# Local design explorations — not part of the codebase
+changes-to-be-made/

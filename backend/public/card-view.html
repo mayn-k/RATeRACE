@@ -6,35 +6,30 @@
   <title>RATe RACE — Card</title>
   <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html {
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+    :root {
+      --rr-red:   #e60000;
+      --rr-blue:  #2d5fa9;
+      --rr-pixel: "Pixelify Sans", monospace;
+      --rr-sans:  Helvetica Neue, Helvetica, Arial, sans-serif;
+      --rr-card-w: min(clamp(220px, 42vw, 420px), calc((100vh - 180px) * 1053 / 1470));
     }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scrollbar-width: none; -ms-overflow-style: none; }
     html::-webkit-scrollbar { display: none; }
-
     body {
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 48px 16px 56px;
-      font-family: "Pixelify Sans", Helvetica Neue, Helvetica, Arial, sans-serif;
+      font-family: var(--rr-sans);
       color: #fff;
       background:
         radial-gradient(circle at 50% 42%, rgba(255,255,255,0.09), rgba(255,255,255,0.02) 26%, transparent 46%),
         radial-gradient(circle at 78% 50%, rgba(230,0,0,0.07), transparent 36%),
         #000;
+      overflow-x: hidden;
     }
-
     body::before {
       content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0;
       background-image:
         linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px),
@@ -44,130 +39,389 @@
       opacity: 0.7;
     }
 
-    #state-loading,
-    #state-error {
-      position: relative;
-      z-index: 1;
-      margin-top: 40px;
-      font-size: 13px;
-      letter-spacing: 0.14em;
-      color: rgba(255,255,255,0.45);
-      text-align: center;
-      text-transform: uppercase;
+    /* toast */
+    #rr-toast {
+      position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+      z-index: 9999; padding: 10px 20px; background: rgba(10,10,10,0.96);
+      border: 1px solid rgba(255,255,255,0.18); color: #fff;
+      font-family: var(--rr-pixel); font-size: 13px; letter-spacing: 0.12em;
+      white-space: nowrap; opacity: 0; pointer-events: none;
+      transition: opacity 200ms ease, transform 200ms ease;
+    }
+    #rr-toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* header */
+    .rr-final-header {
+      position: sticky; top: 0;
+      display: flex; align-items: center; justify-content: center;
+      gap: clamp(28px, 4.6vw, 78px); z-index: 15; user-select: none;
+      padding-top: clamp(18px, 2.5vw, 34px); width: 100%;
+    }
+    .rr-top-pill, .rr-leader-pill {
+      font-family: var(--rr-pixel); font-size: clamp(15px, 1.45vw, 24px);
+      line-height: 1; letter-spacing: 0.05em; padding: 0.34em 0.62em 0.42em;
+      white-space: nowrap; cursor: pointer;
+    }
+    .rr-top-pill { color: #000; background: #f4dd34; }
+    .rr-leader-pill { color: #fff; background: var(--rr-blue); }
+    .rr-header-logo-img { height: clamp(26px, 2.8vw, 40px); width: auto; object-fit: contain; display: block; }
+
+    /* three-panel layout */
+    .rr-final-layout {
+      position: relative; z-index: 4;
+      width: min(92vw, 1560px); margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(260px, 370px) minmax(320px, 520px) minmax(270px, 390px);
+      align-items: center; justify-content: center;
+      column-gap: clamp(30px, 5vw, 94px);
+      padding-top: 52px; padding-bottom: 60px; min-height: calc(100vh - 80px);
     }
 
-    #state-error { color: #e60000; }
+    /* left panel */
+    .rr-review-panel { align-self: center; transform: translateY(-4px); }
+    .rr-section-title {
+      margin: 0 0 28px; font-family: var(--rr-pixel);
+      color: var(--rr-red); font-size: clamp(28px, 3.2vw, 50px);
+      line-height: 0.95; letter-spacing: 0.14em; text-transform: uppercase;
+      text-shadow: 0 0 14px rgba(230,0,0,0.22);
+    }
+    .rr-review-copy { width: min(100%, 340px); color: rgba(255,255,255,0.88); font-size: 13px; line-height: 1.35; }
+    .rr-case-line { padding: 10px 0 12px; border-top: 1px solid rgba(255,255,255,0.14); }
+    .rr-case-line:last-child { border-bottom: 1px solid rgba(255,255,255,0.14); }
+    .rr-case-label {
+      display: block; margin-bottom: 5px; font-family: var(--rr-pixel);
+      color: rgba(255,255,255,0.42); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    }
+    .rr-case-value { display: block; color: #fff; font-size: 13px; line-height: 1.35; }
+    .rr-case-value.red { color: var(--rr-red); text-shadow: 0 0 10px rgba(230,0,0,0.18); }
 
-    #card-container {
-      position: relative;
-      z-index: 1;
-      width: min(clamp(240px, 82vw, 420px), calc((100vh - 220px) * 1053 / 1470));
-      aspect-ratio: 1053 / 1470;
-      border-radius: 9px;
-      overflow: visible;
-      display: none;
+    /* center panel */
+    .rr-card-stage {
+      position: relative; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; align-self: center; min-width: 0;
+    }
+    .rr-verdict-line {
+      margin: 0 0 18px; font-family: var(--rr-pixel);
+      color: rgba(255,255,255,0.72); font-size: 13px;
+      letter-spacing: 0.22em; text-align: center; text-transform: uppercase;
+      opacity: 0; animation: rrRiseIn 600ms 130ms ease-out forwards;
+    }
+    .rr-card-wrap {
+      position: relative; width: var(--rr-card-w); aspect-ratio: 1053 / 1470;
+      transform: rotate(1deg); border-radius: 9px;
       filter: drop-shadow(0 0 26px rgba(255,255,255,0.20)) drop-shadow(0 34px 46px rgba(255,255,255,0.12));
-      transform: rotate(1deg);
-      animation: cardSettle 820ms 80ms cubic-bezier(.16,.95,.18,1) both;
+      opacity: 0; animation: rrCardSettle 820ms 120ms cubic-bezier(.16,.95,.18,1) forwards;
     }
-
-    @keyframes cardSettle {
+    @keyframes rrCardSettle {
       from { opacity: 0; transform: translateY(28px) rotate(1deg) scale(0.96); }
       to   { opacity: 1; transform: translateY(0)   rotate(1deg) scale(1); }
     }
-
-    #card-container::before {
-      content: "";
-      position: absolute;
-      left: 50%; bottom: -52px; width: 108%; height: 72px;
-      transform: translateX(-50%);
-      border-radius: 50%;
-      background: rgba(255,255,255,0.55);
-      filter: blur(30px);
-      opacity: 0.4;
-      z-index: -1;
-      mix-blend-mode: screen;
-      pointer-events: none;
+    .rr-card-wrap::before {
+      content: ""; position: absolute; left: 50%; bottom: -54px; width: 108%; height: 76px;
+      transform: translateX(-50%); border-radius: 50%;
+      background: rgba(255,255,255,0.58); filter: blur(31px); opacity: 0.44;
+      z-index: -1; mix-blend-mode: screen; pointer-events: none;
     }
-
-    #card-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      border-radius: 9px;
+    .rr-card-wrap::after {
+      content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+      background: linear-gradient(115deg, transparent 0 39%, rgba(255,255,255,0.22) 48%, transparent 58%),
+                  radial-gradient(circle at 20% 0%, rgba(255,255,255,0.2), transparent 24%);
+      opacity: 0; mix-blend-mode: screen; animation: rrCardGlint 1.15s 0.65s ease-out both;
     }
-
-    /* Clickable overlay links — coordinates as % of 1053×1470 artboard */
-    .card-overlay-link {
-      position: absolute;
-      text-decoration: none;
-      background: transparent;
-      cursor: pointer;
+    @keyframes rrCardGlint {
+      0%   { opacity: 0; transform: translateX(-18%); }
+      35%  { opacity: 0.6; }
+      100% { opacity: 0; transform: translateX(22%); }
     }
-
-    #overlay-cta {
-      top: 80%;
-      left: 5%;
-      width: 90%;
-      height: 6%;
+    #rrFinalCardImage {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; border-radius: inherit; display: none; z-index: 2;
     }
-
-    /* "click me" animation for portfolio links */
-    @keyframes pulse-cta {
-      0%, 100% { opacity: 0.55; transform: translateX(-50%) scale(1); }
-      50%       { opacity: 1;    transform: translateX(-50%) scale(1.06); }
+    .rr-card-wrap.has-card-image #rrFinalCardImage { display: block; }
+    .rr-card-wrap.has-card-image .rr-generated-card-fallback { display: none; }
+    .rr-generated-card-fallback {
+      position: absolute; inset: 0; overflow: hidden; border-radius: inherit;
+      background: #f4f1e8; z-index: 1;
+      display: flex; align-items: center; justify-content: center;
     }
-
-    .card-clickme-label {
-      position: absolute;
-      top: 83.5%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-family: "Pixelify Sans", monospace;
-      font-size: clamp(8px, 1.4vw, 11px);
-      color: #153dff;
-      letter-spacing: 0.12em;
-      pointer-events: none;
-      white-space: nowrap;
-      animation: pulse-cta 1.6s ease-in-out infinite;
+    .rr-fallback-loading {
+      font-family: var(--rr-pixel); font-size: 13px; letter-spacing: 0.14em;
+      color: rgba(0,0,0,0.42); text-transform: uppercase;
     }
-
-    #cta-button {
-      position: relative;
-      z-index: 1;
-      margin-top: 40px;
-      padding: 14px 36px;
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.72);
-      color: #fff;
-      font-family: "Pixelify Sans", sans-serif;
-      font-size: 13px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      text-decoration: none;
-      cursor: pointer;
+    .rr-card-hotspot {
+      position: absolute; z-index: 5; border: 1px solid transparent; cursor: help; pointer-events: auto;
+    }
+    .rr-card-hotspot:hover { }
+    .hotspot-rate           { left: 7%;  top: 5%;    width: 23%; height: 14%; }
+    .hotspot-replaceability { right: 7%; top: 6%;    width: 30%; height: 13%; }
+    .hotspot-portrait       { left: 22%; top: 29%;   width: 56%; height: 42%; }
+    .hotspot-portfolio      { left: 37%; top: 72%;   width: 27%; height: 8%;  }
+    .hotspot-code           { left: 8%;  bottom: 4%; width: 82%; height: 12%; }
+    .rr-linkedin-overlay {
+      position: absolute; z-index: 6; top: 80%; left: 5%; width: 90%; height: 6%;
+      background: transparent; cursor: pointer;
+    }
+    .rr-tooltip {
+      position: fixed; z-index: 10000; max-width: 260px; padding: 10px 12px 11px;
+      background: rgba(5,5,5,0.96); border: 1px solid rgba(255,255,255,0.18);
+      color: #fff; font-size: 11px; line-height: 1.35; pointer-events: none;
+      transform: translate(-50%, calc(-100% - 14px)); opacity: 0; transition: opacity 120ms ease;
+      box-shadow: 0 0 26px rgba(255,255,255,0.09);
+    }
+    .rr-tooltip.is-visible { opacity: 1; }
+    .rr-tooltip b {
+      display: block; margin-bottom: 4px; font-family: var(--rr-pixel);
+      color: var(--rr-red); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .rr-employee-file {
+      margin-top: 48px; font-family: var(--rr-pixel); color: var(--rr-red);
+      font-size: clamp(17px, 1.65vw, 25px); letter-spacing: 0.18em;
+      text-align: center; text-transform: uppercase; text-shadow: 0 0 16px rgba(230,0,0,0.22);
+    }
+    .rr-cta-btn {
+      display: block; margin: 32px auto 0;
+      padding: 14px 36px; background: transparent;
+      border: 1px solid rgba(255,255,255,0.72); color: #fff;
+      font-family: var(--rr-pixel); font-size: 15px; letter-spacing: 0.08em;
+      text-transform: uppercase; text-decoration: none; cursor: pointer;
       transition: background 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
-      display: none;
+    }
+    .rr-cta-btn:hover { background: #fff; color: #000; border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.14); }
+
+    /* right panel */
+    .rr-meter-panel { align-self: center; display: flex; flex-direction: column; gap: 30px; transform: translateY(-2px); }
+    .rr-meter-card { position: relative; min-height: 180px; display: grid; place-items: center; }
+    .rr-meter-svg {
+      width: 230px; height: 128px; overflow: visible;
+      filter: drop-shadow(0 0 10px rgba(255,255,255,0.08)) drop-shadow(0 0 28px rgba(255,255,255,0.04));
+    }
+    .rr-meter-track { fill: none; stroke: rgba(255,255,255,0.14); stroke-width: 16; stroke-linecap: round; }
+    .rr-meter-zone { fill: none; stroke-width: 16; stroke-linecap: round; }
+    .rr-meter-needle {
+      transform-origin: 115px 115px;
+      transform: rotate(var(--needle-rot, 0deg));
+      animation: rrNeedleTwitch 950ms 0.7s cubic-bezier(.16,.95,.18,1) both;
+    }
+    @keyframes rrNeedleTwitch {
+      0%   { transform: rotate(calc(var(--needle-rot) - 8deg)); }
+      48%  { transform: rotate(calc(var(--needle-rot) + 3deg)); }
+      100% { transform: rotate(var(--needle-rot)); }
+    }
+    .rr-needle-line { stroke: #ffffff; stroke-width: 2; stroke-linecap: round; opacity: 0.92; }
+    .rr-needle-dot { fill: #ffffff; stroke: rgba(0,0,0,0.5); stroke-width: 1; }
+    .rr-meter-score {
+      position: absolute; top: 75px; left: 50%; transform: translateX(-50%);
+      font-family: var(--rr-pixel); font-size: 42px; color: #fff; letter-spacing: 0.03em; line-height: 1;
+    }
+    .rr-meter-status { position: absolute; top: 142px; left: 50%; width: 260px; transform: translateX(-50%); text-align: center; }
+    .rr-meter-status-sub {
+      display: block; font-family: var(--rr-pixel); color: var(--rr-red);
+      font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; text-shadow: 0 0 10px rgba(230,0,0,0.22);
+    }
+    .rr-meter-labels {
+      position: absolute; top: 16px; left: 50%; width: 228px; transform: translateX(-50%);
+      display: flex; justify-content: space-between; color: rgba(255,255,255,0.32);
+      font-family: var(--rr-pixel); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; pointer-events: none;
+    }
+    .rr-rank-module {
+      width: min(100%, 330px); margin: 0 auto; padding: 14px 16px;
+      border-top: 1px solid rgba(255,255,255,0.14); border-bottom: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.018);
+    }
+    .rr-rank-kicker {
+      display: block; margin-bottom: 6px; font-family: var(--rr-pixel);
+      color: rgba(255,255,255,0.42); font-size: 9px; letter-spacing: 0.17em; text-transform: uppercase;
+    }
+    .rr-rank-value { display: block; font-family: var(--rr-pixel); color: #fff; font-size: 22px; letter-spacing: 0.04em; text-transform: uppercase; }
+    .rr-rank-value strong { color: var(--rr-red); font-weight: 700; }
+    .rr-back-preview {
+      display: grid; grid-template-columns: 76px 1fr; gap: 14px; align-items: center;
+      width: min(100%, 330px); margin: 4px auto 0; padding: 12px;
+      border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.025);
+      cursor: pointer; transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+    .rr-back-preview:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.42); background: rgba(255,255,255,0.045); }
+    .rr-back-thumb {
+      position: relative; width: 76px; aspect-ratio: 1053 / 1470; overflow: hidden; border-radius: 5px;
+      background: radial-gradient(circle at 50% 38%, rgba(230,0,0,0.35), transparent 35%),
+                  linear-gradient(150deg, #111, #272727 52%, #050505);
+      transform: rotate(-2deg); box-shadow: 0 0 18px rgba(255,255,255,0.10);
+    }
+    .rr-back-thumb::after {
+      content: "MEME BACK"; position: absolute; left: 8px; right: 8px; top: 50%; transform: translateY(-50%);
+      font-family: var(--rr-pixel); color: #fff; font-size: 10px; line-height: 0.9;
+      letter-spacing: 0.08em; text-align: center; text-shadow: 0 0 10px rgba(230,0,0,0.8);
+    }
+    .rr-back-text b { display: block; margin-bottom: 6px; font-family: var(--rr-pixel); color: var(--rr-red); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
+    .rr-back-text span { display: block; color: rgba(255,255,255,0.70); font-size: 11px; line-height: 1.35; }
+    .rr-back-text em { display: block; margin-top: 7px; color: #fff; font-family: var(--rr-pixel); font-size: 10px; font-style: normal; letter-spacing: 0.12em; text-transform: uppercase; }
+    .rr-back-lightbox {
+      position: fixed; inset: 0; z-index: 10002; display: none; place-items: center;
+      background: rgba(0,0,0,0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    .rr-back-lightbox.is-open { display: grid; }
+    .rr-back-close {
+      position: fixed; top: 22px; right: 28px; border: 0; background: transparent;
+      color: var(--rr-red); font-size: 46px; line-height: 1; cursor: pointer; padding: 0; z-index: 10003;
+    }
+    .rr-back-large {
+      position: relative; width: min(330px, 78vw); aspect-ratio: 1053 / 1470; border-radius: 12px; overflow: hidden;
+      background: radial-gradient(circle at 50% 38%, rgba(230,0,0,0.35), transparent 35%),
+                  linear-gradient(150deg, #111, #272727 52%, #050505);
+      box-shadow: 0 0 80px rgba(255,255,255,0.18); transform: rotate(-1deg);
+    }
+    .rr-back-large-copy { position: absolute; inset: 0; display: grid; place-items: center; padding: 28px; text-align: center; font-family: var(--rr-pixel); }
+    .rr-back-large-copy span { display: block; margin-bottom: 16px; color: var(--rr-red); font-size: 12px; letter-spacing: 0.18em; }
+    .rr-back-large-copy strong { display: block; color: #fff; font-size: 36px; line-height: 0.95; letter-spacing: -0.04em; text-transform: uppercase; }
+
+    .rr-bottom-hint {
+      position: relative; z-index: 4; padding: 16px 16px 32px;
+      text-align: center; color: rgba(255,255,255,0.46); font-size: 10px; letter-spacing: 0.06em; line-height: 1.4; pointer-events: none;
+    }
+    .rr-return-hook {
+      display: block; margin-top: 6px; font-family: var(--rr-pixel);
+      color: rgba(255,255,255,0.70); letter-spacing: 0.13em; text-transform: uppercase;
     }
 
-    #cta-button:hover {
-      background: #fff;
-      color: #000;
-      border-color: #fff;
-      box-shadow: 0 0 20px rgba(255,255,255,0.14);
+    @keyframes rrRiseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 1180px) {
+      .rr-final-layout {
+        width: min(92vw, 720px); grid-template-columns: 1fr; row-gap: 34px;
+        padding-top: 32px; padding-bottom: 110px; min-height: auto;
+      }
+      .rr-card-stage   { order: 1; }
+      .rr-review-panel { order: 2; width: min(100%, 520px); margin: 0 auto; }
+      .rr-meter-panel  { order: 3; width: min(100%, 520px); margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      .rr-back-preview, .rr-rank-module { grid-column: 1 / -1; }
+      .rr-review-copy  { width: 100%; max-width: none; }
+      .rr-cta-btn      { width: min(100%, 360px); }
+    }
+    @media (max-width: 720px) {
+      :root { --rr-card-w: min(75vw, 330px); }
+      .rr-final-header { gap: 12px; }
+      .rr-header-logo-img { height: 24px; }
+      .rr-final-layout { width: min(92vw, 430px); padding-top: 16px; }
+      .rr-section-title { font-size: 34px; }
+      .rr-meter-panel { grid-template-columns: 1fr; }
+      .rr-meter-card { min-height: 162px; }
     }
   </style>
 </head>
 <body>
-  <div id="state-loading">Loading card&hellip;</div>
-  <div id="state-error" style="display:none;"></div>
+  <div id="rr-toast"></div>
 
-  <div id="card-container">
-    <img id="card-img" src="" alt="Rate Card" />
+  <header class="rr-final-header">
+    <div class="rr-top-pill" id="rrManifestoPill">MANIFESTO</div>
+    <img class="rr-header-logo-img" id="rrHeaderLogo" alt="ADULTMONEY" />
+    <div class="rr-leader-pill" id="rrLeaderPill">LEADERBOARD</div>
+  </header>
+
+  <section class="rr-final-layout">
+    <aside class="rr-review-panel" aria-label="Rating review">
+      <h1 class="rr-section-title">RATING<br>REVIEW</h1>
+      <div class="rr-review-copy">
+        <div class="rr-case-line">
+          <span class="rr-case-label">Market Verdict</span>
+          <span class="rr-case-value red" id="rrMarketVerdict">SUBJECT SHOWS HIGH EXPOSURE TO REPEATABLE KNOWLEDGE WORK.</span>
+        </div>
+        <div class="rr-case-line">
+          <span class="rr-case-label">Primary Risk</span>
+          <span class="rr-case-value" id="rrPrimaryRisk">Tasks can be explained, copied, packaged, and automated.</span>
+        </div>
+        <div class="rr-case-line">
+          <span class="rr-case-label">Human Edge</span>
+          <span class="rr-case-value" id="rrHumanEdge">Taste / judgment / trust / original context.</span>
+        </div>
+        <div class="rr-case-line">
+          <span class="rr-case-label">Recommended Action</span>
+          <span class="rr-case-value" id="rrRecommendedAction">Build non-automatable leverage before the market reprices you.</span>
+        </div>
+      </div>
+    </aside>
+
+    <section class="rr-card-stage" aria-label="Generated card">
+      <p class="rr-verdict-line">THE MARKET HAS ISSUED A VERDICT.</p>
+      <div class="rr-card-wrap" id="rrCardWrap">
+        <img id="rrFinalCardImage" alt="RATe RACE card" />
+        <div class="rr-generated-card-fallback" aria-hidden="true">
+          <span class="rr-fallback-loading">Loading&hellip;</span>
+        </div>
+        <div class="rr-card-hotspot hotspot-rate" data-title="RATE" data-tooltip="How much labour-market value the system thinks your profile currently carries. Higher means more billable leverage."></div>
+        <div class="rr-card-hotspot hotspot-replaceability" data-title="REPLACEABILITY" data-tooltip="How exposed your work profile is to AI substitution and cheaper software output. Higher means more market pressure."></div>
+        <div class="rr-card-hotspot hotspot-portrait" data-title="PORTRAIT" data-tooltip="Your public labour-market face. This is the visual identity attached to your card when shared."></div>
+        <div class="rr-card-hotspot hotspot-portfolio" data-title="PORTFOLIO SIGNAL" data-tooltip="The external proof layer. Better work samples can change how the system reads your edge."></div>
+        <div class="rr-card-hotspot hotspot-code" data-title="EMPLOYEE FILE" data-tooltip="Your card identifier. Keep this code to return, edit, or share the same market file."></div>
+      </div>
+      <div class="rr-employee-file" id="rrEmployeeFile"></div>
+      <a class="rr-cta-btn" id="rrCtaBtn" href="#">CREATE YOUR OWN CARD</a>
+    </section>
+
+    <aside class="rr-meter-panel" aria-label="Market meters">
+      <section class="rr-meter-card" aria-label="Replaceability pressure meter">
+        <div class="rr-meter-labels"><span>LOW</span><span>WATCH</span><span>CRITICAL</span></div>
+        <svg class="rr-meter-svg" viewBox="0 0 230 135" aria-hidden="true">
+          <path class="rr-meter-track" d="M 25 115 A 90 90 0 0 1 205 115"></path>
+          <path class="rr-meter-zone" stroke="#1fd15f" d="M 25 115 A 90 90 0 0 1 71 37"></path>
+          <path class="rr-meter-zone" stroke="#f5df33" d="M 75 35 A 90 90 0 0 1 155 35"></path>
+          <path class="rr-meter-zone" stroke="#e60000" d="M 159 37 A 90 90 0 0 1 205 115"></path>
+          <g class="rr-meter-needle" id="rrReplaceabilityNeedle">
+            <line class="rr-needle-line" x1="115" y1="115" x2="115" y2="37"></line>
+            <circle class="rr-needle-dot" cx="115" cy="115" r="5"></circle>
+          </g>
+        </svg>
+        <div class="rr-meter-score" id="rrReplaceabilityScore">--</div>
+        <div class="rr-meter-status"><span class="rr-meter-status-sub">REPLACEABILITY</span></div>
+      </section>
+
+      <section class="rr-meter-card" aria-label="Labour rate meter">
+        <div class="rr-meter-labels"><span>WEAK</span><span>BILLABLE</span><span>RARE</span></div>
+        <svg class="rr-meter-svg" viewBox="0 0 230 135" aria-hidden="true">
+          <path class="rr-meter-track" d="M 25 115 A 90 90 0 0 1 205 115"></path>
+          <path class="rr-meter-zone" stroke="#e60000" d="M 25 115 A 90 90 0 0 1 71 37"></path>
+          <path class="rr-meter-zone" stroke="#f5df33" d="M 75 35 A 90 90 0 0 1 155 35"></path>
+          <path class="rr-meter-zone" stroke="#1fd15f" d="M 159 37 A 90 90 0 0 1 205 115"></path>
+          <g class="rr-meter-needle" id="rrRateNeedle">
+            <line class="rr-needle-line" x1="115" y1="115" x2="115" y2="37"></line>
+            <circle class="rr-needle-dot" cx="115" cy="115" r="5"></circle>
+          </g>
+        </svg>
+        <div class="rr-meter-score" id="rrRateScore">--</div>
+        <div class="rr-meter-status"><span class="rr-meter-status-sub">RATE</span></div>
+      </section>
+
+      <section class="rr-rank-module" aria-label="Market rank">
+        <span class="rr-rank-kicker">Market Comparison</span>
+        <span class="rr-rank-value">MORE REPLACEABLE THAN <strong id="rrPercentileText">74%</strong> OF USERS</span>
+      </section>
+
+      <section class="rr-back-preview" id="rrBackPreview" aria-label="Assigned meme back" role="button" tabindex="0">
+        <div class="rr-back-thumb"></div>
+        <div class="rr-back-text">
+          <b>ASSIGNED MEME BACK</b>
+          <span>The system assigned a meme reverse based on your rate and replaceability.</span>
+          <em>VIEW BACK &rarr;</em>
+        </div>
+      </section>
+    </aside>
+  </section>
+
+  <div class="rr-bottom-hint">
+    Hover over the card elements to see what they represent.
+    <span class="rr-return-hook">THIS CARD WILL UPDATE AS THE MARKET CHANGES. RETURN TOMORROW. YOUR JOB MIGHT NOT.</span>
   </div>
 
-  <a id="cta-button" href="#">CREATE YOUR OWN CARD</a>
+  <div class="rr-tooltip" id="rrTooltip" role="tooltip"></div>
+
+  <div class="rr-back-lightbox" id="rrBackLightbox" aria-label="Meme back preview">
+    <button class="rr-back-close" id="rrBackCloseBtn" type="button" aria-label="Close">&times;</button>
+    <div class="rr-back-large">
+      <div class="rr-back-large-copy">
+        <span>ASSIGNED MEME BACK</span>
+        <strong>COMING<br>SOON</strong>
+      </div>
+    </div>
+  </div>
 
   <script>
     (function () {
@@ -178,75 +432,112 @@
 
       const slug = window.location.pathname.split('/').filter(Boolean).pop() || '';
 
-      const stateLoading  = document.getElementById('state-loading');
-      const stateError    = document.getElementById('state-error');
-      const cardContainer = document.getElementById('card-container');
-      const cardImg       = document.getElementById('card-img');
-      const ctaButton     = document.getElementById('cta-button');
-
-      ctaButton.href = FRONTEND_ORIGIN;
-      ctaButton.removeAttribute('target');
-
-      function showError(msg) {
-        stateLoading.style.display = 'none';
-        stateError.textContent = msg;
-        stateError.style.display = '';
+      // Toast
+      const toastEl = document.getElementById('rr-toast');
+      let _toastTimer;
+      function showToast(msg, duration) {
+        clearTimeout(_toastTimer);
+        toastEl.textContent = msg;
+        toastEl.classList.add('is-visible');
+        _toastTimer = setTimeout(() => toastEl.classList.remove('is-visible'), duration || 2600);
       }
 
-      function showCard(data) {
-        const { card } = data;
-        stateLoading.style.display = 'none';
+      // Pill clicks
+      document.getElementById('rrManifestoPill').addEventListener('click', () => showToast('Coming soon.'));
+      document.getElementById('rrLeaderPill').addEventListener('click', () => showToast('Coming soon.'));
 
-        if (!card.imageUrl) { showError('Card image not available.'); return; }
+      // CTA link + header logo (served from frontend origin)
+      document.getElementById('rrCtaBtn').href = FRONTEND_ORIGIN;
+      document.getElementById('rrHeaderLogo').src = FRONTEND_ORIGIN + '/adultmoney-header-logo.png';
 
-        cardImg.src = card.imageUrl;
-        cardImg.onerror = () => {
-          showError('Could not load card image.');
-          cardContainer.style.display = 'none';
-          ctaButton.style.display = 'none';
+      // Needle rotation helper
+      const toRot = s => -90 + (Math.max(0, Math.min(100, Number(s) || 0)) / 100) * 180;
+
+      function populateCard(data) {
+        if (!data?.card) return;
+        const card = data.card;
+
+        if (card.imageUrl) {
+          const img  = document.getElementById('rrFinalCardImage');
+          const wrap = document.getElementById('rrCardWrap');
+          if (img && wrap) { img.src = card.imageUrl; wrap.classList.add('has-card-image'); }
+        }
+
+        const efEl = document.getElementById('rrEmployeeFile');
+        if (efEl && card.amCode) efEl.textContent = `EMPLOYEE FILE: ${card.amCode}`;
+
+        const rate = card.rate ?? 50;
+        const repl = card.replaceability ?? 50;
+
+        const rateScoreEl = document.getElementById('rrRateScore');
+        const replScoreEl = document.getElementById('rrReplaceabilityScore');
+        const rateNeedle  = document.getElementById('rrRateNeedle');
+        const replNeedle  = document.getElementById('rrReplaceabilityNeedle');
+
+        if (rateScoreEl) rateScoreEl.textContent = rate;
+        if (replScoreEl) replScoreEl.textContent = repl;
+        if (rateNeedle)  rateNeedle.style.setProperty('--needle-rot', `${toRot(rate)}deg`);
+        if (replNeedle)  replNeedle.style.setProperty('--needle-rot', `${toRot(repl)}deg`);
+
+        // Populate RATING REVIEW with personalized analysis
+        const reviewFields = {
+          rrMarketVerdict:     card.marketVerdict,
+          rrPrimaryRisk:       card.primaryRisk,
+          rrHumanEdge:         card.humanEdge,
+          rrRecommendedAction: card.recommendedAction,
         };
+        Object.entries(reviewFields).forEach(([id, val]) => {
+          if (val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+        });
+        if (card.replaceabilityPercentile != null) {
+          const pEl = document.getElementById('rrPercentileText');
+          if (pEl) pEl.textContent = `${card.replaceabilityPercentile}%`;
+        }
 
-        // LinkedIn icon area is clickable
-        const linkHref = card.linkedinUrl || card.ctaUrl || data.user?.portfolioUrl || null;
+        // LinkedIn overlay link
+        const linkHref = card.linkedinUrl || card.ctaUrl || null;
         if (linkHref && linkHref !== '#') {
           const a = document.createElement('a');
-          a.id        = 'overlay-cta';
-          a.className = 'card-overlay-link';
+          a.className = 'rr-linkedin-overlay';
           a.href      = linkHref;
           a.target    = '_blank';
           a.rel       = 'noopener noreferrer';
           a.setAttribute('aria-label', 'View LinkedIn profile');
-          cardContainer.appendChild(a);
+          document.getElementById('rrCardWrap').appendChild(a);
         }
-
-        // "click me" label for non-LinkedIn portfolio links
-        const customHref = card.ctaUrl || data.user?.portfolioUrl || null;
-        const hasCustom = customHref && customHref !== '#'
-          && customHref !== card.linkedinUrl
-          && !customHref.includes('linkedin.com');
-        if (hasCustom) {
-          const label = document.createElement('div');
-          label.className = 'card-clickme-label';
-          label.textContent = 'click me';
-          cardContainer.appendChild(label);
-        }
-
-        cardContainer.style.display = 'block';
-        ctaButton.style.display = 'inline-block';
       }
 
-      if (!slug) { showError('No card code found in URL.'); return; }
+      // Hotspot tooltips
+      const tooltip = document.getElementById('rrTooltip');
+      document.querySelectorAll('.rr-card-hotspot').forEach(spot => {
+        spot.addEventListener('pointerenter', () => {
+          tooltip.innerHTML = `<b>${spot.dataset.title || ''}</b>${spot.dataset.tooltip || ''}`;
+          tooltip.classList.add('is-visible');
+        });
+        spot.addEventListener('pointermove', e => {
+          tooltip.style.left = `${e.clientX}px`;
+          tooltip.style.top  = `${e.clientY}px`;
+        });
+        spot.addEventListener('pointerleave', () => tooltip.classList.remove('is-visible'));
+      });
+
+      // Meme back lightbox
+      const backPreview  = document.getElementById('rrBackPreview');
+      const backLightbox = document.getElementById('rrBackLightbox');
+      const backCloseBtn = document.getElementById('rrBackCloseBtn');
+      const openBack  = () => backLightbox.classList.add('is-open');
+      const closeBack = () => backLightbox.classList.remove('is-open');
+      backPreview.addEventListener('click', openBack);
+      backPreview.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openBack(); });
+      backCloseBtn.addEventListener('click', closeBack);
+      backLightbox.addEventListener('click', e => { if (e.target === backLightbox) closeBack(); });
+
+      if (!slug) return;
 
       fetch(`${BACKEND_URL}/api/card/view/${encodeURIComponent(slug)}`)
-        .then(res => {
-          if (!res.ok) {
-            if (res.status === 404) throw new Error('Card not found.');
-            throw new Error(`Server error (${res.status}).`);
-          }
-          return res.json();
-        })
-        .then(showCard)
-        .catch(err => showError(err.message || 'Failed to load card.'));
+        .then(res => res.ok ? res.json() : null)
+        .then(populateCard)
+        .catch(() => {});
     })();
   </script>
 </body>
