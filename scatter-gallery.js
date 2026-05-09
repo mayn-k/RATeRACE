@@ -1088,94 +1088,616 @@
     }, duration);
   }
 
+  let _modalEscHandler = null;
+
+  function injectFinalModalStyles() {
+    if (document.getElementById('rr-final-modal-style')) return;
+    const el = document.createElement('style');
+    el.id = 'rr-final-modal-style';
+    el.textContent = `
+      .rr-final-modal {
+        --rr-red: #e60000; --rr-green: #1fd15f; --rr-yellow: #f5df33; --rr-blue: #2d5fa9;
+        --rr-card-w: clamp(250px, 24.3vw, 388px);
+        --rr-pixel: "Pixelify Sans", Helvetica Neue, Helvetica, Arial, sans-serif;
+        --rr-sans: Helvetica Neue, Helvetica, Arial, sans-serif;
+        position: fixed; inset: 0; z-index: 9999;
+        overflow-y: auto; overflow-x: hidden;
+        scrollbar-width: none; -ms-overflow-style: none;
+        background:
+          radial-gradient(circle at 50% 52%, rgba(255,255,255,0.105), rgba(255,255,255,0.025) 23%, transparent 44%),
+          radial-gradient(circle at 78% 50%, rgba(230,0,0,0.08), transparent 34%),
+          #000;
+        color: #fff; isolation: isolate; font-family: var(--rr-sans);
+      }
+      .rr-final-modal::-webkit-scrollbar { display: none; }
+      .rr-final-modal::before {
+        content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px),
+          linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+        background-size: 48px 48px, 48px 48px, 12px 12px, 12px 12px;
+        opacity: 0.72;
+      }
+      .rr-final-modal::after {
+        content: ""; position: fixed; left: 0; right: 0; top: -22%; height: 18%;
+        background: linear-gradient(180deg, transparent, rgba(255,255,255,0.055), rgba(230,0,0,0.09), transparent);
+        filter: blur(2px); opacity: 0; pointer-events: none;
+        animation: rrScanPass 1.7s 0.24s ease-out both; z-index: 0;
+      }
+      @keyframes rrScanPass {
+        0%   { transform: translateY(-10vh); opacity: 0; }
+        18%  { opacity: 1; }
+        100% { transform: translateY(135vh); opacity: 0; }
+      }
+      .rr-modal-close {
+        position: fixed; top: 22px; right: 28px; z-index: 10001;
+        border: 0; background: transparent; color: var(--rr-red);
+        font-size: 46px; line-height: 1; cursor: pointer; padding: 0;
+      }
+      .rr-final-header {
+        position: sticky; top: 0; left: 50%; transform: translateX(-50%);
+        display: flex; align-items: center; justify-content: center;
+        gap: clamp(28px, 4.6vw, 78px); z-index: 15; user-select: none;
+        padding-top: clamp(18px, 2.5vw, 34px); width: 100%;
+      }
+      .rr-top-pill, .rr-leader-pill {
+        font-family: var(--rr-pixel); font-size: clamp(15px, 1.45vw, 24px);
+        line-height: 1; letter-spacing: 0.05em; padding: 0.34em 0.62em 0.42em; white-space: nowrap;
+      }
+      .rr-top-pill { color: #000; background: #f4dd34; }
+      .rr-leader-pill { color: #fff; background: var(--rr-blue); }
+      .rr-adultmoney-logo { display: flex; align-items: center; gap: 11px; white-space: nowrap; }
+      .rr-brand-stripes {
+        display: grid; grid-template-columns: repeat(4, 7px); gap: 4px;
+        transform: skewX(-14deg); height: clamp(24px, 2.5vw, 40px);
+      }
+      .rr-brand-stripes span { display: block; height: 100%; }
+      .rr-brand-stripes span:nth-child(1) { background: #f7d21f; }
+      .rr-brand-stripes span:nth-child(2) { background: #f01010; }
+      .rr-brand-stripes span:nth-child(3) { background: #006ee6; }
+      .rr-brand-stripes span:nth-child(4) { background: #fff; opacity: 0.75; }
+      .rr-logo-text {
+        font-family: Impact, "Arial Black", var(--rr-sans);
+        font-size: clamp(26px, 3.4vw, 54px); font-style: italic; font-weight: 900;
+        letter-spacing: -0.05em; transform: skewX(-10deg);
+        color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.12);
+      }
+      .rr-final-layout {
+        position: relative; z-index: 4;
+        width: min(92vw, 1560px); margin: 0 auto;
+        display: grid;
+        grid-template-columns: minmax(260px, 370px) minmax(320px, 520px) minmax(270px, 390px);
+        align-items: center; justify-content: center;
+        column-gap: clamp(30px, 5vw, 94px);
+        padding-top: 52px; padding-bottom: 60px; min-height: calc(100vh - 80px);
+      }
+      .rr-review-panel { align-self: center; transform: translateY(-4px); }
+      .rr-section-title {
+        margin: 0 0 28px; font-family: var(--rr-pixel);
+        color: var(--rr-red); font-size: clamp(28px, 3.2vw, 50px);
+        line-height: 0.95; letter-spacing: 0.14em; text-transform: uppercase;
+        text-shadow: 0 0 14px rgba(230,0,0,0.22);
+      }
+      .rr-review-copy { width: min(100%, 340px); color: rgba(255,255,255,0.88); font-size: 13px; line-height: 1.35; }
+      .rr-case-line { padding: 10px 0 12px; border-top: 1px solid rgba(255,255,255,0.14); }
+      .rr-case-line:last-child { border-bottom: 1px solid rgba(255,255,255,0.14); }
+      .rr-case-label {
+        display: block; margin-bottom: 5px; font-family: var(--rr-pixel);
+        color: rgba(255,255,255,0.42); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      }
+      .rr-case-value { display: block; color: #fff; font-size: 13px; line-height: 1.35; }
+      .rr-case-value.red { color: var(--rr-red); text-shadow: 0 0 10px rgba(230,0,0,0.18); }
+      .rr-card-stage {
+        position: relative; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; align-self: center; min-width: 0;
+      }
+      .rr-verdict-line {
+        margin: 0 0 18px; font-family: var(--rr-pixel);
+        color: rgba(255,255,255,0.72); font-size: 13px;
+        letter-spacing: 0.22em; text-align: center; text-transform: uppercase;
+        opacity: 0; animation: rrRiseIn 600ms 130ms ease-out forwards;
+      }
+      .rr-card-wrap {
+        position: relative; width: var(--rr-card-w); aspect-ratio: 1053 / 1470;
+        transform: rotate(1deg); border-radius: 9px;
+        filter: drop-shadow(0 0 26px rgba(255,255,255,0.20)) drop-shadow(0 34px 46px rgba(255,255,255,0.12));
+        opacity: 0; animation: rrCardSettle 820ms 120ms cubic-bezier(.16,.95,.18,1) forwards;
+      }
+      @keyframes rrCardSettle {
+        from { opacity: 0; transform: translateY(28px) rotate(1deg) scale(0.96); }
+        to   { opacity: 1; transform: translateY(0)   rotate(1deg) scale(1); }
+      }
+      .rr-card-wrap::before {
+        content: ""; position: absolute; left: 50%; bottom: -54px; width: 108%; height: 76px;
+        transform: translateX(-50%); border-radius: 50%;
+        background: rgba(255,255,255,0.58); filter: blur(31px); opacity: 0.44;
+        z-index: -1; mix-blend-mode: screen; pointer-events: none;
+      }
+      .rr-card-wrap::after {
+        content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+        background: linear-gradient(115deg, transparent 0 39%, rgba(255,255,255,0.22) 48%, transparent 58%),
+                    radial-gradient(circle at 20% 0%, rgba(255,255,255,0.2), transparent 24%);
+        opacity: 0; mix-blend-mode: screen; animation: rrCardGlint 1.15s 0.65s ease-out both;
+      }
+      @keyframes rrCardGlint {
+        0%   { opacity: 0; transform: translateX(-18%); }
+        35%  { opacity: 0.6; }
+        100% { opacity: 0; transform: translateX(22%); }
+      }
+      .rr-final-card-img {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        object-fit: cover; border-radius: inherit; display: none; z-index: 2;
+      }
+      .rr-card-wrap.has-card-image .rr-final-card-img { display: block; }
+      .rr-card-wrap.has-card-image .rr-generated-card-fallback { display: none; }
+      .rr-generated-card-fallback {
+        position: absolute; inset: 0; overflow: hidden; border-radius: inherit;
+        background: #f4f1e8; color: #0b0b0b; z-index: 1; padding: 22px;
+      }
+      .rr-fallback-stats { display: flex; justify-content: space-between; font-family: var(--rr-pixel); font-weight: 800; line-height: 0.8; }
+      .rr-fallback-stats small { display: block; margin-bottom: 7px; font-size: 8px; letter-spacing: 0.06em; }
+      .rr-fallback-rate { font-size: 60px; color: #000; }
+      .rr-fallback-repl { font-size: 50px; color: #a50000; text-align: right; }
+      .rr-fallback-portrait {
+        position: absolute; left: 22%; top: 30%; width: 56%; height: 42%;
+        background: radial-gradient(circle at 51% 26%, #ffdfc0 0 13%, transparent 14%),
+                    radial-gradient(circle at 51% 23%, #5a33c9 0 17%, transparent 18%),
+                    linear-gradient(180deg, transparent 0 45%, #1f2430 45% 68%, transparent 68%),
+                    linear-gradient(180deg, #eee8d8, #f9f4e3);
+        border: 1px solid rgba(0,0,0,0.12);
+      }
+      .rr-fallback-name {
+        position: absolute; left: 24px; right: 24px; bottom: 28px;
+        display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #1b1b1b;
+      }
+      .rr-fallback-symbol {
+        width: 34px; height: 34px; border: 1px solid #888;
+        display: grid; place-items: center; font-family: var(--rr-pixel); font-size: 21px; color: #111;
+      }
+      .rr-card-hotspot {
+        position: absolute; z-index: 5; border: 1px solid transparent; cursor: help; pointer-events: auto;
+      }
+      .rr-card-hotspot:hover { border-color: rgba(230,0,0,0.5); background: rgba(230,0,0,0.035); }
+      .hotspot-rate         { left: 7%;  top: 5%;    width: 23%; height: 14%; }
+      .hotspot-replaceability { right: 7%; top: 6%;  width: 30%; height: 13%; }
+      .hotspot-portrait     { left: 22%; top: 29%;   width: 56%; height: 42%; }
+      .hotspot-portfolio    { left: 37%; top: 72%;   width: 27%; height: 8%;  }
+      .hotspot-code         { left: 8%;  bottom: 4%; width: 82%; height: 12%; }
+      .rr-tooltip {
+        position: fixed; z-index: 10000; max-width: 260px; padding: 10px 12px 11px;
+        background: rgba(5,5,5,0.96); border: 1px solid rgba(255,255,255,0.18);
+        color: #fff; font-size: 11px; line-height: 1.35; pointer-events: none;
+        transform: translate(-50%, calc(-100% - 14px)); opacity: 0; transition: opacity 120ms ease;
+        box-shadow: 0 0 26px rgba(255,255,255,0.09);
+      }
+      .rr-tooltip.is-visible { opacity: 1; }
+      .rr-tooltip b {
+        display: block; margin-bottom: 4px; font-family: var(--rr-pixel);
+        color: var(--rr-red); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+      }
+      .rr-employee-file {
+        margin-top: 48px; font-family: var(--rr-pixel); color: var(--rr-red);
+        font-size: clamp(17px, 1.65vw, 25px); letter-spacing: 0.18em;
+        text-align: center; text-transform: uppercase; text-shadow: 0 0 16px rgba(230,0,0,0.22);
+      }
+      .rr-actions {
+        margin-top: 32px; display: grid; grid-template-columns: repeat(3, minmax(96px, 132px));
+        gap: 14px; justify-content: center;
+      }
+      .rr-action-btn {
+        height: 58px; border: 1px solid rgba(255,255,255,0.72); background: rgba(0,0,0,0.25);
+        color: #fff; font-family: var(--rr-pixel); font-size: 15px; line-height: 0.95;
+        letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
+        transition: transform 160ms ease, background 160ms ease, color 160ms ease,
+                    border-color 160ms ease, box-shadow 160ms ease;
+      }
+      .rr-action-btn:hover { transform: translateY(-2px); border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.14); }
+      .rr-action-btn.primary { border-color: #fff; background: #fff; color: #000; }
+      .rr-action-btn.primary:hover { background: var(--rr-red); border-color: var(--rr-red); color: #fff; box-shadow: 0 0 24px rgba(230,0,0,0.35); }
+      .rr-bottom-hint {
+        position: relative; z-index: 4; padding: 16px 16px 32px;
+        text-align: center; color: rgba(255,255,255,0.46); font-size: 10px; letter-spacing: 0.06em; line-height: 1.4; pointer-events: none;
+      }
+      .rr-return-hook {
+        display: block; margin-top: 6px; font-family: var(--rr-pixel);
+        color: rgba(255,255,255,0.70); letter-spacing: 0.13em; text-transform: uppercase;
+      }
+      .rr-meter-panel { align-self: center; display: flex; flex-direction: column; gap: 30px; transform: translateY(-2px); }
+      .rr-meter-card { position: relative; min-height: 180px; display: grid; place-items: center; }
+      .rr-meter-svg {
+        width: 230px; height: 128px; overflow: visible;
+        filter: drop-shadow(0 0 10px rgba(255,255,255,0.08)) drop-shadow(0 0 28px rgba(255,255,255,0.04));
+      }
+      .rr-meter-track { fill: none; stroke: rgba(255,255,255,0.14); stroke-width: 16; stroke-linecap: round; }
+      .rr-meter-zone { fill: none; stroke-width: 16; stroke-linecap: round; }
+      .rr-meter-needle {
+        transform-origin: 115px 115px;
+        transform: rotate(var(--needle-rot, 0deg));
+        animation: rrNeedleTwitch 950ms 0.7s cubic-bezier(.16,.95,.18,1) both;
+      }
+      @keyframes rrNeedleTwitch {
+        0%   { transform: rotate(calc(var(--needle-rot) - 8deg)); }
+        48%  { transform: rotate(calc(var(--needle-rot) + 3deg)); }
+        100% { transform: rotate(var(--needle-rot)); }
+      }
+      .rr-needle-line { stroke: #ffffff; stroke-width: 2; stroke-linecap: round; opacity: 0.92; }
+      .rr-needle-dot { fill: #ffffff; stroke: rgba(0,0,0,0.5); stroke-width: 1; }
+      .rr-meter-score {
+        position: absolute; top: 75px; left: 50%; transform: translateX(-50%);
+        font-family: var(--rr-pixel); font-size: 42px; color: #fff; letter-spacing: 0.03em; line-height: 1;
+      }
+      .rr-meter-status { position: absolute; top: 142px; left: 50%; width: 260px; transform: translateX(-50%); text-align: center; }
+      .rr-meter-status-sub {
+        display: block; font-family: var(--rr-pixel); color: var(--rr-red);
+        font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; text-shadow: 0 0 10px rgba(230,0,0,0.22);
+      }
+      .rr-meter-labels {
+        position: absolute; top: 16px; left: 50%; width: 228px; transform: translateX(-50%);
+        display: flex; justify-content: space-between; color: rgba(255,255,255,0.32);
+        font-family: var(--rr-pixel); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; pointer-events: none;
+      }
+      .rr-rank-module {
+        width: min(100%, 330px); margin: 0 auto; padding: 14px 16px;
+        border-top: 1px solid rgba(255,255,255,0.14); border-bottom: 1px solid rgba(255,255,255,0.14);
+        background: rgba(255,255,255,0.018);
+      }
+      .rr-rank-kicker {
+        display: block; margin-bottom: 6px; font-family: var(--rr-pixel);
+        color: rgba(255,255,255,0.42); font-size: 9px; letter-spacing: 0.17em; text-transform: uppercase;
+      }
+      .rr-rank-value { display: block; font-family: var(--rr-pixel); color: #fff; font-size: 22px; letter-spacing: 0.04em; text-transform: uppercase; }
+      .rr-rank-value strong { color: var(--rr-red); font-weight: 700; }
+      .rr-back-preview {
+        display: grid; grid-template-columns: 76px 1fr; gap: 14px; align-items: center;
+        width: min(100%, 330px); margin: 4px auto 0; padding: 12px;
+        border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.025);
+        cursor: pointer; transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+      }
+      .rr-back-preview:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.42); background: rgba(255,255,255,0.045); }
+      .rr-back-thumb {
+        position: relative; width: 76px; aspect-ratio: 1053 / 1470; overflow: hidden; border-radius: 5px;
+        background: radial-gradient(circle at 50% 38%, rgba(230,0,0,0.35), transparent 35%),
+                    linear-gradient(150deg, #111, #272727 52%, #050505);
+        transform: rotate(-2deg); box-shadow: 0 0 18px rgba(255,255,255,0.10);
+      }
+      .rr-back-thumb::after {
+        content: "MEME BACK"; position: absolute; left: 8px; right: 8px; top: 50%; transform: translateY(-50%);
+        font-family: var(--rr-pixel); color: #fff; font-size: 10px; line-height: 0.9;
+        letter-spacing: 0.08em; text-align: center; text-shadow: 0 0 10px rgba(230,0,0,0.8);
+      }
+      .rr-back-text b { display: block; margin-bottom: 6px; font-family: var(--rr-pixel); color: var(--rr-red); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
+      .rr-back-text span { display: block; color: rgba(255,255,255,0.70); font-size: 11px; line-height: 1.35; }
+      .rr-back-text em { display: block; margin-top: 7px; color: #fff; font-family: var(--rr-pixel); font-size: 10px; font-style: normal; letter-spacing: 0.12em; text-transform: uppercase; }
+      .rr-back-lightbox {
+        position: fixed; inset: 0; z-index: 10002; display: none; place-items: center;
+        background: rgba(0,0,0,0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      }
+      .rr-back-lightbox.is-open { display: grid; }
+      .rr-back-close {
+        position: fixed; top: 22px; right: 28px; border: 0; background: transparent;
+        color: var(--rr-red); font-size: 46px; line-height: 1; cursor: pointer; padding: 0; z-index: 10003;
+      }
+      .rr-back-large {
+        position: relative; width: min(330px, 78vw); aspect-ratio: 1053 / 1470; border-radius: 12px; overflow: hidden;
+        background: radial-gradient(circle at 50% 38%, rgba(230,0,0,0.35), transparent 35%),
+                    linear-gradient(150deg, #111, #272727 52%, #050505);
+        box-shadow: 0 0 80px rgba(255,255,255,0.18); transform: rotate(-1deg);
+      }
+      .rr-back-large-copy { position: absolute; inset: 0; display: grid; place-items: center; padding: 28px; text-align: center; font-family: var(--rr-pixel); }
+      .rr-back-large-copy span { display: block; margin-bottom: 16px; color: var(--rr-red); font-size: 12px; letter-spacing: 0.18em; }
+      .rr-back-large-copy strong { display: block; color: #fff; font-size: 36px; line-height: 0.95; letter-spacing: -0.04em; text-transform: uppercase; }
+      @keyframes rrRiseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      @media (max-width: 1180px) {
+        .rr-final-layout {
+          width: min(92vw, 720px); grid-template-columns: 1fr; row-gap: 34px;
+          padding-top: 32px; padding-bottom: 110px; min-height: auto;
+        }
+        .rr-card-stage  { order: 1; }
+        .rr-review-panel { order: 2; width: min(100%, 520px); margin: 0 auto; }
+        .rr-meter-panel  { order: 3; width: min(100%, 520px); margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .rr-back-preview, .rr-rank-module { grid-column: 1 / -1; }
+        .rr-review-copy { width: 100%; max-width: none; }
+        .rr-actions { grid-template-columns: 1fr; width: min(100%, 360px); }
+        .rr-action-btn { height: 50px; }
+      }
+      @media (max-width: 720px) {
+        .rr-final-modal { --rr-card-w: min(75vw, 330px); }
+        .rr-final-header { gap: 12px; transform: translateX(-50%) scale(0.82); transform-origin: center top; }
+        .rr-logo-text { font-size: 33px; }
+        .rr-brand-stripes { grid-template-columns: repeat(4, 5px); gap: 3px; height: 28px; }
+        .rr-final-layout { width: min(92vw, 430px); padding-top: 16px; }
+        .rr-section-title { font-size: 34px; }
+        .rr-meter-panel { grid-template-columns: 1fr; }
+        .rr-meter-card { min-height: 162px; }
+      }
+    `;
+    document.head.appendChild(el);
+  }
+
+  function buildFinalModalHTML(amCode) {
+    return `
+      <button class="rr-modal-close" id="rrModalCloseBtn" type="button" aria-label="Close">×</button>
+
+      <header class="rr-final-header">
+        <div class="rr-top-pill">MANIFESTO</div>
+        <div class="rr-adultmoney-logo" aria-label="ADULTMONEY">
+          <div class="rr-brand-stripes" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+          <div class="rr-logo-text">ADULTMONEY</div>
+        </div>
+        <div class="rr-leader-pill">LEADERBOARD</div>
+      </header>
+
+      <section class="rr-final-layout">
+        <aside class="rr-review-panel" aria-label="Rating review">
+          <h1 class="rr-section-title">RATING<br>REVIEW</h1>
+          <div class="rr-review-copy">
+            <div class="rr-case-line">
+              <span class="rr-case-label">Market Verdict</span>
+              <span class="rr-case-value red">SUBJECT SHOWS HIGH EXPOSURE TO REPEATABLE KNOWLEDGE WORK.</span>
+            </div>
+            <div class="rr-case-line">
+              <span class="rr-case-label">Primary Risk</span>
+              <span class="rr-case-value">Tasks can be explained, copied, packaged, and automated.</span>
+            </div>
+            <div class="rr-case-line">
+              <span class="rr-case-label">Human Edge</span>
+              <span class="rr-case-value">Taste / judgment / trust / original context.</span>
+            </div>
+            <div class="rr-case-line">
+              <span class="rr-case-label">Recommended Action</span>
+              <span class="rr-case-value">Build non-automatable leverage before the market reprices you.</span>
+            </div>
+          </div>
+        </aside>
+
+        <section class="rr-card-stage" aria-label="Generated card">
+          <p class="rr-verdict-line">THE MARKET HAS ISSUED A VERDICT.</p>
+          <div class="rr-card-wrap" id="rrCardWrap">
+            <img id="rrFinalCardImage" class="rr-final-card-img" alt="Generated RATe RACE card" />
+            <div class="rr-generated-card-fallback" aria-hidden="true">
+              <div class="rr-fallback-stats">
+                <div class="rr-fallback-rate"><small>RATE</small><span>--</span></div>
+                <div class="rr-fallback-repl"><small>REPLACEABILITY</small><span>--</span></div>
+              </div>
+              <div class="rr-fallback-portrait"></div>
+              <div class="rr-fallback-name"><div class="rr-fallback-symbol">↯</div><div>Loading&hellip;</div></div>
+            </div>
+            <div class="rr-card-hotspot hotspot-rate" data-title="RATE" data-tooltip="How much labour-market value the system thinks your profile currently carries. Higher means more billable leverage."></div>
+            <div class="rr-card-hotspot hotspot-replaceability" data-title="REPLACEABILITY" data-tooltip="How exposed your work profile is to AI substitution and cheaper software output. Higher means more market pressure."></div>
+            <div class="rr-card-hotspot hotspot-portrait" data-title="PORTRAIT" data-tooltip="Your public labour-market face. This is the visual identity attached to your card when shared."></div>
+            <div class="rr-card-hotspot hotspot-portfolio" data-title="PORTFOLIO SIGNAL" data-tooltip="The external proof layer. Better work samples can change how the system reads your edge."></div>
+            <div class="rr-card-hotspot hotspot-code" data-title="EMPLOYEE FILE" data-tooltip="Your card identifier. Keep this code to return, edit, or share the same market file."></div>
+          </div>
+          <div class="rr-employee-file">EMPLOYEE FILE: <span id="rrEmployeeFile">${amCode}</span></div>
+          <div class="rr-actions">
+            <button class="rr-action-btn" id="rrFixPortfolioBtn" type="button">FIX<br>PORTFOLIO</button>
+            <button class="rr-action-btn primary" id="rrPostCardBtn" type="button">POST<br>MY CARD</button>
+            <button class="rr-action-btn" id="rrChangeFaceBtn" type="button">CHANGE<br>FACE</button>
+          </div>
+        </section>
+
+        <aside class="rr-meter-panel" aria-label="Market meters">
+          <section class="rr-meter-card" aria-label="Replaceability pressure meter">
+            <div class="rr-meter-labels"><span>LOW</span><span>WATCH</span><span>CRITICAL</span></div>
+            <svg class="rr-meter-svg" viewBox="0 0 230 135" aria-hidden="true">
+              <path class="rr-meter-track" d="M 25 115 A 90 90 0 0 1 205 115"></path>
+              <path class="rr-meter-zone" stroke="#1fd15f" d="M 25 115 A 90 90 0 0 1 71 37"></path>
+              <path class="rr-meter-zone" stroke="#f5df33" d="M 75 35 A 90 90 0 0 1 155 35"></path>
+              <path class="rr-meter-zone" stroke="#e60000" d="M 159 37 A 90 90 0 0 1 205 115"></path>
+              <g class="rr-meter-needle" id="rrReplaceabilityNeedle">
+                <line class="rr-needle-line" x1="115" y1="115" x2="115" y2="37"></line>
+                <circle class="rr-needle-dot" cx="115" cy="115" r="5"></circle>
+              </g>
+            </svg>
+            <div class="rr-meter-score" id="rrReplaceabilityScore">--</div>
+            <div class="rr-meter-status"><span class="rr-meter-status-sub">REPLACEABILITY</span></div>
+          </section>
+
+          <section class="rr-meter-card" aria-label="Labour rate meter">
+            <div class="rr-meter-labels"><span>WEAK</span><span>BILLABLE</span><span>RARE</span></div>
+            <svg class="rr-meter-svg" viewBox="0 0 230 135" aria-hidden="true">
+              <path class="rr-meter-track" d="M 25 115 A 90 90 0 0 1 205 115"></path>
+              <path class="rr-meter-zone" stroke="#e60000" d="M 25 115 A 90 90 0 0 1 71 37"></path>
+              <path class="rr-meter-zone" stroke="#f5df33" d="M 75 35 A 90 90 0 0 1 155 35"></path>
+              <path class="rr-meter-zone" stroke="#1fd15f" d="M 159 37 A 90 90 0 0 1 205 115"></path>
+              <g class="rr-meter-needle" id="rrRateNeedle">
+                <line class="rr-needle-line" x1="115" y1="115" x2="115" y2="37"></line>
+                <circle class="rr-needle-dot" cx="115" cy="115" r="5"></circle>
+              </g>
+            </svg>
+            <div class="rr-meter-score" id="rrRateScore">--</div>
+            <div class="rr-meter-status"><span class="rr-meter-status-sub">RATE</span></div>
+          </section>
+
+          <section class="rr-rank-module" aria-label="Market rank">
+            <span class="rr-rank-kicker">Market Comparison</span>
+            <span class="rr-rank-value">MORE REPLACEABLE THAN <strong id="rrPercentileText">74%</strong> OF USERS</span>
+          </section>
+
+          <section class="rr-back-preview" id="rrBackPreview" aria-label="Assigned meme back" role="button" tabindex="0">
+            <div class="rr-back-thumb"></div>
+            <div class="rr-back-text">
+              <b>ASSIGNED MEME BACK</b>
+              <span>The system assigned a meme reverse based on your rate and replaceability.</span>
+              <em>VIEW BACK &rarr;</em>
+            </div>
+          </section>
+        </aside>
+      </section>
+
+      <div class="rr-bottom-hint">
+        Hover over the card elements to see what they represent.
+        <span class="rr-return-hook">THIS CARD WILL UPDATE AS THE MARKET CHANGES. RETURN TOMORROW. YOUR JOB MIGHT NOT.</span>
+      </div>
+
+      <div class="rr-tooltip" id="rrTooltip" role="tooltip"></div>
+
+      <div class="rr-back-lightbox" id="rrBackLightbox" aria-label="Meme back preview">
+        <button class="rr-back-close" id="rrBackCloseBtn" type="button" aria-label="Close">×</button>
+        <div class="rr-back-large">
+          <div class="rr-back-large-copy">
+            <span>ASSIGNED MEME BACK</span>
+            <strong>COMING<br>SOON</strong>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   function openCardModal(amCode) {
-    if (document.getElementById('rr-card-fs-overlay')) return;
-    const backendOrigin = window.location.origin.replace(':8000', ':3000');
+    if (document.getElementById('rr-final-modal-overlay')) return;
+    injectFinalModalStyles();
+
+    const shareUrl = `${BACKEND_URL}/card/${encodeURIComponent(amCode)}`;
 
     const overlay = document.createElement('div');
-    overlay.id = 'rr-card-fs-overlay';
-    Object.assign(overlay.style, {
-      position: 'fixed', inset: '0', zIndex: '9998',
-      background: 'rgba(17,17,17,0.55)',
-      backdropFilter: 'blur(8px)',
-      webkitBackdropFilter: 'blur(8px)',
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      overflowY: 'auto', padding: '48px 16px 32px',
-      msOverflowStyle: 'none', scrollbarWidth: 'none',
-    });
+    overlay.id = 'rr-final-modal-overlay';
+    overlay.className = 'rr-final-modal';
+    overlay.innerHTML = buildFinalModalHTML(amCode);
 
-    // Inject scrollbar-hiding rule scoped to the overlay
-    if (!document.getElementById('rr-overlay-scrollbar-style')) {
-      const st = document.createElement('style');
-      st.id = 'rr-overlay-scrollbar-style';
-      st.textContent = '#rr-card-fs-overlay::-webkit-scrollbar { display: none; }';
-      document.head.appendChild(st);
-    }
-
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = '×';
-    Object.assign(closeBtn.style, {
-      position: 'fixed', top: '14px', right: '18px',
-      background: 'transparent', border: 'none',
-      color: '#ff0000', fontSize: '44px', lineHeight: '1',
-      cursor: 'pointer', zIndex: '9999', padding: '0',
-      fontFamily: 'Arial, sans-serif',
-    });
-    closeBtn.addEventListener('click', closeCardModal);
-
-    // Size card to fit viewport: reserve space for close btn + share btn + padding
-    const overhead = 48 + 32 + 20 + 42; // padding top + bottom + share margin + share height
-    const maxH = Math.max(200, window.innerHeight - overhead);
-    const cardW = Math.round(Math.min(Math.max(240, maxH * (1053 / 1470)), Math.min(window.innerWidth * 0.92, 520)));
-    const cardH = Math.round(cardW * (1470 / 1053));
-
-    const iframe = document.createElement('iframe');
-    iframe.src = `${backendOrigin}/card/${encodeURIComponent(amCode)}?embed=1`;
-    Object.assign(iframe.style, {
-      width: cardW + 'px', height: cardH + 'px',
-      border: 'none', borderRadius: '18px', display: 'block', flexShrink: '0',
-    });
-    iframe.setAttribute('frameborder', '0');
-    iframe.setAttribute('scrolling', 'no');
-
-    // Share button below the card
-    const shareBtn = document.createElement('button');
-    shareBtn.textContent = 'SHARE';
-    Object.assign(shareBtn.style, {
-      marginTop: '20px',
-      padding: '11px 32px',
-      background: 'transparent',
-      border: '1px solid #fff',
-      color: '#fff',
-      fontFamily: '"Pixelify Sans", monospace',
-      fontSize: '11px', fontWeight: '700',
-      letterSpacing: '0.18em',
-      cursor: 'pointer',
-    });
-    shareBtn.addEventListener('click', async () => {
-      const shareUrl = `${backendOrigin}/card/${amCode}`;
-      try { await navigator.clipboard.writeText(shareUrl); } catch (_) {}
-      shareBtn.textContent = 'LINK COPIED';
-      setTimeout(() => { shareBtn.textContent = 'SHARE'; }, 2000);
-    });
-
-    overlay.appendChild(iframe);
-    overlay.appendChild(shareBtn);
     document.body.appendChild(overlay);
-    document.body.appendChild(closeBtn);
-    overlay._closeBtn = closeBtn;
-
     document.documentElement.style.overflow = 'hidden';
+
+    overlay.querySelector('#rrModalCloseBtn').addEventListener('click', closeCardModal);
     overlay.addEventListener('click', e => { if (e.target === overlay) closeCardModal(); });
+    _modalEscHandler = e => { if (e.key === 'Escape') closeCardModal(); };
+    window.addEventListener('keydown', _modalEscHandler);
+
+    // Fetch card data and populate meters + image
+    fetch(`${BACKEND_URL}/api/card/view/${encodeURIComponent(amCode)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data?.card) return;
+        const card = data.card;
+
+        if (card.imageUrl) {
+          const img  = overlay.querySelector('#rrFinalCardImage');
+          const wrap = overlay.querySelector('#rrCardWrap');
+          if (img && wrap) { img.src = card.imageUrl; wrap.classList.add('has-card-image'); }
+        }
+
+        const toRot = s => -90 + (Math.max(0, Math.min(100, Number(s) || 0)) / 100) * 180;
+        const rate = card.rate ?? 50;
+        const repl = card.replaceability ?? 50;
+
+        const rateScoreEl = overlay.querySelector('#rrRateScore');
+        const replScoreEl = overlay.querySelector('#rrReplaceabilityScore');
+        const rateNeedle  = overlay.querySelector('#rrRateNeedle');
+        const replNeedle  = overlay.querySelector('#rrReplaceabilityNeedle');
+
+        if (rateScoreEl) rateScoreEl.textContent = rate;
+        if (replScoreEl) replScoreEl.textContent = repl;
+        if (rateNeedle)  rateNeedle.style.setProperty('--needle-rot',  `${toRot(rate)}deg`);
+        if (replNeedle)  replNeedle.style.setProperty('--needle-rot',  `${toRot(repl)}deg`);
+      })
+      .catch(() => {});
+
+    // POST MY CARD — copy share URL
+    overlay.querySelector('#rrPostCardBtn').addEventListener('click', async () => {
+      const btn = overlay.querySelector('#rrPostCardBtn');
+      try { await navigator.clipboard.writeText(shareUrl); } catch (_) {}
+      btn.innerHTML = 'LINK<br>COPIED';
+      setTimeout(() => { btn.innerHTML = 'POST<br>MY CARD'; }, 2000);
+    });
+
+    // FIX PORTFOLIO
+    overlay.querySelector('#rrFixPortfolioBtn').addEventListener('click', () => showPortfolioPrompt());
+
+    // CHANGE FACE — placeholder
+    overlay.querySelector('#rrChangeFaceBtn').addEventListener('click', () => showToast('Portrait update coming soon.'));
+
+    // Card hotspot tooltips
+    const tooltip = overlay.querySelector('#rrTooltip');
+    overlay.querySelectorAll('.rr-card-hotspot').forEach(spot => {
+      spot.addEventListener('pointerenter', () => {
+        if (!tooltip) return;
+        tooltip.innerHTML = `<b>${spot.dataset.title || ''}</b>${spot.dataset.tooltip || ''}`;
+        tooltip.classList.add('is-visible');
+      });
+      spot.addEventListener('pointermove', e => {
+        if (!tooltip) return;
+        tooltip.style.left = `${e.clientX}px`;
+        tooltip.style.top  = `${e.clientY}px`;
+      });
+      spot.addEventListener('pointerleave', () => tooltip?.classList.remove('is-visible'));
+    });
+
+    // Meme back lightbox
+    const backPreview  = overlay.querySelector('#rrBackPreview');
+    const backLightbox = overlay.querySelector('#rrBackLightbox');
+    const backCloseBtn = overlay.querySelector('#rrBackCloseBtn');
+    if (backPreview && backLightbox) {
+      const openLB  = () => backLightbox.classList.add('is-open');
+      const closeLB = () => backLightbox.classList.remove('is-open');
+      backPreview.addEventListener('click', openLB);
+      backPreview.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLB(); });
+      backCloseBtn?.addEventListener('click', closeLB);
+      backLightbox.addEventListener('click', e => { if (e.target === backLightbox) closeLB(); });
+    }
   }
 
   function closeCardModal() {
-    const overlay = document.getElementById('rr-card-fs-overlay');
+    const overlay = document.getElementById('rr-final-modal-overlay');
     if (!overlay) return;
-    if (overlay._closeBtn) overlay._closeBtn.remove();
     overlay.remove();
+    if (_modalEscHandler) { window.removeEventListener('keydown', _modalEscHandler); _modalEscHandler = null; }
     document.documentElement.style.overflow = '';
+  }
+
+  function showPortfolioPrompt() {
+    if (document.getElementById('rr-portfolio-prompt')) return;
+    const prompt = document.createElement('div');
+    prompt.id = 'rr-portfolio-prompt';
+    Object.assign(prompt.style, {
+      position: 'fixed', inset: '0', zIndex: '10003',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)',
+    });
+    prompt.innerHTML = `
+      <div style="background:#111;border:1px solid rgba(255,255,255,0.18);padding:28px 24px;width:min(380px,90vw);font-family:'Pixelify Sans',sans-serif;">
+        <div style="color:#e60000;font-size:13px;letter-spacing:0.14em;margin-bottom:8px;text-transform:uppercase;">FIX PORTFOLIO</div>
+        <div style="color:rgba(255,255,255,0.45);font-size:11px;margin-bottom:14px;letter-spacing:0.04em;">LinkedIn, Linktree, personal site, or any social link.</div>
+        <input id="rrPortfolioInput" type="url" placeholder="https://your-link.com"
+          style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:10px 12px;font-size:13px;outline:none;margin-bottom:14px;font-family:inherit;box-sizing:border-box;" />
+        <div style="display:flex;gap:10px;">
+          <button id="rrPortfolioSave"   style="flex:1;padding:10px;background:#fff;color:#000;border:none;font-family:inherit;font-size:12px;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;">Save</button>
+          <button id="rrPortfolioCancel" style="flex:1;padding:10px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.3);font-family:inherit;font-size:12px;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;">Cancel</button>
+        </div>
+        <div id="rrPortfolioMsg" style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.45);min-height:16px;"></div>
+      </div>
+    `;
+    document.body.appendChild(prompt);
+
+    const closePrompt = () => prompt.remove();
+    prompt.querySelector('#rrPortfolioCancel').addEventListener('click', closePrompt);
+    prompt.addEventListener('click', e => { if (e.target === prompt) closePrompt(); });
+
+    prompt.querySelector('#rrPortfolioSave').addEventListener('click', async () => {
+      const saveBtn = prompt.querySelector('#rrPortfolioSave');
+      const msgEl   = prompt.querySelector('#rrPortfolioMsg');
+      const url     = prompt.querySelector('#rrPortfolioInput').value.trim();
+      if (!url) { msgEl.textContent = 'Please enter a URL.'; return; }
+      saveBtn.textContent = 'Saving…';
+      saveBtn.disabled = true;
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (leadModal.token) headers['Authorization'] = `Bearer ${leadModal.token}`;
+        const res = await fetch(`${BACKEND_URL}/api/user/bio`, {
+          method: 'POST', headers, body: JSON.stringify({ portfolioUrl: url }),
+        });
+        if (!res.ok) throw new Error();
+        msgEl.style.color = '#00a331';
+        msgEl.textContent = 'Saved!';
+        setTimeout(closePrompt, 900);
+      } catch (_) {
+        msgEl.style.color = '#e60000';
+        msgEl.textContent = 'Error saving. Try again.';
+        saveBtn.textContent = 'Save';
+        saveBtn.disabled = false;
+      }
+    });
   }
 
   async function handleShare() {

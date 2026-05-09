@@ -3,52 +3,91 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rate Card</title>
+  <title>RATe RACE — Card</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html {
-      overflow-y: auto;
       scrollbar-width: none;
       -ms-overflow-style: none;
     }
-
     html::-webkit-scrollbar { display: none; }
 
     body {
-      background: #111;
-      color: #fff;
-      font-family: 'Courier New', Courier, monospace;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 32px 16px 48px;
+      padding: 48px 16px 56px;
+      font-family: "Pixelify Sans", Helvetica Neue, Helvetica, Arial, sans-serif;
+      color: #fff;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255,255,255,0.09), rgba(255,255,255,0.02) 26%, transparent 46%),
+        radial-gradient(circle at 78% 50%, rgba(230,0,0,0.07), transparent 36%),
+        #000;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 48px 48px, 48px 48px, 12px 12px, 12px 12px;
+      opacity: 0.7;
     }
 
     #state-loading,
     #state-error {
+      position: relative;
+      z-index: 1;
       margin-top: 40px;
-      font-size: 14px;
-      letter-spacing: 0.12em;
-      color: #888;
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      color: rgba(255,255,255,0.45);
       text-align: center;
+      text-transform: uppercase;
     }
 
-    #state-error {
-      color: #c44;
-    }
+    #state-error { color: #e60000; }
 
     #card-container {
       position: relative;
-      /* fit both viewport width and height (reserve ~160px for button + padding) */
-      width: min(clamp(240px, 92vw, 520px), calc((100vh - 160px) * 1053 / 1470));
+      z-index: 1;
+      width: min(clamp(240px, 82vw, 420px), calc((100vh - 220px) * 1053 / 1470));
       aspect-ratio: 1053 / 1470;
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: 0 8px 48px rgba(0, 0, 0, 0.7);
+      border-radius: 9px;
+      overflow: visible;
       display: none;
+      filter: drop-shadow(0 0 26px rgba(255,255,255,0.20)) drop-shadow(0 34px 46px rgba(255,255,255,0.12));
+      transform: rotate(1deg);
+      animation: cardSettle 820ms 80ms cubic-bezier(.16,.95,.18,1) both;
+    }
+
+    @keyframes cardSettle {
+      from { opacity: 0; transform: translateY(28px) rotate(1deg) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0)   rotate(1deg) scale(1); }
+    }
+
+    #card-container::before {
+      content: "";
+      position: absolute;
+      left: 50%; bottom: -52px; width: 108%; height: 72px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: rgba(255,255,255,0.55);
+      filter: blur(30px);
+      opacity: 0.4;
+      z-index: -1;
+      mix-blend-mode: screen;
+      pointer-events: none;
     }
 
     #card-img {
@@ -56,7 +95,7 @@
       height: 100%;
       object-fit: cover;
       display: block;
-      border-radius: 18px;
+      border-radius: 9px;
     }
 
     /* Clickable overlay links — coordinates as % of 1053×1470 artboard */
@@ -65,18 +104,8 @@
       text-decoration: none;
       background: transparent;
       cursor: pointer;
-      /* outline for debugging: outline: 1px solid rgba(255,0,0,0.3); */
     }
 
-    /* Portrait + name area: top=25%, left=25%, width=52%, height=42% */
-    #overlay-portrait {
-      top: 25%;
-      left: 25%;
-      width: 52%;
-      height: 42%;
-    }
-
-    /* CTA link area: top=80%, left=5%, width=90%, height=6% */
     #overlay-cta {
       top: 80%;
       left: 5%;
@@ -84,30 +113,7 @@
       height: 6%;
     }
 
-    #cta-button {
-      margin-top: 28px;
-      padding: 14px 32px;
-      background: transparent;
-      border: 1px solid #fff;
-      color: #fff;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      text-decoration: none;
-      cursor: pointer;
-      border-radius: 2px;
-      transition: background 0.15s, color 0.15s;
-      display: none;
-    }
-
-    #cta-button:hover {
-      background: #fff;
-      color: #111;
-    }
-
-    /* Animated "click me" label for custom CTA links */
+    /* "click me" animation for portfolio links */
     @keyframes pulse-cta {
       0%, 100% { opacity: 0.55; transform: translateX(-50%) scale(1); }
       50%       { opacity: 1;    transform: translateX(-50%) scale(1.06); }
@@ -118,8 +124,8 @@
       top: 83.5%;
       left: 50%;
       transform: translateX(-50%);
-      font-family: 'Courier New', Courier, monospace;
-      font-size: clamp(8px, 1.4vw, 12px);
+      font-family: "Pixelify Sans", monospace;
+      font-size: clamp(8px, 1.4vw, 11px);
       color: #153dff;
       letter-spacing: 0.12em;
       pointer-events: none;
@@ -127,20 +133,29 @@
       animation: pulse-cta 1.6s ease-in-out infinite;
     }
 
-    /* Embed mode — no padding, transparent bg, fills iframe */
-    body.embed {
-      padding: 0;
-      min-height: 0;
+    #cta-button {
+      position: relative;
+      z-index: 1;
+      margin-top: 40px;
+      padding: 14px 36px;
       background: transparent;
-      justify-content: center;
+      border: 1px solid rgba(255,255,255,0.72);
+      color: #fff;
+      font-family: "Pixelify Sans", sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+      display: none;
     }
 
-    body.embed #card-container {
-      width: 100%;
-      height: 100vh;
-      aspect-ratio: unset;
-      border-radius: 0;
-      box-shadow: none;
+    #cta-button:hover {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+      box-shadow: 0 0 20px rgba(255,255,255,0.14);
     }
   </style>
 </head>
@@ -150,12 +165,9 @@
 
   <div id="card-container">
     <img id="card-img" src="" alt="Rate Card" />
-    <!-- overlays injected by JS -->
   </div>
 
-  <a id="cta-button" href="#">
-    CREATE YOUR OWN CARD
-  </a>
+  <a id="cta-button" href="#">CREATE YOUR OWN CARD</a>
 
   <script>
     (function () {
@@ -163,9 +175,6 @@
       const FRONTEND_ORIGIN = (typeof window.FRONTEND_ORIGIN !== 'undefined' && window.FRONTEND_ORIGIN)
         ? window.FRONTEND_ORIGIN
         : 'http://localhost:8000';
-
-      const isEmbed = new URLSearchParams(window.location.search).has('embed');
-      if (isEmbed) document.body.classList.add('embed');
 
       const slug = window.location.pathname.split('/').filter(Boolean).pop() || '';
 
@@ -175,6 +184,9 @@
       const cardImg       = document.getElementById('card-img');
       const ctaButton     = document.getElementById('cta-button');
 
+      ctaButton.href = FRONTEND_ORIGIN;
+      ctaButton.removeAttribute('target');
+
       function showError(msg) {
         stateLoading.style.display = 'none';
         stateError.textContent = msg;
@@ -183,23 +195,18 @@
 
       function showCard(data) {
         const { card } = data;
-
         stateLoading.style.display = 'none';
 
-        // Set card image
-        if (!card.imageUrl) {
-          showError('Card image not available.');
-          return;
-        }
+        if (!card.imageUrl) { showError('Card image not available.'); return; }
+
         cardImg.src = card.imageUrl;
         cardImg.onerror = () => {
           showError('Could not load card image.');
           cardContainer.style.display = 'none';
           ctaButton.style.display = 'none';
-          stateLoading.style.display = 'none';
         };
 
-        // LinkedIn icon (CTA area) is the clickable target — portrait is NOT clickable
+        // LinkedIn icon area is clickable
         const linkHref = card.linkedinUrl || card.ctaUrl || data.user?.portfolioUrl || null;
         if (linkHref && linkHref !== '#') {
           const a = document.createElement('a');
@@ -212,7 +219,7 @@
           cardContainer.appendChild(a);
         }
 
-        // "click me" animation for custom (non-LinkedIn) portfolio links
+        // "click me" label for non-LinkedIn portfolio links
         const customHref = card.ctaUrl || data.user?.portfolioUrl || null;
         const hasCustom = customHref && customHref !== '#'
           && customHref !== card.linkedinUrl
@@ -225,17 +232,10 @@
         }
 
         cardContainer.style.display = 'block';
-        if (!isEmbed) ctaButton.style.display = 'inline-block';
+        ctaButton.style.display = 'inline-block';
       }
 
-      // Set up CTA button — same tab so user lands in onboarding flow
-      ctaButton.href = FRONTEND_ORIGIN;
-      ctaButton.removeAttribute('target');
-
-      if (!slug) {
-        showError('No card code found in URL.');
-        return;
-      }
+      if (!slug) { showError('No card code found in URL.'); return; }
 
       fetch(`${BACKEND_URL}/api/card/view/${encodeURIComponent(slug)}`)
         .then(res => {

@@ -120,11 +120,181 @@
     .btn-dark { background: #111; color: white; }
     .btn-accent { background: var(--accent); color: #111; }
     .btn-light { background: #fafaf8; border: 0.5px solid rgba(0,0,0,0.12); color: #8d8d8d; }
+
+    /* RATe RACE live job ticker overlay */
+    :root {
+      --landing-header-top-gap: 20px;
+      --landing-header-height: 28px;
+      --landing-header-to-ticker-gap: 10px;
+      --job-ticker-top: calc(
+        var(--landing-header-top-gap) +
+        var(--landing-header-height) +
+        var(--landing-header-to-ticker-gap)
+      );
+      --job-ticker-height: 23px;
+      --ticker-fade-width: clamp(130px, 16vw, 280px);
+    }
+
+    .job-ticker {
+      position: absolute;
+      z-index: 80;
+      top: var(--job-ticker-top);
+      left: 0;
+      right: 0;
+      height: var(--job-ticker-height);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+      border: 0;
+      background:
+        linear-gradient(90deg,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(255, 255, 255, 0.72) 8%,
+          rgba(255, 255, 255, 0.72) 92%,
+          rgba(255, 255, 255, 0) 100%
+        ) top left / 100% 1px no-repeat,
+        linear-gradient(90deg,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(255, 255, 255, 0.72) 8%,
+          rgba(255, 255, 255, 0.72) 92%,
+          rgba(255, 255, 255, 0) 100%
+        ) bottom left / 100% 1px no-repeat,
+        rgba(0, 0, 0, 0.78);
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.34) inset;
+    }
+
+    .job-ticker::before,
+    .job-ticker::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: var(--ticker-fade-width);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .job-ticker::before {
+      left: 0;
+      background: linear-gradient(90deg,
+        #000 0%,
+        rgba(0, 0, 0, 0.98) 18%,
+        rgba(0, 0, 0, 0.74) 48%,
+        rgba(0, 0, 0, 0.22) 78%,
+        rgba(0, 0, 0, 0) 100%
+      );
+    }
+
+    .job-ticker::after {
+      right: 0;
+      background: linear-gradient(270deg,
+        #000 0%,
+        rgba(0, 0, 0, 0.98) 18%,
+        rgba(0, 0, 0, 0.74) 48%,
+        rgba(0, 0, 0, 0.22) 78%,
+        rgba(0, 0, 0, 0) 100%
+      );
+    }
+
+    .job-ticker__track {
+      display: flex;
+      align-items: center;
+      width: max-content;
+      white-space: nowrap;
+      will-change: transform;
+      animation: rateRaceTicker 400s linear infinite;
+    }
+
+    .job-ticker__item {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-right: 74px;
+      text-transform: uppercase;
+      line-height: 1;
+      opacity: 0.98;
+    }
+
+    .job-ticker__title {
+      font-family: "Pixelify Sans", Helvetica Neue, Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.015em;
+    }
+
+    .job-ticker__score {
+      font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.015em;
+    }
+
+    .job-ticker__delta {
+      display: inline-block;
+      margin-left: 5px;
+      font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      line-height: 0.8;
+      transform: translateY(1px);
+    }
+
+    .job-ticker__item.is-down .job-ticker__title,
+    .job-ticker__item.is-down .job-ticker__score {
+      color: #e60000;
+      text-shadow: 0 0 8px rgba(230, 0, 0, 0.28);
+    }
+
+    .job-ticker__item.is-up .job-ticker__title,
+    .job-ticker__item.is-up .job-ticker__score {
+      color: #00a331;
+      text-shadow: 0 0 8px rgba(0, 163, 49, 0.24);
+    }
+
+    @keyframes rateRaceTicker {
+      from { transform: translate3d(0, 0, 0); }
+      to { transform: translate3d(-50%, 0, 0); }
+    }
+
+    @media (max-width: 720px) {
+      :root {
+        --landing-header-top-gap: 14px;
+        --landing-header-height: 24px;
+        --landing-header-to-ticker-gap: 8px;
+        --job-ticker-height: 21px;
+        --ticker-fade-width: 86px;
+      }
+
+      .job-ticker__track {
+        animation-duration: 44s;
+      }
+
+      .job-ticker__item {
+        gap: 7px;
+        margin-right: 52px;
+      }
+
+      .job-ticker__title {
+        font-size: 11px;
+      }
+
+      .job-ticker__score {
+        font-size: 10px;
+      }
+
+      .job-ticker__delta {
+        font-size: 11px;
+      }
+    }
   </style>
 </head>
 <body>
   <div id="root">
     <canvas id="canvas"></canvas>
+
+    <div class="job-ticker" aria-label="RATe RACE live job exposure ticker">
+      <div class="job-ticker__track" id="jobTickerTrack"></div>
+    </div>
 
     <div id="linkPanel" class="panel">
       <button class="panel-close" id="closeLinkPanel">×</button>
@@ -171,6 +341,67 @@
 
     // Backend API base URL — change to production URL when deployed.
     window.BACKEND_URL = 'http://localhost:3000';
+  </script>
+
+  <script src="./ticker-jobs.js"></script>
+  <script>
+    (function initRateRaceJobTicker() {
+      const fallbackJobs = [
+        { title: 'SOFTWARE DEVELOPERS', exposure: 9 },
+        { title: 'ELECTRICIANS', exposure: 2 },
+        { title: 'FINANCIAL ANALYSTS', exposure: 9 },
+        { title: 'WELDERS', exposure: 2 },
+        { title: 'MARKET RESEARCH ANALYSTS', exposure: 9 },
+        { title: 'ROOFERS', exposure: 1 }
+      ];
+
+      const jobs = Array.isArray(window.RATE_RACE_TICKER_JOBS) && window.RATE_RACE_TICKER_JOBS.length
+        ? window.RATE_RACE_TICKER_JOBS
+        : fallbackJobs;
+
+      const track = document.getElementById('jobTickerTrack');
+      if (!track) return;
+
+      const escapeHTML = (value) => String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+      const formatScore = (job) => {
+        const manualScore = Number(job.score);
+        const exposure = Number(job.exposure);
+
+        const score = Number.isFinite(manualScore)
+          ? manualScore
+          : Number.isFinite(exposure)
+            ? exposure >= 5
+              ? -(exposure / 10)
+              : (1 - exposure / 10)
+            : 0;
+
+        const direction = score < 0 ? 'down' : 'up';
+        const delta = score < 0 ? '▼' : '▲';
+        const signedScore = `${score >= 0 ? '+' : ''}${score.toFixed(3)}`;
+
+        return { signedScore, direction, delta };
+      };
+
+      const renderItem = (job) => {
+        const { signedScore, direction, delta } = formatScore(job);
+        const raw = Number.isFinite(Number(job.exposure)) ? `AI EXPOSURE ${job.exposure}/10` : '';
+        return `
+          <span class="job-ticker__item ${direction === 'up' ? 'is-up' : 'is-down'}" title="${escapeHTML(raw)}">
+            <span class="job-ticker__title">${escapeHTML(job.title)}</span>
+            <span class="job-ticker__score">${signedScore}<span class="job-ticker__delta">${delta}</span></span>
+          </span>
+        `;
+      };
+
+      const tickerHTML = jobs.map(renderItem).join('');
+      track.innerHTML = tickerHTML + tickerHTML;
+    })();
   </script>
 
   <script src="./ascii-logo.js"></script>
