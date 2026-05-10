@@ -24,6 +24,18 @@
     }
 
     @font-face {
+      font-family: "HelveticaNeueLight";
+      src: url("../assets/fonts/HelveticaNeueLight.otf") format("opentype");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "HelveticaNeueLightItalic";
+      src: url("../assets/fonts/HelveticaNeueLightItalic.otf") format("opentype");
+      font-display: swap;
+    }
+
+    @font-face {
       font-family: "HelveticaNeueCondensedBold";
       src: url("../assets/fonts/HelveticaNeue-CondensedBold.otf") format("opentype");
       font-display: swap;
@@ -33,9 +45,9 @@
       --card-w: 1053;
       --card-h: 1470;
 
-      --bg: #efeee6;
+      --bg: #FEFFF5;
       --black: #111111;
-      --red: #bf0000;
+      --red: #AA0606;
       --blue: #153dff;
     }
 
@@ -66,7 +78,7 @@
       position: absolute;
       inset: 0;
       background: var(--bg);
-      border-radius: 18px;
+      border-radius: 8px;
       overflow: hidden;
     }
 
@@ -99,14 +111,14 @@
     .rate-label {
       left: 88px;
       top: 86px;
-      font-size: 27px;
+      font-size: 40px;
       color: #000;
     }
 
     .replace-label {
       left: 592px;
       top: 130px;
-      font-size: 24px;
+      font-size: 32px;
       color: var(--red);
     }
 
@@ -173,9 +185,9 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
-      font-family: "HelveticaNeueCondensedBold", "Arial Narrow", Arial, sans-serif;
+      font-family: "HelveticaNeueCondensedBold", Arial, sans-serif;
       font-size: 27px;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.10em;
       color: #000;
     }
 
@@ -184,7 +196,7 @@
       align-items: center;
       gap: 8px;
       color: var(--red);
-      font-family: "HelveticaNeueThin", Arial, sans-serif;
+      font-family: "HelveticaNeueCondensedBold", Arial, sans-serif;
       letter-spacing: 0;
     }
 
@@ -252,9 +264,9 @@
       position: absolute;
       left: 40px;
       top: 1288px;
-      width: 158px;
+      width: 146px;
       height: 146px;
-      border: 1.5px solid rgba(0,0,0,0.45);
+      border: 1.65px solid rgba(0,0,0,0.45);
       display: grid;
       place-items: center;
       background: transparent;
@@ -277,7 +289,7 @@
 
     .name {
       margin: 0 0 10px 0;
-      font-family: "HelveticaNeueThin", Arial, sans-serif;
+      font-family: "HelveticaNeueLight", Arial, sans-serif;
       font-size: 41px;
       line-height: 1.03;
       font-weight: 300;
@@ -288,7 +300,7 @@
 
     .bio {
       margin: 0;
-      font-family: "HelveticaNeueThinItalic", Arial, sans-serif;
+      font-family: "HelveticaNeueLightItalic", Arial, sans-serif;
       font-size: 22px;
       line-height: 1.2;
       color: #555;
@@ -302,8 +314,8 @@
       position: absolute;
       right: 22px;
       bottom: 28px;
-      width: 176px;
-      height: 220px;
+      width: 146px;
+      height: 146px;
       display: flex;
       align-items: flex-end;
       justify-content: center;
@@ -419,7 +431,7 @@
       delta: {
         value: -0.030,
         direction: "down",
-        color: "#bf0000"
+        color: "#AA0606"
       },
 
       logos: [
@@ -445,12 +457,7 @@
       ],
 
       hourglass: {
-        totalPerDiamond: 64,
-        remaining: 5,
-        elapsed: 59,
-        color: "#c40000",
-        cellSize: 10.4,
-        gap: 2.4
+        frame: 3
       }
     };
 
@@ -507,9 +514,7 @@
     }
 
     function renderHourglass(cfg) {
-      const remaining = Math.max(0, Math.min(64, cfg?.remaining ?? 0));
-      // Map remaining (64=full → frame 1, 0=empty → frame 10)
-      const frame = Math.min(10, Math.max(1, Math.round(10 - (remaining / 64) * 9)));
+      const frame = Math.min(10, Math.max(1, cfg?.frame ?? 1));
       hourglassImg.src = `../assets/hourglass/hourglass-${frame}.png`;
     }
 
@@ -523,19 +528,20 @@
       portraitImg.src = data.portrait || "";
       portraitImg.alt = data.name || "portrait";
 
-      codeValue.textContent = data.code || "";
+      const rawCode = data.code || "";
+      codeValue.textContent = rawCode.length === 8 ? rawCode.slice(0, 4) + ' ' + rawCode.slice(4) : rawCode;
 
       const delta = data.delta || {};
       const deltaNumber = typeof delta.value === "number" ? delta.value : 0;
       deltaValue.textContent = (deltaNumber > 0 ? "+" : "") + deltaNumber.toFixed(3);
-      deltaValue.style.color = delta.color || "#bf0000";
+      deltaValue.style.color = delta.color || "#AA0606";
 
       deltaArrow.className = "delta-arrow " + (delta.direction === "up" ? "up" : "down");
       if (delta.direction === "up") {
         deltaArrow.style.borderBottomColor = delta.color || "#0b8e2b";
         deltaArrow.style.borderTopColor = "transparent";
       } else {
-        deltaArrow.style.borderTopColor = delta.color || "#bf0000";
+        deltaArrow.style.borderTopColor = delta.color || "#AA0606";
         deltaArrow.style.borderBottomColor = "transparent";
       }
 

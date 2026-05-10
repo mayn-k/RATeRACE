@@ -28,7 +28,7 @@ function buildCardData(user, card) {
     delta: {
       value:     card.delta?.value     ?? 0,
       direction,
-      color:     direction === 'down' ? '#bf0000' : '#0b8e2b',
+      color:     direction === 'down' ? '#AA0606' : '#0b8e2b',
     },
 
     logos: [

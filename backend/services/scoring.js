@@ -22,9 +22,9 @@ For a given profile, produce:
 
 5. delta (object — value: float in [-0.10, +0.10], direction: "up" or "down"): predicted 12-month trajectory. A junior dev who picked up prompt engineering = up. A pure manual QA tester = down.
 
-6. educationOrg (object — name: string, the most prestigious or most recent school).
+6. educationOrg (object — name: string, domain: string): most prestigious or most recent school. To find the domain: FIRST look for any email addresses in the profile that belong to the institution (e.g. a faculty/student email like "john@viit.ac.in" → domain is "viit.ac.in"). If no email is present, search for any URLs mentioned for the school. Only if neither exists, infer the domain from well-known institutions (e.g. "mit.edu", "stanford.edu", "iitb.ac.in", "oxford.ac.uk"). Do NOT guess TLD patterns — only use what the profile evidence supports.
 
-7. workOrg (object — name: string, current employer or most recent if unemployed).
+7. workOrg (object — name: string, domain: string): current employer or most recent if unemployed. To find the domain: FIRST look for any email addresses in the profile that belong to the company (e.g. "jane@tcs.com" → domain is "tcs.com"). If no email, look for URLs or links associated with the employer. Only if neither exists, infer from well-known companies (e.g. "google.com", "jpmorgan.com", "tcs.com"). Do NOT guess — only use profile evidence or universally known domains.
 
 8. bioRewrite (string, ≤40 chars, first-person voice — rewrite their headline if it is corporate jargon; preserve their voice if already clean).
 
@@ -61,14 +61,22 @@ async function scoreProfile(profile) {
     result.delta.direction = result.delta.value >= 0 ? 'up' : 'down';
   }
 
-  // Resolve logos in parallel
+  // Resolve logos using LLM-guessed domains
   const [eduLogo, workLogo] = await Promise.all([
-    getOrgLogo(result.educationOrg?.name),
-    getOrgLogo(result.workOrg?.name),
+    getOrgLogo(result.educationOrg?.name, result.educationOrg?.domain),
+    getOrgLogo(result.workOrg?.name,      result.workOrg?.domain),
   ]);
 
-  result.educationOrg = { name: result.educationOrg?.name ?? null, ...eduLogo };
-  result.workOrg      = { name: result.workOrg?.name      ?? null, ...workLogo };
+  result.educationOrg = {
+    name:    result.educationOrg?.name   ?? null,
+    domain:  result.educationOrg?.domain ?? null,
+    logoUrl: eduLogo.logoUrl,
+  };
+  result.workOrg = {
+    name:    result.workOrg?.name   ?? null,
+    domain:  result.workOrg?.domain ?? null,
+    logoUrl: workLogo.logoUrl,
+  };
 
   return result;
 }

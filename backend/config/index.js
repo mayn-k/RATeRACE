@@ -28,4 +28,5 @@ module.exports = {
   CLOUDINARY_API_SECRET:  process.env.CLOUDINARY_API_SECRET,
   FRONTEND_ORIGIN:        process.env.FRONTEND_ORIGIN || '*',
   BASE_URL:               process.env.BASE_URL || `http://127.0.0.1:${PORT}`,
+  BRANDFETCH_API_KEY:     process.env.BRANDFETCH_API_KEY || '',
 };

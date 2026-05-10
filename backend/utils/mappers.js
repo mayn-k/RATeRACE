@@ -4,15 +4,9 @@
 const STATUS_INDEX = { retired: 0, intern: 1, employed: 2, unemployed: 3 };
 
 function replaceabilityToHourglass(replaceability) {
-  const remaining = Math.round(64 * (99 - replaceability) / 86);
-  return {
-    totalPerDiamond: 64,
-    remaining,
-    elapsed: 64 - remaining,
-    color: '#c40000',
-    cellSize: 10.4,
-    gap: 2.4,
-  };
+  // replaceability 13 → frame 10 (most sand), 99 → frame 1 (nearly empty)
+  const frame = Math.min(10, Math.max(1, Math.round(10 - ((replaceability - 13) / 86) * 9)));
+  return { frame };
 }
 
 function statusToBlocks(employmentStatus) {

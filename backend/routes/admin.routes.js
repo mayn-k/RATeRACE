@@ -1,12 +1,15 @@
 'use strict';
-const express   = require('express');
-const path      = require('path');
-const jwt       = require('jsonwebtoken');
-const mongoose  = require('mongoose');
-const config    = require('../config');
-const adminAuth = require('../middleware/adminAuth');
-const User      = require('../models/User');
-const Card      = require('../models/Card');
+const express          = require('express');
+const path             = require('path');
+const jwt              = require('jsonwebtoken');
+const mongoose         = require('mongoose');
+const config           = require('../config');
+const adminAuth        = require('../middleware/adminAuth');
+const User             = require('../models/User');
+const Card             = require('../models/Card');
+const { buildCardData }    = require('../services/cardData');
+const { renderCard }       = require('../services/puppeteer');
+const { uploadCardImage }  = require('../services/cloudinary');
 
 const router = express.Router();
 
@@ -178,6 +181,27 @@ router.delete('/api/cards/:id', async (req, res, next) => {
     const card = await Card.findByIdAndDelete(req.params.id);
     if (!card) return res.status(404).json({ error: 'Not found' });
     res.json({ deleted: true });
+  } catch (err) { next(err); }
+});
+
+// ── Regen card image (dev) ────────────────────────────────────────────────────
+router.post('/api/cards/:id/regen', async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid id' });
+    }
+    const card = await Card.findById(req.params.id).lean();
+    if (!card) return res.status(404).json({ error: 'Card not found' });
+
+    const user = await User.findById(card.userId).select('-passwordHash').lean();
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const cardData = buildCardData(user, card);
+    const buffer   = await renderCard(cardData);
+    const imageUrl = await uploadCardImage(buffer, String(card.userId));
+
+    await Card.findByIdAndUpdate(req.params.id, { $set: { imageUrl } });
+    res.json({ imageUrl });
   } catch (err) { next(err); }
 });
 

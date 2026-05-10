@@ -1,4 +1,5 @@
 'use strict';
+const config = require('../config');
 
 function slugify(name) {
   return name
@@ -10,8 +11,7 @@ function slugify(name) {
 }
 
 function monogramSvg(name) {
-  const letter = (name || '?').trim()[0].toUpperCase();
-  // Deterministic bg color based on letter
+  const letter  = (name || '?').trim()[0].toUpperCase();
   const palette = ['#2b4c7e', '#567ebb', '#606c38', '#283618', '#bc4749', '#4a4e69', '#9c6644'];
   const bg      = palette[letter.charCodeAt(0) % palette.length];
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">` +
@@ -21,23 +21,28 @@ function monogramSvg(name) {
   return 'data:image/svg+xml;base64,' + Buffer.from(svg).toString('base64');
 }
 
-async function resolveLogoUrl(domain) {
+async function fetchBrandfetchLogo(domain) {
+  const apiKey = config.BRANDFETCH_API_KEY;
+  if (!apiKey || !domain) return null;
+  const url = `https://cdn.brandfetch.io/domain/${domain}?c=${apiKey}`;
   try {
-    const res = await fetch(`https://logo.clearbit.com/${domain}`, {
-      method: 'HEAD',
-      signal: AbortSignal.timeout(3000),
+    const res = await fetch(url, {
+      headers: { Referer: config.BASE_URL },
+      signal: AbortSignal.timeout(5000),
     });
-    return res.ok ? `https://logo.clearbit.com/${domain}` : null;
+    return res.ok ? url : null;
   } catch {
     return null;
   }
 }
 
-async function getOrgLogo(name) {
-  if (!name) return { domain: null, logoUrl: monogramSvg('?') };
-  const domain  = `${slugify(name)}.com`;
-  const logoUrl = (await resolveLogoUrl(domain)) ?? monogramSvg(name);
-  return { domain, logoUrl };
+// domain: LLM-guessed domain (e.g. "mit.edu", "google.com")
+// name:   org name, used as monogram fallback
+async function getOrgLogo(name, domain) {
+  if (!name && !domain) return { logoUrl: monogramSvg('?') };
+  const useDomain = domain || `${slugify(name || '')}.com`;
+  const logoUrl   = (await fetchBrandfetchLogo(useDomain)) ?? monogramSvg(name || '?');
+  return { logoUrl };
 }
 
 module.exports = { getOrgLogo };

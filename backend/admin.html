@@ -1001,6 +1001,7 @@ function renderCards({ docs, total, page, pages }) {
         <td>
           <div class="actions">
             <button class="btn btn-ghost btn-sm" onclick="openEditCard('${c._id}')">Edit</button>
+            <button class="btn btn-ghost btn-sm" id="regen-${c._id}" onclick="regenCard('${c._id}')">Regen</button>
             <button class="btn btn-danger btn-sm" onclick="confirmDeleteCard('${c._id}', '${esc(c.amCode || c._id)}')">Delete</button>
           </div>
         </td>
@@ -1071,6 +1072,20 @@ function confirmDeleteCard(id, code) {
       loadStats();
     } catch (e) { toast(e.message, 'error'); }
   };
+}
+
+// Regen card image
+async function regenCard(id) {
+  const btn = document.getElementById(`regen-${id}`);
+  if (btn) { btn.textContent = '…'; btn.disabled = true; }
+  try {
+    await api('POST', `/api/cards/${id}/regen`);
+    toast('Card regenerated');
+  } catch (e) {
+    toast(e.message, 'error');
+  } finally {
+    if (btn) { btn.textContent = 'Regen'; btn.disabled = false; }
+  }
 }
 
 // ── Pagination ─────────────────────────────────────────────────────────────────
