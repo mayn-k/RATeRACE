@@ -76,6 +76,22 @@
     zoom: 1
   };
 
+  let homeState    = null;   // saved after resetLandingCamera; pan/return target
+  let inactTimer   = null;   // setTimeout handle for inactivity
+  let autoReturn   = null;   // { from:{x,y,depth,zoom}, startTime } when animating back
+  const INACT_DELAY     = 5000;  // ms before auto-return triggers
+  const RETURN_DURATION = 1400;  // ms for the smooth return animation
+
+  let revealStartTime = 0;      // performance.now() when the current layout's reveal began
+  let revealComplete  = false;  // true once every item has fully faded in
+  const REVEAL_SPREAD = 2500;   // ms — random window over which items begin fading in
+  const REVEAL_FADE   = 500;    // ms — duration of each individual item's fade
+
+  const HOVER_ZOOM_IN_MS  = 300;
+  const HOVER_ZOOM_OUT_MS = 400;
+  let hoverZoom          = null;  // { from:{x,y,zoom}, to:{x,y,zoom}, startTime, duration, returning }
+  let savedCamBeforeZoom = null;
+
   let hovered = null;
   let selected = null;
   let drag = null;
@@ -223,6 +239,68 @@
     return Math.max(0.0001, projectionAtDepth(focusPlane));
   }
 
+  // Clamp cam.x/y so panning never exceeds 12.5% of screen beyond the home position
+  function clampCameraPan() {
+    if (!homeState) return;
+    const proj = Math.max(0.001, currentDragScale());
+    const maxX = (root.clientWidth  * 0.25) / proj;
+    const maxY = (root.clientHeight * 0.25) / proj;
+    cam.x = clamp(cam.x, homeState.x - maxX, homeState.x + maxX);
+    cam.y = clamp(cam.y, homeState.y - maxY, homeState.y + maxY);
+  }
+
+  // Reset the 10-second inactivity countdown; also cancel any in-progress auto-return
+  function resetInactivityTimer() {
+    if (autoReturn) autoReturn = null;
+    clearTimeout(inactTimer);
+    inactTimer = setTimeout(() => {
+      if (!leadModal.open && homeState) {
+        autoReturn = {
+          from: { x: cam.x, y: cam.y, depth: cam.depth, zoom: cam.zoom },
+          startTime: performance.now(),
+        };
+      }
+    }, INACT_DELAY);
+  }
+
+  function _triggerHoverZoom(it) {
+    const relZ = it.z - cam.depth;
+    const projFactor = FOCAL / Math.max(FOCAL * 0.26, FOCAL + relZ);
+    const aspect = it.baseW / (it.baseH || 1);
+    const targetW = Math.min(root.clientWidth * 0.58, root.clientHeight * 0.76 * aspect);
+    const targetZoom = targetW / (it.baseW * projFactor * SCENE_VIEW_SCALE);
+
+    savedCamBeforeZoom = { x: cam.x, y: cam.y, zoom: cam.zoom };
+    autoReturn = null;
+
+    hoverZoom = {
+      from:      { x: cam.x, y: cam.y, zoom: cam.zoom },
+      to:        { x: it.x,  y: it.y,  zoom: clamp(targetZoom, MIN_ZOOM, MAX_ZOOM) },
+      startTime: performance.now(),
+      duration:  HOVER_ZOOM_IN_MS,
+      returning: false,
+    };
+  }
+
+  function _releaseHoverZoom(immediate = false) {
+    if (!savedCamBeforeZoom) return;
+    if (immediate) {
+      cam.x = savedCamBeforeZoom.x;
+      cam.y = savedCamBeforeZoom.y;
+      cam.zoom = savedCamBeforeZoom.zoom;
+      hoverZoom = null;
+      savedCamBeforeZoom = null;
+      return;
+    }
+    hoverZoom = {
+      from:      { x: cam.x, y: cam.y, zoom: cam.zoom },
+      to:        { x: savedCamBeforeZoom.x, y: savedCamBeforeZoom.y, zoom: savedCamBeforeZoom.zoom },
+      startTime: performance.now(),
+      duration:  HOVER_ZOOM_OUT_MS,
+      returning: true,
+    };
+  }
+
   function resetLandingCamera() {
     cam.x = 0;
     cam.depth = HERO_LAYER_Z - 920;
@@ -232,6 +310,8 @@
     const targetHeroCenterY = root.clientHeight * (isMobileViewport() ? 0.54 : 0.535);
 
     cam.y = heroLayer.y - ((targetHeroCenterY - root.clientHeight / 2) / Math.max(0.0001, pScale));
+
+    homeState = { x: cam.x, y: cam.y, depth: cam.depth, zoom: cam.zoom };
   }
 
   function resize() {
@@ -2583,47 +2663,6 @@
     };
   }
 
-  function drawExpandedPreview() {
-    if (!expandedItem || !expandedItem.img || leadModal.open) return;
-
-    const img = expandedItem.img;
-    const aspect = (img.naturalWidth || img.width) / (img.naturalHeight || img.height) || 1;
-    const maxW = root.clientWidth * 0.58;
-    const maxH = root.clientHeight * 0.76;
-
-    let w = maxW;
-    let h = w / aspect;
-
-    if (h > maxH) {
-      h = maxH;
-      w = h * aspect;
-    }
-
-    const x = (root.clientWidth - w) / 2;
-    const y = (root.clientHeight - h) / 2;
-    const pad = 10;
-
-    ctx.save();
-    ctx.fillStyle = 'rgba(0,0,0,0.58)';
-    ctx.fillRect(0, 0, root.clientWidth, root.clientHeight);
-
-    ctx.shadowColor = 'rgba(255,255,255,0.28)';
-    ctx.shadowBlur = 42;
-    ctx.shadowOffsetY = 0;
-
-    ctx.fillStyle = 'rgba(245,245,242,0.96)';
-    ctx.fillRect(x - pad, y - pad, w + pad * 2, h + pad * 2);
-    ctx.drawImage(img, x, y, w, h);
-
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.28)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x - pad, y - pad, w + pad * 2, h + pad * 2);
-
-
-    ctx.restore();
-  }
-
   function buildScatterOpacityMap(visible) {
     const map = new Map();
 
@@ -2727,7 +2766,14 @@
 
       const layerOpacity = scatterOpacityMap.get(it) || 0.50;
       const nearFade = p.relZ < 0 ? clamp(1 + p.relZ / NEAR_CULL, 0, 1) : 1;
-      const drawOpacity = layerOpacity * nearFade;
+      let drawOpacity = layerOpacity * nearFade;
+      if (!revealComplete) {
+        const delay = it.revealDelay ?? Infinity;
+        const elapsed = (revealStartTime > 0 && delay < Infinity)
+          ? performance.now() - revealStartTime - delay
+          : -1;
+        drawOpacity *= clamp(elapsed / REVEAL_FADE, 0, 1);
+      }
 
       ctx.save();
       ctx.globalAlpha = drawOpacity;
@@ -2759,7 +2805,6 @@
     endSceneScale();
 
     drawFixedHeaderButtons();
-    drawExpandedPreview();
   }
 
   function hitTest(sx, sy) {
@@ -3052,7 +3097,8 @@
       aspect,
       title: filename.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' '),
       link,
-      imageNumber
+      imageNumber,
+      revealDelay: Infinity, // invisible until startReveal() assigns a real delay
     });
   }
 
@@ -3168,6 +3214,15 @@
     }
 
     relayoutItems();
+    startReveal();
+  }
+
+  function startReveal() {
+    revealComplete  = false;
+    revealStartTime = performance.now();
+    for (const it of items) {
+      it.revealDelay = Math.random() * REVEAL_SPREAD;
+    }
   }
 
   function hideLinkPanel() {
@@ -3263,6 +3318,7 @@
   }
 
   canvas.addEventListener('mousedown', e => {
+    resetInactivityTimer();
     if (leadModal.open) {
       e.preventDefault();
       return;
@@ -3271,6 +3327,7 @@
     if (suppressNextMouseClick) return;
 
     clearPinnedPreview();
+    if (expandedItem) { _releaseHoverZoom(true); expandedItem = null; }
 
     const { sx, sy } = pointerPos(e);
 
@@ -3285,6 +3342,7 @@
   });
 
   window.addEventListener('mousemove', e => {
+    if (drag) resetInactivityTimer(); // only camera movement resets timer, not passive hover
     if (leadModal.open) return;
 
     const { sx, sy } = pointerPos(e);
@@ -3310,6 +3368,7 @@
 
       cam.x = drag.cx - dx / dragScale;
       cam.y = drag.cy - dy / dragScale;
+      clampCameraPan();
 
       canvas.style.cursor = 'grabbing';
       render();
@@ -3333,7 +3392,7 @@
 
     if (hovered !== prev) {
       hoverStartTime = hovered ? performance.now() : 0;
-      if (!previewPinned) expandedItem = null;
+      if (!previewPinned && expandedItem) { _releaseHoverZoom(); expandedItem = null; }
       render();
     }
   });
@@ -3342,7 +3401,7 @@
     pointer.active = false;
     hovered = null;
     hoverStartTime = 0;
-    if (!previewPinned) expandedItem = null;
+    if (!previewPinned && expandedItem) { _releaseHoverZoom(); expandedItem = null; }
   });
 
   window.addEventListener('mouseup', e => {
@@ -3403,6 +3462,7 @@
   }
 
   canvas.addEventListener('touchstart', e => {
+    resetInactivityTimer();
     if (leadModal.open) {
       e.preventDefault();
       return;
@@ -3456,6 +3516,7 @@
   }, { passive: false });
 
   canvas.addEventListener('touchmove', e => {
+    resetInactivityTimer();
     if (leadModal.open) {
       e.preventDefault();
       return;
@@ -3463,7 +3524,7 @@
 
     suppressNextMouseClick = true;
 
-    if (!previewPinned) expandedItem = null;
+    if (!previewPinned && expandedItem) { _releaseHoverZoom(true); expandedItem = null; }
 
     if (e.touches.length === 1 && drag && drag.touch) {
       const t = e.touches[0];
@@ -3481,6 +3542,7 @@
 
       cam.x = drag.cx - dx / dragScale;
       cam.y = drag.cy - dy / dragScale;
+      clampCameraPan();
 
       pointer.x = sx;
       pointer.y = sy;
@@ -3590,6 +3652,7 @@
   }, { passive: false });
 
   canvas.addEventListener('wheel', e => {
+    resetInactivityTimer();
     if (leadModal.open) {
       e.preventDefault();
       return;
@@ -3639,19 +3702,54 @@
   }
 
   function animate() {
+    // Mark reveal complete once the full spread + fade window has passed
+    if (!revealComplete && revealStartTime > 0 &&
+        performance.now() >= revealStartTime + REVEAL_SPREAD + REVEAL_FADE + 200) {
+      revealComplete = true;
+    }
+
+    // Smooth auto-return to home after inactivity (skip while hover-zoom is active)
+    if (autoReturn && !hoverZoom) {
+      const t = Math.min(1, (performance.now() - autoReturn.startTime) / RETURN_DURATION);
+      const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; // cubic ease-in-out
+      cam.x     = autoReturn.from.x     + (homeState.x     - autoReturn.from.x)     * ease;
+      cam.y     = autoReturn.from.y     + (homeState.y     - autoReturn.from.y)     * ease;
+      cam.depth = autoReturn.from.depth + (homeState.depth - autoReturn.from.depth) * ease;
+      cam.zoom  = autoReturn.from.zoom  + (homeState.zoom  - autoReturn.from.zoom)  * ease;
+      if (t >= 1) {
+        cam.x = homeState.x; cam.y = homeState.y;
+        cam.depth = homeState.depth; cam.zoom = homeState.zoom;
+        autoReturn = null;
+      }
+    }
+
+    // Hover zoom animation
+    if (hoverZoom) {
+      const t = Math.min(1, (performance.now() - hoverZoom.startTime) / hoverZoom.duration);
+      const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      cam.x    = hoverZoom.from.x    + (hoverZoom.to.x    - hoverZoom.from.x)    * ease;
+      cam.y    = hoverZoom.from.y    + (hoverZoom.to.y    - hoverZoom.from.y)    * ease;
+      cam.zoom = hoverZoom.from.zoom + (hoverZoom.to.zoom - hoverZoom.from.zoom) * ease;
+      if (t >= 1) {
+        cam.x = hoverZoom.to.x; cam.y = hoverZoom.to.y; cam.zoom = hoverZoom.to.zoom;
+        if (hoverZoom.returning) { hoverZoom = null; savedCamBeforeZoom = null; }
+        else hoverZoom = null;
+      }
+    }
+
     if (leadModal.open) {
-      expandedItem = null;
+      if (expandedItem) { _releaseHoverZoom(true); expandedItem = null; }
       previewPinned = false;
     } else if (!previewPinned) {
-      if (
-        hovered &&
-        !drag &&
-        hoverStartTime &&
-        performance.now() - hoverStartTime >= HOVER_EXPAND_DELAY
-      ) {
-        expandedItem = hovered;
-      } else if (!hovered) {
+      if (hovered && !drag && hoverStartTime && performance.now() - hoverStartTime >= HOVER_EXPAND_DELAY) {
+        if (expandedItem !== hovered) {
+          if (expandedItem) _releaseHoverZoom(true); // snap back before zooming to new item
+          expandedItem = hovered;
+          _triggerHoverZoom(hovered);
+        }
+      } else if (!hovered && expandedItem) {
         expandedItem = null;
+        _releaseHoverZoom();
       }
     }
 
