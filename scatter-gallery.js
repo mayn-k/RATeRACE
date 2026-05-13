@@ -91,6 +91,9 @@
   const HOVER_ZOOM_OUT_MS = 1400;
   let hoverZoom          = null;  // { from:{x,y,zoom}, to:{x,y,zoom}, startTime, duration, returning }
   let savedCamBeforeZoom = null;
+  let zoomedIn           = false; // true once zoom-in animation completes; cleared on zoom-out
+  let zoomedIdleTimer    = null;
+  const ZOOMED_IDLE_DELAY = 5000; // ms of no cursor/pan movement before auto zoom-out
 
   let hovered = null;
   let selected = null;
@@ -254,7 +257,7 @@
     if (autoReturn) autoReturn = null;
     clearTimeout(inactTimer);
     inactTimer = setTimeout(() => {
-      if (!leadModal.open && homeState) {
+      if (!leadModal.open && homeState && !zoomedIn) {
         autoReturn = {
           from: { x: cam.x, y: cam.y, depth: cam.depth, zoom: cam.zoom },
           startTime: performance.now(),
@@ -270,7 +273,7 @@
     const targetW = Math.min(root.clientWidth * 0.58, root.clientHeight * 0.76 * aspect);
     const targetZoom = targetW / (it.baseW * projFactor * SCENE_VIEW_SCALE);
 
-    savedCamBeforeZoom = { x: cam.x, y: cam.y, zoom: cam.zoom };
+    if (!savedCamBeforeZoom) savedCamBeforeZoom = { x: cam.x, y: cam.y, zoom: cam.zoom };
     autoReturn = null;
 
     hoverZoom = {
@@ -299,6 +302,21 @@
       duration:  HOVER_ZOOM_OUT_MS,
       returning: true,
     };
+  }
+
+  function startZoomedIdleTimer() {
+    clearTimeout(zoomedIdleTimer);
+    zoomedIdleTimer = setTimeout(() => {
+      if (zoomedIn) {
+        zoomedIn = false;
+        expandedItem = null;
+        _releaseHoverZoom();
+      }
+    }, ZOOMED_IDLE_DELAY);
+  }
+
+  function resetZoomedIdleTimer() {
+    if (zoomedIn) startZoomedIdleTimer();
   }
 
   function resetLandingCamera() {
@@ -3318,6 +3336,7 @@
   }
 
   canvas.addEventListener('mousedown', e => {
+    if (e.button === 2) return; // right-click: do nothing
     resetInactivityTimer();
     if (leadModal.open) {
       e.preventDefault();
@@ -3327,7 +3346,8 @@
     if (suppressNextMouseClick) return;
 
     clearPinnedPreview();
-    if (expandedItem) { _releaseHoverZoom(true); expandedItem = null; }
+    if (!zoomedIn && expandedItem) { _releaseHoverZoom(true); expandedItem = null; }
+    hoverZoom = null; // cancel any in-progress zoom animation so drag has immediate control
 
     const { sx, sy } = pointerPos(e);
 
@@ -3341,8 +3361,11 @@
     };
   });
 
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+
   window.addEventListener('mousemove', e => {
-    if (drag) resetInactivityTimer(); // only camera movement resets timer, not passive hover
+    if (drag) resetInactivityTimer(); // only camera movement resets the pan inactivity timer
+    resetZoomedIdleTimer();           // any mouse movement resets the zoomed-in idle timer
     if (leadModal.open) return;
 
     const { sx, sy } = pointerPos(e);
@@ -3368,7 +3391,7 @@
 
       cam.x = drag.cx - dx / dragScale;
       cam.y = drag.cy - dy / dragScale;
-      clampCameraPan();
+      if (!zoomedIn) clampCameraPan(); // no clamp while exploring in zoomed mode
 
       canvas.style.cursor = 'grabbing';
       render();
@@ -3392,7 +3415,8 @@
 
     if (hovered !== prev) {
       hoverStartTime = hovered ? performance.now() : 0;
-      if (!previewPinned && expandedItem) { _releaseHoverZoom(); expandedItem = null; }
+      // While zoomed in, let animate() handle re-zooming; don't release here
+      if (!zoomedIn && !previewPinned && expandedItem) { _releaseHoverZoom(); expandedItem = null; }
       render();
     }
   });
@@ -3401,7 +3425,8 @@
     pointer.active = false;
     hovered = null;
     hoverStartTime = 0;
-    if (!previewPinned && expandedItem) { _releaseHoverZoom(); expandedItem = null; }
+    // While zoomed, leaving the canvas doesn't exit zoom — idle timer handles that
+    if (!zoomedIn && !previewPinned && expandedItem) { _releaseHoverZoom(); expandedItem = null; }
   });
 
   window.addEventListener('mouseup', e => {
@@ -3470,6 +3495,8 @@
 
     suppressNextMouseClick = true;
     clearPinnedPreview();
+    if (!zoomedIn && expandedItem) { _releaseHoverZoom(true); expandedItem = null; }
+    hoverZoom = null; // cancel any in-progress animation so touch has immediate control
     if (linkPanel) linkPanel.style.display = 'none';
 
     if (e.touches.length === 1) {
@@ -3524,7 +3551,7 @@
 
     suppressNextMouseClick = true;
 
-    if (!previewPinned && expandedItem) { _releaseHoverZoom(true); expandedItem = null; }
+    if (!zoomedIn && !previewPinned && expandedItem) { _releaseHoverZoom(true); expandedItem = null; }
 
     if (e.touches.length === 1 && drag && drag.touch) {
       const t = e.touches[0];
@@ -3542,7 +3569,8 @@
 
       cam.x = drag.cx - dx / dragScale;
       cam.y = drag.cy - dy / dragScale;
-      clampCameraPan();
+      if (!zoomedIn) clampCameraPan(); // no clamp while exploring in zoomed mode
+      resetZoomedIdleTimer();
 
       pointer.x = sx;
       pointer.y = sy;
@@ -3708,8 +3736,8 @@
       revealComplete = true;
     }
 
-    // Smooth auto-return to home after inactivity (skip while hover-zoom is active)
-    if (autoReturn && !hoverZoom) {
+    // Smooth auto-return to home after inactivity (skip while zoom is active)
+    if (autoReturn && !hoverZoom && !zoomedIn) {
       const t = Math.min(1, (performance.now() - autoReturn.startTime) / RETURN_DURATION);
       const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; // cubic ease-in-out
       cam.x     = autoReturn.from.x     + (homeState.x     - autoReturn.from.x)     * ease;
@@ -3732,24 +3760,44 @@
       cam.zoom = hoverZoom.from.zoom + (hoverZoom.to.zoom - hoverZoom.from.zoom) * ease;
       if (t >= 1) {
         cam.x = hoverZoom.to.x; cam.y = hoverZoom.to.y; cam.zoom = hoverZoom.to.zoom;
-        if (hoverZoom.returning) { hoverZoom = null; savedCamBeforeZoom = null; }
-        else hoverZoom = null;
+        if (hoverZoom.returning) {
+          hoverZoom = null; savedCamBeforeZoom = null;
+          zoomedIn = false; clearTimeout(zoomedIdleTimer);
+          expandedItem = null;
+        } else {
+          hoverZoom = null;
+          zoomedIn = true;
+          startZoomedIdleTimer();
+        }
       }
     }
 
     if (leadModal.open) {
-      if (expandedItem) { _releaseHoverZoom(true); expandedItem = null; }
+      if (expandedItem || zoomedIn) {
+        _releaseHoverZoom(true);
+        expandedItem = null;
+        zoomedIn = false;
+        clearTimeout(zoomedIdleTimer);
+      }
       previewPinned = false;
     } else if (!previewPinned) {
-      if (hovered && !drag && hoverStartTime && performance.now() - hoverStartTime >= HOVER_EXPAND_DELAY) {
-        if (expandedItem !== hovered) {
-          if (expandedItem) _releaseHoverZoom(true); // snap back before zooming to new item
+      if (zoomedIn) {
+        // Locked in: immediately re-zoom to a newly hovered image; empty space is fine (idle timer handles exit)
+        if (hovered && !drag && expandedItem !== hovered) {
           expandedItem = hovered;
           _triggerHoverZoom(hovered);
         }
-      } else if (!hovered && expandedItem) {
-        expandedItem = null;
-        _releaseHoverZoom();
+      } else {
+        // Normal mode: 1250ms hover delay before zooming in
+        if (hovered && !drag && hoverStartTime && performance.now() - hoverStartTime >= HOVER_EXPAND_DELAY) {
+          if (expandedItem !== hovered) {
+            expandedItem = hovered;
+            _triggerHoverZoom(hovered);
+          }
+        } else if (!hovered && expandedItem) {
+          expandedItem = null;
+          _releaseHoverZoom();
+        }
       }
     }
 
