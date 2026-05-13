@@ -87,8 +87,8 @@
   const REVEAL_SPREAD = 2500;   // ms — random window over which items begin fading in
   const REVEAL_FADE   = 500;    // ms — duration of each individual item's fade
 
-  const HOVER_ZOOM_IN_MS  = 300;
-  const HOVER_ZOOM_OUT_MS = 400;
+  const HOVER_ZOOM_IN_MS  = 1400;
+  const HOVER_ZOOM_OUT_MS = 1400;
   let hoverZoom          = null;  // { from:{x,y,zoom}, to:{x,y,zoom}, startTime, duration, returning }
   let savedCamBeforeZoom = null;
 
