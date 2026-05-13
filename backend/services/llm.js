@@ -73,7 +73,7 @@ function groqClient() {
   if (!_groqClient) {
     if (!config.GROQ_API_KEY) throw new Error('Missing required env var GROQ_API_KEY (needed for Groq fallback)');
     const Groq = require('groq-sdk');
-    _groqClient = new Groq({ apiKey: config.GROQ_API_KEY });
+    _groqClient = new Groq({ apiKey: config.GROQ_API_KEY, timeout: 30000, maxRetries: 0 });
   }
   return _groqClient;
 }
@@ -190,7 +190,10 @@ async function complete(systemPrompt, userPrompt, { json = false, model = DEFAUL
       const result = await completeGroq(systemPrompt, userPrompt, { json, model: groqModel });
       return finalise(result, 'groq', groqModel, userId, callType, t0);
     } catch (groqErr) {
-      logger.warn({ error: groqErr.message }, 'Groq fallback failed — retrying Gemini once');
+      logger.warn(
+        { error: groqErr.message, status: groqErr.status ?? groqErr.statusCode ?? null, type: groqErr.constructor?.name },
+        'Groq fallback failed — retrying Gemini once'
+      );
     }
 
     // ── Final Gemini retry ────────────────────────────────────────────────
