@@ -8,11 +8,13 @@ function buildPrompt(text) {
   return (
     `Resume text:\n\n${text}\n\n` +
     `Return JSON with exactly these keys:\n` +
-    `  name        (string)\n` +
-    `  headline    (string — professional title or tagline)\n` +
-    `  skills      (array of strings)\n` +
-    `  experience  (array of { title, company, duration })\n` +
-    `  education   (array of { school, degree })`
+    `  name         (string)\n` +
+    `  headline     (string — professional title or tagline)\n` +
+    `  linkedinUrl  (string or null — full linkedin.com/in/... URL if present in the resume; null if not found)\n` +
+    `  portfolioUrl (string or null — personal website, portfolio, or GitHub URL if present; null if not found)\n` +
+    `  skills       (array of strings)\n` +
+    `  experience   (array of { title, company, duration })\n` +
+    `  education    (array of { school, degree })`
   );
 }
 

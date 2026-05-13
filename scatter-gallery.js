@@ -541,65 +541,6 @@
         text-underline-offset: 2px;
       }
 
-      .rr-modal-actions {
-        position: absolute;
-        top: 431px;
-        left: 104px;
-        width: 142px;
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-      }
-
-      .rr-modal-action {
-        width: 48px;
-        text-align: center;
-        color: #ffffff;
-        font-size: 7px;
-        line-height: 1;
-      }
-
-      .rr-modal-action img {
-        width: 24px;
-        height: 24px;
-        object-fit: contain;
-        display: block;
-        margin: 0 auto 7px;
-      }
-
-      .rr-leader-strip {
-        position: absolute;
-        left: 0;
-        top: 485px;
-        width: 350px;
-        height: 64px;
-        overflow: hidden;
-        cursor: pointer;
-        background-color: #ffffff;
-        background-image:
-          linear-gradient(45deg, #000000 25%, transparent 25%),
-          linear-gradient(-45deg, #000000 25%, transparent 25%),
-          linear-gradient(45deg, transparent 75%, #000000 75%),
-          linear-gradient(-45deg, transparent 75%, #000000 75%);
-        background-size: 16px 16px;
-        background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
-      }
-
-      .rr-leader-inner {
-        position: absolute;
-        left: 70px;
-        top: 15px;
-        width: 210px;
-        height: 34px;
-        background: #dedede;
-        color: #ff0000;
-        font-size: 15px;
-        letter-spacing: 0.08em;
-        line-height: 34px;
-        text-align: center;
-        font-weight: 700;
-      }
-
       /* LOADING VIEW */
       .rr-mode-loading:not(.rr-hidden) {
         display: flex;
@@ -713,11 +654,32 @@
 
       .rr-card-view-btn:hover { background: #cc0000; }
 
+      .rr-logout-btn {
+        width: 108px;
+        height: 36px;
+        background: #000;
+        border: 1px solid #444;
+        color: #fff;
+        font-family: "Pixelify Sans", monospace;
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        cursor: pointer;
+        margin-top: 14px;
+      }
+      .rr-logout-btn:hover { border-color: #fff; }
+
+      .rr-logout-confirm {
+        font-family: "Pixelify Sans", monospace;
+        font-size: 8px;
+        letter-spacing: 0.10em;
+        color: #ff4444;
+        text-align: center;
+        margin-top: 10px;
+      }
+
       /* ── height overrides for new modes ── */
       .rr-lead-panel   { height: 440px; }
       .rr-lead-content { height: 440px; overflow-y: auto; }
-      .rr-modal-actions { top: 470px; }
-      .rr-leader-strip  { top: 524px; }
 
       /* ── ENTRY MODE ── */
       .rr-mode-entry:not(.rr-hidden) {
@@ -758,7 +720,7 @@
         color: #000;
         border-color: #fff;
       }
-      .rr-entry-btn.rr-entry-primary:hover { background: #edf53d; border-color: #edf53d; color: #000; }
+      .rr-entry-btn.rr-entry-primary:hover { background: #B90000; border-color: #B90000; color: #fff; }
 
       /* ── EXISTING-LOGIN MODE ── */
       .rr-mode-existing-login .rr-el-subtitle {
@@ -1183,12 +1145,14 @@
         content: ""; position: fixed; left: 0; right: 0; top: -22%; height: 18%;
         background: linear-gradient(180deg, transparent, rgba(255,255,255,0.055), rgba(230,0,0,0.09), transparent);
         filter: blur(2px); opacity: 0; pointer-events: none;
-        animation: rrScanPass 1.7s 0.24s ease-out both; z-index: 0;
+        animation: rrScanPass 3s 0.24s linear infinite; z-index: 0;
       }
       @keyframes rrScanPass {
-        0%   { transform: translateY(-10vh); opacity: 0; }
-        18%  { opacity: 1; }
-        100% { transform: translateY(135vh); opacity: 0; }
+        0%    { transform: translateY(-10vh); opacity: 0; }
+        10%   { opacity: 1; }
+        57%   { transform: translateY(135vh); opacity: 0; }
+        57.1% { transform: translateY(-10vh); opacity: 0; }
+        100%  { transform: translateY(-10vh); opacity: 0; }
       }
       .rr-modal-close {
         position: fixed; top: 22px; right: 28px; z-index: 10001;
@@ -1305,11 +1269,20 @@
         position: absolute; z-index: 5; border: 1px solid transparent; cursor: help; pointer-events: auto;
       }
       .rr-card-hotspot:hover { }
-      .hotspot-rate         { left: 7%;  top: 5%;    width: 23%; height: 14%; }
-      .hotspot-replaceability { right: 7%; top: 6%;  width: 30%; height: 13%; }
-      .hotspot-portrait     { left: 22%; top: 29%;   width: 56%; height: 42%; }
-      .hotspot-portfolio    { left: 37%; top: 72%;   width: 27%; height: 8%;  }
-      .hotspot-code         { left: 8%;  bottom: 4%; width: 82%; height: 12%; }
+      .hotspot-rate           { left: 6%;   top: 5%;   width: 37%; height: 22%; }
+      .hotspot-replaceability { right: 4%;  top: 6%;   width: 37%; height: 20%; }
+      .hotspot-portrait       { left: 22%;  top: 26%;  width: 56%; height: 37%; }
+      .hotspot-chip-yellow    { right: 13%; top: 2%;   width: 5%;  height: 6%;  }
+      .hotspot-chip-blue      { right: 9%;  top: 2%;   width: 5%;  height: 6%;  }
+      .hotspot-chip-green     { right: 5%;  top: 2%;   width: 5%;  height: 6%;  }
+      .hotspot-chip-red       { right: 1%;  top: 2%;   width: 5%;  height: 6%;  }
+      .hotspot-ticker         { left: 40%;  top: 63%;  width: 35%; height: 5%;  }
+      .hotspot-edu-badge      { left: 27%;  top: 68%;  width: 23%; height: 9%;  }
+      .hotspot-work-badge     { left: 50%;  top: 68%;  width: 23%; height: 9%;  }
+      .hotspot-portfolio      { left: 20%;  top: 79%;  width: 60%; height: 5%;  }
+      .hotspot-chess          { left: 1%;   top: 86%;  width: 17%; height: 12%; }
+      .hotspot-identity       { left: 21%;  top: 90%;  width: 58%; height: 9%;  }
+      .hotspot-hourglass      { right: 0%;  top: 86%;  width: 17%; height: 12%; }
       .rr-tooltip {
         position: fixed; z-index: 10000; max-width: 260px; padding: 10px 12px 11px;
         background: rgba(5,5,5,0.96); border: 1px solid rgba(255,255,255,0.18);
@@ -1505,11 +1478,20 @@
               <div class="rr-fallback-portrait"></div>
               <div class="rr-fallback-name"><div class="rr-fallback-symbol">↯</div><div>Loading&hellip;</div></div>
             </div>
-            <div class="rr-card-hotspot hotspot-rate" data-title="RATE" data-tooltip="How much labour-market value the system thinks your profile currently carries. Higher means more billable leverage."></div>
-            <div class="rr-card-hotspot hotspot-replaceability" data-title="REPLACEABILITY" data-tooltip="How exposed your work profile is to AI substitution and cheaper software output. Higher means more market pressure."></div>
-            <div class="rr-card-hotspot hotspot-portrait" data-title="PORTRAIT" data-tooltip="Your public labour-market face. This is the visual identity attached to your card when shared."></div>
-            <div class="rr-card-hotspot hotspot-portfolio" data-title="PORTFOLIO SIGNAL" data-tooltip="The external proof layer. Better work samples can change how the system reads your edge."></div>
-            <div class="rr-card-hotspot hotspot-code" data-title="EMPLOYEE FILE" data-tooltip="Your card identifier. Keep this code to return, edit, or share the same market file."></div>
+            <div class="rr-card-hotspot hotspot-rate" data-title="RATE" data-tooltip="Your overall career score. A combined measure of your skills, experience, and market demand."></div>
+            <div class="rr-card-hotspot hotspot-replaceability" data-title="REPLACEABILITY" data-tooltip="How easily your role could be filled by someone else or automated by AI. Lower is better."></div>
+            <div class="rr-card-hotspot hotspot-portrait" data-title="PORTRAIT" data-tooltip="Your public labour-market face. The visual identity attached to your card when shared."></div>
+            <div class="rr-card-hotspot hotspot-ticker" data-title="TICKER" data-tooltip="Your career momentum. Tracks whether your professional growth has been trending up or down over the last 90 days."></div>
+            <div class="rr-card-hotspot hotspot-edu-badge" data-title="EDUCATION BADGE" data-tooltip="Your highest qualification and the institution you attended."></div>
+            <div class="rr-card-hotspot hotspot-work-badge" data-title="WORK BADGE" data-tooltip="Your current or most recent employer."></div>
+            <div class="rr-card-hotspot hotspot-portfolio" data-title="PORTFOLIO SIGNAL" data-tooltip="External proof layer. Links to your portfolio or LinkedIn. Better work samples can shift how the system reads your edge."></div>
+            <div class="rr-card-hotspot hotspot-chess" data-title="CHESS PIECE" data-tooltip="Your career archetype. The role you play in the professional world."></div>
+            <div class="rr-card-hotspot hotspot-identity" data-title="NAME AND QUOTE" data-tooltip="Your identity on the RATe RACE system."></div>
+            <div class="rr-card-hotspot hotspot-hourglass" data-title="HOURGLASS" data-tooltip="Time remaining before AI could significantly impact or replace your current role."></div>
+            <div class="rr-card-hotspot hotspot-chip-yellow" data-title="RETIRED" data-tooltip=""></div>
+            <div class="rr-card-hotspot hotspot-chip-blue" data-title="FRESHER INTERN" data-tooltip=""></div>
+            <div class="rr-card-hotspot hotspot-chip-green" data-title="EMPLOYED" data-tooltip=""></div>
+            <div class="rr-card-hotspot hotspot-chip-red" data-title="UNEMPLOYED" data-tooltip=""></div>
           </div>
           <div class="rr-employee-file">EMPLOYEE FILE: <span id="rrEmployeeFile">${amCode}</span></div>
           <div class="rr-actions">
@@ -1913,6 +1895,7 @@
             <div class="rr-card-code-label">YOUR CODE</div>
             <div class="rr-card-code-value"></div>
             <div class="rr-card-code-hint">Save this code — it’s your only way to log back in</div>
+            <button class="rr-logout-btn" id="logoutBtn" type="button">LOG OUT</button>
           </div>
 
           <div class="rr-lead-footer">
@@ -1922,16 +1905,6 @@
           </div>
         </div>
 
-        <div class="rr-modal-actions">
-          <div class="rr-modal-action">
-            <img src="${SHARE_ICON_SRC}" alt="Share" />
-            Share
-          </div>
-        </div>
-
-        <div class="rr-leader-strip">
-          <div class="rr-leader-inner">ENTER THE LEADERBOARD</div>
-        </div>
       </div>
     `;
 
@@ -1949,6 +1922,36 @@
 
     // Close
     overlay.querySelector('.rr-lead-close').addEventListener('click', closeLeadModal);
+
+    // Logout — two-click confirm with auto-dismiss
+    let _logoutPending = false;
+    let _logoutTimer   = null;
+
+    overlay.querySelector('#logoutBtn').addEventListener('click', () => {
+      if (_logoutPending) {
+        clearTimeout(_logoutTimer);
+        const confirmEl = overlay.querySelector('.rr-logout-confirm');
+        if (confirmEl) confirmEl.remove();
+        _logoutPending = false;
+        leadModal.token    = null;
+        leadModal.cardId   = null;
+        leadModal.imageUrl = null;
+        leadModal.amCode   = null;
+        closeLeadModal();
+        return;
+      }
+
+      _logoutPending = true;
+      const confirmEl = document.createElement('div');
+      confirmEl.className = 'rr-logout-confirm';
+      confirmEl.textContent = 'Click again to confirm.';
+      overlay.querySelector('#logoutBtn').before(confirmEl);
+
+      _logoutTimer = setTimeout(() => {
+        confirmEl.remove();
+        _logoutPending = false;
+      }, 3000);
+    });
 
     // Loading back → entry
     leadModal.loadingBackBtn.addEventListener('click', () => setLeadModalMode('entry'));
@@ -2137,29 +2140,25 @@
     ctx.strokeStyle = 'rgba(205,205,205,0.15)';
     ctx.lineWidth = 0.42;
 
-    for (let gx = startX; gx <= endX; gx += gridStep) {
-      ctx.beginPath();
+    ctx.beginPath();
 
+    for (let gx = startX; gx <= endX; gx += gridStep) {
       for (let y = startY; y <= endY; y += segment) {
         const p = distortGridPoint(gx, y);
         if (y === startY) ctx.moveTo(p.x, p.y);
         else ctx.lineTo(p.x, p.y);
       }
-
-      ctx.stroke();
     }
 
     for (let gy = startY; gy <= endY; gy += gridStep) {
-      ctx.beginPath();
-
       for (let x = startX; x <= endX; x += segment) {
         const p = distortGridPoint(x, gy);
         if (x === startX) ctx.moveTo(p.x, p.y);
         else ctx.lineTo(p.x, p.y);
       }
-
-      ctx.stroke();
     }
+
+    ctx.stroke();
 
     ctx.restore();
   }
@@ -2604,9 +2603,6 @@
     ctx.lineWidth = 1;
     ctx.strokeRect(x - pad, y - pad, w + pad * 2, h + pad * 2);
 
-    ctx.font = '500 11px Helvetica Neue, Helvetica, sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.72)';
-    ctx.fillText((expandedItem.title || 'IMAGE').toUpperCase().slice(0, 42), x - pad, y - pad - 8);
 
     ctx.restore();
   }
@@ -2718,10 +2714,12 @@
 
       ctx.save();
       ctx.globalAlpha = drawOpacity;
-      ctx.shadowColor = `rgba(235,235,235,${0.10 + depthShadow * 0.20 * layerOpacity})`;
-      ctx.shadowBlur = Math.max(12, 26 * p.scale * depthShadow);
-      ctx.shadowOffsetX = Math.max(0, 2 * p.scale * depthShadow);
-      ctx.shadowOffsetY = Math.max(1, 5 * p.scale * depthShadow);
+      if (!drag) {
+        ctx.shadowColor = `rgba(235,235,235,${0.10 + depthShadow * 0.20 * layerOpacity})`;
+        ctx.shadowBlur = Math.max(6, 16 * p.scale * depthShadow);
+        ctx.shadowOffsetX = Math.max(0, 2 * p.scale * depthShadow);
+        ctx.shadowOffsetY = Math.max(1, 4 * p.scale * depthShadow);
+      }
       ctx.drawImage(it.img, x, y, p.w, p.h);
       ctx.restore();
 
@@ -2743,7 +2741,6 @@
 
     endSceneScale();
 
-    drawFixedSideBlocks();
     drawFixedHeaderButtons();
     drawExpandedPreview();
   }
@@ -3054,10 +3051,6 @@
       for (const ext of extensions) {
         candidates.push(`${folder}image${i}.${ext}`);
         candidates.push(`${folder}Image${i}.${ext}`);
-        candidates.push(`${folder}scatter-images:image${i}.${ext}`);
-        candidates.push(`${folder}${encodeURIComponent(`scatter-images:image${i}.${ext}`)}`);
-        candidates.push(`./scatter-images:image${i}.${ext}`);
-        candidates.push(`./${encodeURIComponent(`scatter-images:image${i}.${ext}`)}`);
       }
 
       groups.push({
@@ -3125,12 +3118,27 @@
 
     const groups = imageCandidateGroups();
 
+    let earlyLayoutDone = false;
+    let earlyLayoutTimer = null;
+
+    const scheduleEarlyLayout = () => {
+      if (earlyLayoutDone) return;
+      clearTimeout(earlyLayoutTimer);
+      earlyLayoutTimer = setTimeout(() => {
+        if (!earlyLayoutDone && items.length >= 3) {
+          earlyLayoutDone = true;
+          relayoutItems();
+        }
+      }, 120);
+    };
+
     const autoLoads = groups.map(async group => {
       const result = await loadImageFromCandidates(group.candidates);
       if (!result) return false;
 
       placeItem(result.img, group.title, '');
       loadedCount++;
+      scheduleEarlyLayout();
       return true;
     });
 

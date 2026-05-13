@@ -105,6 +105,7 @@ Verify: `curl http://localhost:3000/healthz` → `{"status":"ok"}`
 | `CLOUDINARY_CLOUD_NAME` | **yes** | |
 | `CLOUDINARY_API_KEY` | **yes** | |
 | `CLOUDINARY_API_SECRET` | **yes** | |
+| `BRANDFETCH_API_KEY` | no | Used by `logos.js` to fetch org logos via `cdn.brandfetch.io`; falls back to Clearbit then monogram SVG if absent |
 | `LINKEDIN_CLIENT_ID` | no | Without this, the LinkedIn button returns 503 and users fall back to email+code |
 | `LINKEDIN_CLIENT_SECRET` | no | |
 | `LINKEDIN_REDIRECT_URI` | no | Default: `http://localhost:3000/api/auth/linkedin/callback` |
@@ -263,17 +264,21 @@ entry
 ```
 
 - `confirm` mode: collects **bio** and **portfolio/LinkedIn URL** only (name and photo come from LinkedIn, not editable here)
-- `card` mode: shows "VIEW YOUR CARD →" which calls `openCardModal(amCode)`
+- `card` mode: shows the generated card with action buttons and a LOG OUT button (two-click with 3 s auto-dismiss; clears `leadModal.token/cardId/imageUrl/amCode` then closes modal)
 - `openCardModal(amCode)`: full-screen iframe overlay loading `/card/:amCode?embed=1`; iframe dimensions computed from `window.innerHeight` so the card fits without scrolling; share button copies the card URL to clipboard
+- NEW USER entry always goes to LinkedIn OAuth (`intent=new`); the callback's `data.isNew` controls whether it routes to `confirm` (new) or straight to `card` (existing account)
 - JWT stored in `leadModal.token`; never persisted to localStorage
 - Touch: `passive: false` on all touch listeners; pinch-to-zoom range 0.22×–3.2×
 
 ### `backend/public/card-view.html` — shareable card page
 
 - Fetches `GET /api/card/view/:code` on load
-- Renders the Cloudinary PNG with an invisible `<a>` overlay on the LinkedIn icon position (top: 80%, left: 5%, width: 90%, height: 6%)
+- Renders the Cloudinary PNG as `<img>` inside `.rr-card-wrap`; LinkedIn/portfolio URL is injected as `.rr-linkedin-overlay` (`<a>`) at runtime if present
 - `?embed=1` hides the "CREATE YOUR OWN CARD" button — used when loaded in the modal iframe
-- Card width: `min(clamp(240px, 92vw, 520px), calc((100vh - 160px) * 1053 / 1470))` — never requires scrolling
+- Card width: `min(clamp(220px, 42vw, 420px), calc((100vh - 180px) * 1053 / 1470))` — never requires scrolling
+- **Hotspot tooltip system**: 14 `div.rr-card-hotspot` elements are percentage-positioned over the card image (z-index 5). JS wires `pointerenter/move/leave` on all `.rr-card-hotspot` elements to `#rrTooltip`. Hotspot CSS classes live in both `card-view.html` and `scatter-gallery.js` (the lead modal's inline card view) — **both files must be kept in sync** when adjusting hotspot positions or adding new ones.
+  - Chips (top-right) use `right: %` positioning and are placed last in DOM to win z-order over the REPLACEABILITY hotspot in the overlap zone
+  - Positions are % of the 1053×1470 artboard: rate (top-left), replaceability (top-right), portrait (centre), ticker (~64% top), logos (~68% top), portfolio link (~79% top), chess+identity+hourglass (86–99% top)
 
 ### `rate-card.html` — Puppeteer template
 
@@ -281,6 +286,8 @@ entry
 - `window.CARD_DATA` injected by Puppeteer before page load
 - SVG `feConvolveMatrix` unsharp-mask applied to portrait `<img>` for sharpening
 - Logo boxes show at most 3 org logos, left-to-right: educationOrg, workOrg
+- CTA link (portfolio/LinkedIn) rendered as `<a class="cta-link">` at `top: 1180px`; URL priority: `user.portfolioUrl → card.ctaUrl → rawProfile.linkedinUrl → card.linkedinUrl`
+- Status chips: 4 colored blocks (yellow/blue/green/red = retired/intern/employed/unemployed); active chip gets `opacity: 1` set via inline style in `renderStatusBlocks()` — do **not** rely on CSS class alone (Puppeteer may miss it)
 - Hourglass frames: `../assets/hourglass/hourglass-{1..10}.png`
 - Chess pieces: `../assets/chess/{piece}.png`
 

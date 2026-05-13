@@ -12,10 +12,10 @@ function replaceabilityToHourglass(replaceability) {
 function statusToBlocks(employmentStatus) {
   const activeIdx = STATUS_INDEX[employmentStatus] ?? 2;
   return [
-    { color: '#ece4b4', active: activeIdx === 0 },
-    { color: '#cad8ea', active: activeIdx === 1 },
-    { color: '#c7ddb8', active: activeIdx === 2 },
-    { color: '#ff001a', active: activeIdx === 3 },
+    { color: '#FCD71F', active: activeIdx === 0 },
+    { color: '#005EFF', active: activeIdx === 1 },
+    { color: '#17E700', active: activeIdx === 2 },
+    { color: '#FF001F', active: activeIdx === 3 },
   ];
 }
 

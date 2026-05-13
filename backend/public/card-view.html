@@ -38,6 +38,19 @@
       background-size: 48px 48px, 48px 48px, 12px 12px, 12px 12px;
       opacity: 0.7;
     }
+    body::after {
+      content: ""; position: fixed; left: 0; right: 0; top: -22%; height: 18%;
+      background: linear-gradient(180deg, transparent, rgba(255,255,255,0.055), rgba(230,0,0,0.09), transparent);
+      filter: blur(2px); opacity: 0; pointer-events: none;
+      animation: rrScanPass 3s 0.24s linear infinite; z-index: 0;
+    }
+    @keyframes rrScanPass {
+      0%    { transform: translateY(-10vh); opacity: 0; }
+      10%   { opacity: 1; }
+      57%   { transform: translateY(135vh); opacity: 0; }
+      57.1% { transform: translateY(-10vh); opacity: 0; }
+      100%  { transform: translateY(-10vh); opacity: 0; }
+    }
 
     /* toast */
     #rr-toast {
@@ -152,11 +165,31 @@
       position: absolute; z-index: 5; border: 1px solid transparent; cursor: help; pointer-events: auto;
     }
     .rr-card-hotspot:hover { }
-    .hotspot-rate           { left: 7%;  top: 5%;    width: 23%; height: 14%; }
-    .hotspot-replaceability { right: 7%; top: 6%;    width: 30%; height: 13%; }
-    .hotspot-portrait       { left: 22%; top: 29%;   width: 56%; height: 42%; }
-    .hotspot-portfolio      { left: 37%; top: 72%;   width: 27%; height: 8%;  }
-    .hotspot-code           { left: 8%;  bottom: 4%; width: 82%; height: 12%; }
+    /* RATE — label + big number, top-left */
+    .hotspot-rate           { left: 6%;   top: 5%;   width: 37%; height: 22%; }
+    /* REPLACEABILITY — label + number, top-right */
+    .hotspot-replaceability { right: 4%;  top: 6%;   width: 37%; height: 20%; }
+    /* Portrait */
+    .hotspot-portrait       { left: 22%;  top: 26%;  width: 56%; height: 37%; }
+    /* 4 status chips — individual, placed after replaceability in DOM to win z-order in overlap zone */
+    .hotspot-chip-yellow    { right: 13%; top: 2%;   width: 5%;  height: 6%;  }
+    .hotspot-chip-blue      { right: 9%;  top: 2%;   width: 5%;  height: 6%;  }
+    .hotspot-chip-green     { right: 5%;  top: 2%;   width: 5%;  height: 6%;  }
+    .hotspot-chip-red       { right: 1%;  top: 2%;   width: 5%;  height: 6%;  }
+    /* TICKER — delta trend value, right portion of code row */
+    .hotspot-ticker         { left: 40%;  top: 63%;  width: 35%; height: 5%;  }
+    /* Education badge — left logo box */
+    .hotspot-edu-badge      { left: 27%;  top: 68%;  width: 23%; height: 9%;  }
+    /* Work badge — right logo box */
+    .hotspot-work-badge     { left: 50%;  top: 68%;  width: 23%; height: 9%;  }
+    /* Portfolio / Click me link — repositioned to actual link position (~80% from top) */
+    .hotspot-portfolio      { left: 20%;  top: 79%;  width: 60%; height: 5%;  }
+    /* Chess piece — bottom-left frame */
+    .hotspot-chess          { left: 1%;   top: 86%;  width: 17%; height: 12%; }
+    /* Name and quote — identity block */
+    .hotspot-identity       { left: 21%;  top: 90%;  width: 58%; height: 9%;  }
+    /* Hourglass — bottom-right */
+    .hotspot-hourglass      { right: 0%;  top: 86%;  width: 17%; height: 12%; }
     .rr-linkedin-overlay {
       position: absolute; z-index: 6; top: 80%; left: 5%; width: 90%; height: 6%;
       background: transparent; cursor: pointer;
@@ -347,11 +380,49 @@
         <div class="rr-generated-card-fallback" aria-hidden="true">
           <span class="rr-fallback-loading">Loading&hellip;</span>
         </div>
-        <div class="rr-card-hotspot hotspot-rate" data-title="RATE" data-tooltip="How much labour-market value the system thinks your profile currently carries. Higher means more billable leverage."></div>
-        <div class="rr-card-hotspot hotspot-replaceability" data-title="REPLACEABILITY" data-tooltip="How exposed your work profile is to AI substitution and cheaper software output. Higher means more market pressure."></div>
-        <div class="rr-card-hotspot hotspot-portrait" data-title="PORTRAIT" data-tooltip="Your public labour-market face. This is the visual identity attached to your card when shared."></div>
-        <div class="rr-card-hotspot hotspot-portfolio" data-title="PORTFOLIO SIGNAL" data-tooltip="The external proof layer. Better work samples can change how the system reads your edge."></div>
-        <div class="rr-card-hotspot hotspot-code" data-title="EMPLOYEE FILE" data-tooltip="Your card identifier. Keep this code to return, edit, or share the same market file."></div>
+        <div class="rr-card-hotspot hotspot-rate"
+             data-title="RATE"
+             data-tooltip="Your overall career score. A combined measure of your skills, experience, and market demand."></div>
+        <div class="rr-card-hotspot hotspot-replaceability"
+             data-title="REPLACEABILITY"
+             data-tooltip="How easily your role could be filled by someone else or automated by AI. Lower is better."></div>
+        <div class="rr-card-hotspot hotspot-portrait"
+             data-title="PORTRAIT"
+             data-tooltip="Your public labour-market face. The visual identity attached to your card when shared."></div>
+        <div class="rr-card-hotspot hotspot-ticker"
+             data-title="TICKER"
+             data-tooltip="Your career momentum. Tracks whether your professional growth has been trending up or down over the last 90 days."></div>
+        <div class="rr-card-hotspot hotspot-edu-badge"
+             data-title="EDUCATION BADGE"
+             data-tooltip="Your highest qualification and the institution you attended."></div>
+        <div class="rr-card-hotspot hotspot-work-badge"
+             data-title="WORK BADGE"
+             data-tooltip="Your current or most recent employer."></div>
+        <div class="rr-card-hotspot hotspot-portfolio"
+             data-title="PORTFOLIO SIGNAL"
+             data-tooltip="External proof layer. Links to your portfolio or LinkedIn. Better work samples can shift how the system reads your edge."></div>
+        <div class="rr-card-hotspot hotspot-chess"
+             data-title="CHESS PIECE"
+             data-tooltip="Your career archetype. The role you play in the professional world."></div>
+        <div class="rr-card-hotspot hotspot-identity"
+             data-title="NAME AND QUOTE"
+             data-tooltip="Your identity on the RATe RACE system."></div>
+        <div class="rr-card-hotspot hotspot-hourglass"
+             data-title="HOURGLASS"
+             data-tooltip="Time remaining before AI could significantly impact or replace your current role."></div>
+        <!-- Status chips placed last in DOM so they win z-order over replaceability hotspot in the top-right overlap zone -->
+        <div class="rr-card-hotspot hotspot-chip-yellow"
+             data-title="RETIRED"
+             data-tooltip=""></div>
+        <div class="rr-card-hotspot hotspot-chip-blue"
+             data-title="FRESHER INTERN"
+             data-tooltip=""></div>
+        <div class="rr-card-hotspot hotspot-chip-green"
+             data-title="EMPLOYED"
+             data-tooltip=""></div>
+        <div class="rr-card-hotspot hotspot-chip-red"
+             data-title="UNEMPLOYED"
+             data-tooltip=""></div>
       </div>
       <div class="rr-employee-file" id="rrEmployeeFile"></div>
       <a class="rr-cta-btn" id="rrCtaBtn" href="#">CREATE YOUR OWN CARD</a>

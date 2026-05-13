@@ -147,7 +147,7 @@
     .status-chip {
       width: 31px;
       height: 52px;
-      opacity: 0.42;
+      opacity: 0.20;
     }
 
     .status-chip.active {
@@ -251,13 +251,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      text-decoration: none;
-    }
-
-    .cta-linkedin-icon {
-      width: 72px;
-      height: 72px;
-      display: block;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      color: #1155cc;
+      font-family: Arial, sans-serif;
+      font-weight: 400;
+      font-size: 32px;
+      letter-spacing: 0.04em;
     }
 
     .chess-frame {
@@ -368,12 +368,7 @@
 
         <div class="logos-row" id="logosRow"></div>
 
-        <a class="cta-link" id="ctaLink" href="#" target="_blank" rel="noopener noreferrer">
-          <svg class="cta-linkedin-icon" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
-            <rect width="72" height="72" rx="8" fill="#0A66C2"/>
-            <path d="M27 55H18V28H27V55ZM22.5 24.5C19.9 24.5 18 22.6 18 20C18 17.4 19.9 15.5 22.5 15.5C25.1 15.5 27 17.4 27 20C27 22.6 25.1 24.5 22.5 24.5ZM54 55H45V40.5C45 37.5 43.7 35.5 41 35.5C38.5 35.5 37 37.3 37 40.5V55H28V28H37V31.8C38.3 29.5 40.9 28 44.5 28C50.1 28 54 31.8 54 39.5V55Z" fill="white"/>
-          </svg>
-        </a>
+        <a class="cta-link" id="ctaLink" href="#" target="_blank" rel="noopener noreferrer">Click me</a>
 
         <div class="chess-frame">
           <img id="chessPieceImg" alt="chess piece" />
@@ -450,10 +445,10 @@
       bio: "\"I’m CEO, Bitch\"",
 
       statusBlocks: [
-        { color: "#ece4b4", active: false },
-        { color: "#cad8ea", active: false },
-        { color: "#c7ddb8", active: false },
-        { color: "#ff001a", active: true }
+        { color: "#FCD71F", active: false },
+        { color: "#005EFF", active: false },
+        { color: "#17E700", active: false },
+        { color: "#FF001F", active: true }
       ],
 
       hourglass: {
@@ -494,6 +489,7 @@
         const el = document.createElement("div");
         el.className = "status-chip" + (block.active ? " active" : "");
         el.style.background = block.color;
+        el.style.opacity = block.active ? "1" : "0.20";
         statusBlocks.appendChild(el);
       });
     }
