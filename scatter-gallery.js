@@ -1322,6 +1322,10 @@
         display: block; margin-top: 6px; font-family: var(--rr-pixel);
         color: rgba(255,255,255,0.70); letter-spacing: 0.13em; text-transform: uppercase;
       }
+      .rr-linkedin-overlay {
+        position: absolute; z-index: 6; top: 80%; left: 5%; width: 90%; height: 6%;
+        background: transparent; cursor: pointer;
+      }
       .rr-meter-panel { align-self: center; display: flex; flex-direction: column; gap: 30px; transform: translateY(-2px); }
       .rr-meter-card { position: relative; min-height: 180px; display: grid; place-items: center; }
       .rr-meter-svg {
@@ -1484,7 +1488,6 @@
             <div class="rr-card-hotspot hotspot-ticker" data-title="TICKER" data-tooltip="Your career momentum. Tracks whether your professional growth has been trending up or down over the last 90 days."></div>
             <div class="rr-card-hotspot hotspot-edu-badge" data-title="EDUCATION BADGE" data-tooltip="Your highest qualification and the institution you attended."></div>
             <div class="rr-card-hotspot hotspot-work-badge" data-title="WORK BADGE" data-tooltip="Your current or most recent employer."></div>
-            <div class="rr-card-hotspot hotspot-portfolio" data-title="" data-tooltip=""></div>
             <div class="rr-card-hotspot hotspot-chess" data-title="CHESS PIECE" data-tooltip="Your career archetype. The role you play in the professional world."></div>
             <div class="rr-card-hotspot hotspot-identity" data-title="NAME AND QUOTE" data-tooltip="Your identity on the RATe RACE system."></div>
             <div class="rr-card-hotspot hotspot-hourglass" data-title="HOURGLASS" data-tooltip="Time remaining before AI could significantly impact or replace your current role."></div>
