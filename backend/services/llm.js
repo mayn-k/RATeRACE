@@ -33,16 +33,18 @@ async function complete(systemPrompt, userPrompt, { json = false, model = DEFAUL
   const latencyMs    = Date.now() - t0;
   const text         = result.text;
   const usage        = result.usageMetadata ?? {};
-  const inputTokens  = usage.promptTokenCount     ?? 0;
-  const outputTokens = usage.candidatesTokenCount ?? 0;
+  const inputTokens    = usage.promptTokenCount     ?? 0;
+  const outputTokens   = usage.candidatesTokenCount ?? 0;
+  const thinkingTokens = usage.thoughtsTokenCount   ?? 0;
+  const totalTokens    = usage.totalTokenCount      ?? (inputTokens + outputTokens + thinkingTokens);
 
   logger.info(
-    { model, inputTokens, outputTokens, latencyMs, outputPreview: text?.slice(0, 120) },
+    { model, inputTokens, outputTokens, thinkingTokens, totalTokens, latencyMs, outputPreview: text?.slice(0, 120) },
     'LLM call'
   );
 
   if (userId && callType) {
-    ApiUsage.create({ userId, callType, inputTokens, outputTokens, model }).catch(() => {});
+    ApiUsage.create({ userId, callType, inputTokens, outputTokens, thinkingTokens, totalTokens, model }).catch(() => {});
   }
 
   return text;

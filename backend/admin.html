@@ -569,6 +569,18 @@
             <div class="label">Output Tokens</div>
             <div class="value" id="usage-stat-output">—</div>
           </div>
+          <div class="stat-card">
+            <div class="label">Thinking Tokens</div>
+            <div class="value" id="usage-stat-thinking" style="color:#a78bfa">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Total Tokens</div>
+            <div class="value" id="usage-stat-total" style="color:#fb923c">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Avg Tokens / Card</div>
+            <div class="value" id="usage-stat-avg" style="color:#34d399">—</div>
+          </div>
         </div>
         <div class="table-wrap">
           <table>
@@ -576,13 +588,15 @@
               <tr>
                 <th>User</th>
                 <th>LLM Calls</th>
-                <th>Input Tokens</th>
-                <th>Output Tokens</th>
+                <th>Input</th>
+                <th>Output</th>
+                <th>Thinking</th>
+                <th>Total Tokens</th>
                 <th>Last Call</th>
               </tr>
             </thead>
             <tbody id="usage-body">
-              <tr><td colspan="5" class="empty">Select this tab to load data.</td></tr>
+              <tr><td colspan="7" class="empty">Select this tab to load data.</td></tr>
             </tbody>
           </table>
         </div>
@@ -1145,24 +1159,27 @@ function fmtNum(n) {
 
 async function loadUsage() {
   document.getElementById('usage-body').innerHTML =
-    '<tr><td colspan="5" class="empty"><span class="spinner"></span></td></tr>';
+    '<tr><td colspan="7" class="empty"><span class="spinner"></span></td></tr>';
   try {
     const data = await api('GET', '/api/usage');
     renderUsage(data);
   } catch (e) {
     document.getElementById('usage-body').innerHTML =
-      `<tr><td colspan="5" class="empty">Error: ${esc(e.message)}</td></tr>`;
+      `<tr><td colspan="7" class="empty">Error: ${esc(e.message)}</td></tr>`;
   }
 }
 
 function renderUsage({ totals, perUser }) {
-  document.getElementById('usage-stat-calls').textContent  = fmtNum(totals.requests);
-  document.getElementById('usage-stat-input').textContent  = fmtNum(totals.inputTokens);
-  document.getElementById('usage-stat-output').textContent = fmtNum(totals.outputTokens);
+  document.getElementById('usage-stat-calls').textContent    = fmtNum(totals.requests);
+  document.getElementById('usage-stat-input').textContent    = fmtNum(totals.inputTokens);
+  document.getElementById('usage-stat-output').textContent   = fmtNum(totals.outputTokens);
+  document.getElementById('usage-stat-thinking').textContent = fmtNum(totals.thinkingTokens);
+  document.getElementById('usage-stat-total').textContent    = fmtNum(totals.totalTokens);
+  document.getElementById('usage-stat-avg').textContent      = fmtNum(totals.avgTokensPerCard);
 
   const tbody = document.getElementById('usage-body');
   if (!perUser.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty">No usage data yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">No usage data yet.</td></tr>';
     return;
   }
   tbody.innerHTML = perUser.map(row => `
@@ -1174,6 +1191,8 @@ function renderUsage({ totals, perUser }) {
       <td><span class="rate-num">${fmtNum(row.requests)}</span></td>
       <td><span class="mono">${fmtNum(row.inputTokens)}</span></td>
       <td><span class="mono">${fmtNum(row.outputTokens)}</span></td>
+      <td><span class="mono" style="color:#a78bfa">${fmtNum(row.thinkingTokens)}</span></td>
+      <td><span class="mono" style="color:#fb923c;font-weight:600">${fmtNum(row.totalTokens)}</span></td>
       <td><span class="mono">${fmtDate(row.lastCall)}</span></td>
     </tr>
   `).join('');

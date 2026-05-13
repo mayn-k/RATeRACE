@@ -47,25 +47,37 @@ router.get('/api/stats', async (_req, res, next) => {
 // ── API Usage ─────────────────────────────────────────────────────────────────
 router.get('/api/usage', async (_req, res, next) => {
   try {
-    const [totalsArr, perUser] = await Promise.all([
+    const [totalsArr, byType, perUser] = await Promise.all([
       ApiUsage.aggregate([
         {
           $group: {
-            _id:          null,
-            requests:     { $sum: 1 },
-            inputTokens:  { $sum: '$inputTokens' },
-            outputTokens: { $sum: '$outputTokens' },
+            _id:            null,
+            requests:       { $sum: 1 },
+            inputTokens:    { $sum: '$inputTokens' },
+            outputTokens:   { $sum: '$outputTokens' },
+            thinkingTokens: { $sum: '$thinkingTokens' },
+            totalTokens:    { $sum: '$totalTokens' },
           },
         },
       ]),
       ApiUsage.aggregate([
         {
           $group: {
-            _id:          '$userId',
-            requests:     { $sum: 1 },
-            inputTokens:  { $sum: '$inputTokens' },
-            outputTokens: { $sum: '$outputTokens' },
-            lastCall:     { $max: '$createdAt' },
+            _id:      '$callType',
+            count:    { $sum: 1 },
+          },
+        },
+      ]),
+      ApiUsage.aggregate([
+        {
+          $group: {
+            _id:            '$userId',
+            requests:       { $sum: 1 },
+            inputTokens:    { $sum: '$inputTokens' },
+            outputTokens:   { $sum: '$outputTokens' },
+            thinkingTokens: { $sum: '$thinkingTokens' },
+            totalTokens:    { $sum: '$totalTokens' },
+            lastCall:       { $max: '$createdAt' },
           },
         },
         {
@@ -79,23 +91,35 @@ router.get('/api/usage', async (_req, res, next) => {
         { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
         {
           $project: {
-            _id:          0,
-            userId:       '$_id',
-            name:         '$user.name',
-            email:        '$user.email',
-            requests:     1,
-            inputTokens:  1,
-            outputTokens: 1,
-            lastCall:     1,
+            _id:            0,
+            userId:         '$_id',
+            name:           '$user.name',
+            email:          '$user.email',
+            requests:       1,
+            inputTokens:    1,
+            outputTokens:   1,
+            thinkingTokens: 1,
+            totalTokens:    1,
+            lastCall:       1,
           },
         },
-        { $sort: { requests: -1 } },
+        { $sort: { totalTokens: -1 } },
       ]),
     ]);
 
-    const totals = totalsArr[0]
-      ? { requests: totalsArr[0].requests, inputTokens: totalsArr[0].inputTokens, outputTokens: totalsArr[0].outputTokens }
-      : { requests: 0, inputTokens: 0, outputTokens: 0 };
+    const raw = totalsArr[0] ?? {};
+    const scoreCount = (byType.find(t => t._id === 'score') ?? {}).count ?? 0;
+    const totalTokens = raw.totalTokens ?? 0;
+
+    const totals = {
+      requests:         raw.requests       ?? 0,
+      inputTokens:      raw.inputTokens    ?? 0,
+      outputTokens:     raw.outputTokens   ?? 0,
+      thinkingTokens:   raw.thinkingTokens ?? 0,
+      totalTokens,
+      scoreCount,
+      avgTokensPerCard: scoreCount > 0 ? Math.round(totalTokens / scoreCount) : 0,
+    };
 
     res.json({ totals, perUser });
   } catch (err) { next(err); }

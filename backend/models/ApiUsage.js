@@ -3,11 +3,13 @@ const mongoose = require('mongoose');
 
 const apiUsageSchema = new mongoose.Schema(
   {
-    userId:       { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    callType:     { type: String, enum: ['resume_parse', 'linkedin_parse', 'score'], required: true },
-    inputTokens:  { type: Number, default: 0 },
-    outputTokens: { type: Number, default: 0 },
-    model:        { type: String, default: null },
+    userId:         { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    callType:       { type: String, enum: ['resume_parse', 'linkedin_parse', 'score'], required: true },
+    inputTokens:    { type: Number, default: 0 },
+    outputTokens:   { type: Number, default: 0 },
+    thinkingTokens: { type: Number, default: 0 },
+    totalTokens:    { type: Number, default: 0 },
+    model:          { type: String, default: null },
   },
   { timestamps: true }
 );
