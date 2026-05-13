@@ -1,7 +1,8 @@
 'use strict';
 const { GoogleGenAI } = require('@google/genai');
-const config = require('../config');
-const logger = require('../utils/logger');
+const config   = require('../config');
+const logger   = require('../utils/logger');
+const ApiUsage = require('../models/ApiUsage');
 
 if (!config.GEMINI_API_KEY) {
   throw new Error('Missing required env var GEMINI_API_KEY: Google Gemini API key');
@@ -14,10 +15,10 @@ const DEFAULT_MODEL = 'gemini-2.5-flash';
 /**
  * @param {string} systemPrompt
  * @param {string} userPrompt
- * @param {{ json?: boolean, model?: string }} opts
+ * @param {{ json?: boolean, model?: string, userId?: string|null, callType?: string|null }} opts
  * @returns {Promise<string>}
  */
-async function complete(systemPrompt, userPrompt, { json = false, model = DEFAULT_MODEL } = {}) {
+async function complete(systemPrompt, userPrompt, { json = false, model = DEFAULT_MODEL, userId = null, callType = null } = {}) {
   const t0 = Date.now();
 
   const result = await ai.models.generateContent({
@@ -29,20 +30,20 @@ async function complete(systemPrompt, userPrompt, { json = false, model = DEFAUL
     },
   });
 
-  const latencyMs = Date.now() - t0;
-  const text      = result.text;
-  const usage     = result.usageMetadata ?? {};
+  const latencyMs    = Date.now() - t0;
+  const text         = result.text;
+  const usage        = result.usageMetadata ?? {};
+  const inputTokens  = usage.promptTokenCount     ?? 0;
+  const outputTokens = usage.candidatesTokenCount ?? 0;
 
   logger.info(
-    {
-      model,
-      inputTokens:  usage.promptTokenCount     ?? null,
-      outputTokens: usage.candidatesTokenCount ?? null,
-      latencyMs,
-      outputPreview: text?.slice(0, 120),
-    },
+    { model, inputTokens, outputTokens, latencyMs, outputPreview: text?.slice(0, 120) },
     'LLM call'
   );
+
+  if (userId && callType) {
+    ApiUsage.create({ userId, callType, inputTokens, outputTokens, model }).catch(() => {});
+  }
 
   return text;
 }

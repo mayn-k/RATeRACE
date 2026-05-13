@@ -18,7 +18,7 @@ async function uploadResume(req, res, next) {
     if (!req.file) {
       return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'PDF file is required' } });
     }
-    const profile = await parseResume(req.file.buffer);
+    const profile = await parseResume(req.file.buffer, req.user.userId);
     await _persistAndRespond(req.user.userId, profile, res);
   } catch (err) {
     next(err);
@@ -31,7 +31,7 @@ async function linkedinResume(req, res, next) {
     if (!urlOrText) {
       return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'urlOrText is required' } });
     }
-    const profile = await parseLinkedIn(urlOrText);
+    const profile = await parseLinkedIn(urlOrText, req.user.userId);
 
     if (profile.photoUrl) {
       await User.findByIdAndUpdate(req.user.userId, { $set: { portraitUrl: profile.photoUrl } });

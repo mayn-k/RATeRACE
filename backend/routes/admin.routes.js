@@ -10,6 +10,7 @@ const Card             = require('../models/Card');
 const { buildCardData }    = require('../services/cardData');
 const { renderCard }       = require('../services/puppeteer');
 const { uploadCardImage }  = require('../services/cloudinary');
+const ApiUsage             = require('../models/ApiUsage');
 
 const router = express.Router();
 
@@ -40,6 +41,63 @@ router.get('/api/stats', async (_req, res, next) => {
       Card.countDocuments({ imageUrl: { $ne: null } }),
     ]);
     res.json({ users, cards, cardsWithImage });
+  } catch (err) { next(err); }
+});
+
+// ── API Usage ─────────────────────────────────────────────────────────────────
+router.get('/api/usage', async (_req, res, next) => {
+  try {
+    const [totalsArr, perUser] = await Promise.all([
+      ApiUsage.aggregate([
+        {
+          $group: {
+            _id:          null,
+            requests:     { $sum: 1 },
+            inputTokens:  { $sum: '$inputTokens' },
+            outputTokens: { $sum: '$outputTokens' },
+          },
+        },
+      ]),
+      ApiUsage.aggregate([
+        {
+          $group: {
+            _id:          '$userId',
+            requests:     { $sum: 1 },
+            inputTokens:  { $sum: '$inputTokens' },
+            outputTokens: { $sum: '$outputTokens' },
+            lastCall:     { $max: '$createdAt' },
+          },
+        },
+        {
+          $lookup: {
+            from:         'users',
+            localField:   '_id',
+            foreignField: '_id',
+            as:           'user',
+          },
+        },
+        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+        {
+          $project: {
+            _id:          0,
+            userId:       '$_id',
+            name:         '$user.name',
+            email:        '$user.email',
+            requests:     1,
+            inputTokens:  1,
+            outputTokens: 1,
+            lastCall:     1,
+          },
+        },
+        { $sort: { requests: -1 } },
+      ]),
+    ]);
+
+    const totals = totalsArr[0]
+      ? { requests: totalsArr[0].requests, inputTokens: totalsArr[0].inputTokens, outputTokens: totalsArr[0].outputTokens }
+      : { requests: 0, inputTokens: 0, outputTokens: 0 };
+
+    res.json({ totals, perUser });
   } catch (err) { next(err); }
 });
 

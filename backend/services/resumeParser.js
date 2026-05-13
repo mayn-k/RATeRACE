@@ -18,9 +18,9 @@ function buildPrompt(text) {
   );
 }
 
-async function parseResume(pdfBuffer) {
+async function parseResume(pdfBuffer, userId = null) {
   const { text } = await pdfParse(pdfBuffer);
-  const raw = await complete(SYSTEM, buildPrompt(text), { json: true });
+  const raw = await complete(SYSTEM, buildPrompt(text), { json: true, userId, callType: 'resume_parse' });
   return JSON.parse(raw);
 }
 

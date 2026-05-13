@@ -500,6 +500,10 @@
         <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M14 3a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h12zM2 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2z"/><path d="M2 5.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1H2.5a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1H2.5a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1H2.5a.5.5 0 0 1-.5-.5z"/></svg>
         Cards
       </button>
+      <button class="nav-item" data-tab="usage">
+        <svg class="icon" viewBox="0 0 16 16" fill="currentColor"><path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/></svg>
+        Usage
+      </button>
     </nav>
 
     <div class="content">
@@ -544,6 +548,44 @@
           </table>
         </div>
         <div class="pagination" id="users-pagination"></div>
+      </div>
+
+      <!-- ── Usage tab ─────────────────────────────────────── -->
+      <div id="tab-usage" style="display:none">
+        <div class="section-header">
+          <div class="section-title">API Usage</div>
+          <button class="btn btn-ghost btn-sm" onclick="loadUsage()">Refresh</button>
+        </div>
+        <div class="stats-row" style="margin-bottom:20px">
+          <div class="stat-card">
+            <div class="label">Total LLM Calls</div>
+            <div class="value" id="usage-stat-calls">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Input Tokens</div>
+            <div class="value" id="usage-stat-input">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Output Tokens</div>
+            <div class="value" id="usage-stat-output">—</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>LLM Calls</th>
+                <th>Input Tokens</th>
+                <th>Output Tokens</th>
+                <th>Last Call</th>
+              </tr>
+            </thead>
+            <tbody id="usage-body">
+              <tr><td colspan="5" class="empty">Select this tab to load data.</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- ── Cards tab ──────────────────────────────────────── -->
@@ -772,6 +814,7 @@ function doLogout() {
   TOKEN = '';
   localStorage.removeItem('adminToken');
   cardsLoaded = false;
+  usageLoaded = false;
   document.getElementById('main-view').style.display = 'none';
   document.getElementById('login-view').style.display = 'flex';
   document.getElementById('secret-input').value = '';
@@ -780,11 +823,13 @@ function doLogout() {
 document.getElementById('logout-btn').addEventListener('click', doLogout);
 
 let cardsLoaded = false;
+let usageLoaded = false;
 
 function showMain() {
   document.getElementById('login-view').style.display = 'none';
   document.getElementById('main-view').style.display = 'flex';
   cardsLoaded = false;
+  usageLoaded = false;
   loadStats();
   loadUsers(); // only load active tab on init
 }
@@ -812,12 +857,17 @@ document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
     const tab = btn.dataset.tab;
     document.getElementById('tab-users').style.display = tab === 'users' ? '' : 'none';
     document.getElementById('tab-cards').style.display = tab === 'cards' ? '' : 'none';
+    document.getElementById('tab-usage').style.display = tab === 'usage' ? '' : 'none';
     if (tab === 'cards') {
       cardsLoaded = true;
       loadCards();
     }
     if (tab === 'users') {
       loadUsers();
+    }
+    if (tab === 'usage') {
+      usageLoaded = true;
+      loadUsage();
     }
   });
 });
@@ -1086,6 +1136,47 @@ async function regenCard(id) {
   } finally {
     if (btn) { btn.textContent = 'Regen'; btn.disabled = false; }
   }
+}
+
+// ── USAGE ──────────────────────────────────────────────────────────────────────
+function fmtNum(n) {
+  return (n ?? 0).toLocaleString();
+}
+
+async function loadUsage() {
+  document.getElementById('usage-body').innerHTML =
+    '<tr><td colspan="5" class="empty"><span class="spinner"></span></td></tr>';
+  try {
+    const data = await api('GET', '/api/usage');
+    renderUsage(data);
+  } catch (e) {
+    document.getElementById('usage-body').innerHTML =
+      `<tr><td colspan="5" class="empty">Error: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+function renderUsage({ totals, perUser }) {
+  document.getElementById('usage-stat-calls').textContent  = fmtNum(totals.requests);
+  document.getElementById('usage-stat-input').textContent  = fmtNum(totals.inputTokens);
+  document.getElementById('usage-stat-output').textContent = fmtNum(totals.outputTokens);
+
+  const tbody = document.getElementById('usage-body');
+  if (!perUser.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">No usage data yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = perUser.map(row => `
+    <tr>
+      <td>
+        <div style="font-weight:500">${esc(row.name || '—')}</div>
+        <div class="mono" style="font-size:11px;color:var(--muted)">${esc(row.email || '')}</div>
+      </td>
+      <td><span class="rate-num">${fmtNum(row.requests)}</span></td>
+      <td><span class="mono">${fmtNum(row.inputTokens)}</span></td>
+      <td><span class="mono">${fmtNum(row.outputTokens)}</span></td>
+      <td><span class="mono">${fmtDate(row.lastCall)}</span></td>
+    </tr>
+  `).join('');
 }
 
 // ── Pagination ─────────────────────────────────────────────────────────────────

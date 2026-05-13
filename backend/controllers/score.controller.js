@@ -17,7 +17,7 @@ async function generate(req, res, next) {
       return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'No profile found. Upload a resume or paste LinkedIn text first.' } });
     }
 
-    const scored = await scoreProfile(profile);
+    const scored = await scoreProfile(profile, userId);
 
     // Persist score fields to Card
     const card = await Card.findOneAndUpdate(

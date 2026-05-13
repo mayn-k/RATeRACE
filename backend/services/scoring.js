@@ -214,8 +214,8 @@ function enforceEnums(result) {
    MAIN SCORING FUNCTION
    ═══════════════════════════════════════════════════════════════════════════ */
 
-async function scoreProfile(profile) {
-  const raw    = await complete(SYSTEM, buildPrompt(profile), { json: true });
+async function scoreProfile(profile, userId = null) {
+  const raw    = await complete(SYSTEM, buildPrompt(profile), { json: true, userId, callType: 'score' });
   const result = JSON.parse(raw);
 
   // ── Clamp numeric fields ──────────────────────────────────────────────

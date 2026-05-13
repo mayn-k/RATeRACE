@@ -17,11 +17,11 @@ function buildPrompt(urlOrText) {
   );
 }
 
-async function parseLinkedIn(urlOrText) {
+async function parseLinkedIn(urlOrText, userId = null) {
   if (!urlOrText || !urlOrText.trim()) {
     throw Object.assign(new Error('urlOrText is required'), { status: 400 });
   }
-  const raw = await complete(SYSTEM, buildPrompt(urlOrText.trim()), { json: true });
+  const raw = await complete(SYSTEM, buildPrompt(urlOrText.trim()), { json: true, userId, callType: 'linkedin_parse' });
   return JSON.parse(raw);
 }
 
