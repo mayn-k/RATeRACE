@@ -1484,7 +1484,7 @@
             <div class="rr-card-hotspot hotspot-ticker" data-title="TICKER" data-tooltip="Your career momentum. Tracks whether your professional growth has been trending up or down over the last 90 days."></div>
             <div class="rr-card-hotspot hotspot-edu-badge" data-title="EDUCATION BADGE" data-tooltip="Your highest qualification and the institution you attended."></div>
             <div class="rr-card-hotspot hotspot-work-badge" data-title="WORK BADGE" data-tooltip="Your current or most recent employer."></div>
-            <div class="rr-card-hotspot hotspot-portfolio" data-title="PORTFOLIO SIGNAL" data-tooltip="External proof layer. Links to your portfolio or LinkedIn. Better work samples can shift how the system reads your edge."></div>
+            <div class="rr-card-hotspot hotspot-portfolio" data-title="" data-tooltip=""></div>
             <div class="rr-card-hotspot hotspot-chess" data-title="CHESS PIECE" data-tooltip="Your career archetype. The role you play in the professional world."></div>
             <div class="rr-card-hotspot hotspot-identity" data-title="NAME AND QUOTE" data-tooltip="Your identity on the RATe RACE system."></div>
             <div class="rr-card-hotspot hotspot-hourglass" data-title="HOURGLASS" data-tooltip="Time remaining before AI could significantly impact or replace your current role."></div>
@@ -1602,6 +1602,21 @@
           const img  = overlay.querySelector('#rrFinalCardImage');
           const wrap = overlay.querySelector('#rrCardWrap');
           if (img && wrap) { img.src = card.imageUrl; wrap.classList.add('has-card-image'); }
+        }
+
+        // Portfolio / LinkedIn clickable overlay (same logic as card-view.html)
+        const linkHref = card.linkedinUrl || card.ctaUrl || null;
+        if (linkHref && linkHref !== '#') {
+          const wrap = overlay.querySelector('#rrCardWrap');
+          if (wrap) {
+            const a = document.createElement('a');
+            a.className = 'rr-linkedin-overlay';
+            a.href      = linkHref;
+            a.target    = '_blank';
+            a.rel       = 'noopener noreferrer';
+            a.setAttribute('aria-label', 'View LinkedIn profile');
+            wrap.appendChild(a);
+          }
         }
 
         const toRot = s => -90 + (Math.max(0, Math.min(100, Number(s) || 0)) / 100) * 180;
