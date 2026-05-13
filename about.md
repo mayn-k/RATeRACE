@@ -37,7 +37,7 @@ The user provides their profile one of two ways:
 
 ### Step 2 — AI scoring
 
-The structured profile is sent to Gemini 2.5 Flash with a system prompt that positions it as a "blunt, calibrated, slightly uncomfortable labour-market analyst." It returns 13 fields:
+The structured profile is sent to Gemini 3.1 Flash Lite Preview with a system prompt that positions it as a "blunt, calibrated, slightly uncomfortable labour-market analyst." It returns 13 fields:
 
 ```
 rate · replaceability · chessPiece · employmentStatus · delta
@@ -84,7 +84,7 @@ The card is previewed inline in the modal with the same 14 hotspot tooltips, gau
 
 ## AI model and persona
 
-The LLM is **Gemini 2.5 Flash** via Google GenAI SDK. The scoring system prompt explicitly instructs the model to be "blunt, calibrated, and slightly uncomfortable" — the product is designed to feel like a harsh market verdict, not career coaching. The `marketVerdict` field (shown in red on the card page) is specifically prompted to "reference their actual field, role, or signals — not generic filler" and to "be precise and uncomfortable."
+The LLM is **Gemini 3.1 Flash Lite Preview** via Google GenAI SDK. The scoring system prompt explicitly instructs the model to be "blunt, calibrated, and slightly uncomfortable" — the product is designed to feel like a harsh market verdict, not career coaching. The `marketVerdict` field (shown in red on the card page) is specifically prompted to "reference their actual field, role, or signals — not generic filler" and to "be precise and uncomfortable."
 
 ---
 
@@ -95,7 +95,7 @@ The LLM is **Gemini 2.5 Flash** via Google GenAI SDK. The scoring system prompt 
 | Frontend | Vanilla JS, HTML/CSS, Canvas 2D, no build step |
 | Backend | Node.js 20+, Express |
 | Database | MongoDB Atlas via Mongoose |
-| AI | Google Gemini 2.5 Flash (via `@google/genai`) |
+| AI | Google Gemini 3.1 Flash Lite Preview (via `@google/genai`) |
 | Card rendering | Puppeteer (headless Chromium, singleton browser) |
 | Image hosting | Cloudinary (card PNGs + portraits) |
 | Auth | JWT (30-day user tokens, 8-hour admin tokens), LinkedIn OIDC |
