@@ -1492,22 +1492,20 @@
       .rr-back-text em { display: block; margin-top: 7px; color: #fff; font-family: var(--rr-pixel); font-size: 10px; font-style: normal; letter-spacing: 0.12em; text-transform: uppercase; }
       .rr-back-lightbox {
         position: fixed; inset: 0; z-index: 10002; display: none; place-items: center;
-        background: rgba(0,0,0,0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        background: rgba(0,0,0,0.82);
       }
       .rr-back-lightbox.is-open { display: grid; }
       .rr-back-close {
         position: fixed; top: 22px; right: 28px; border: 0; background: transparent;
         color: var(--rr-red); font-size: 46px; line-height: 1; cursor: pointer; padding: 0; z-index: 10003;
       }
+      .rr-back-wrap { display: flex; flex-direction: column; align-items: center; gap: 22px; }
       .rr-back-large {
-        position: relative; width: min(330px, 78vw); aspect-ratio: 1053 / 1470; border-radius: 12px; overflow: hidden;
-        background: radial-gradient(circle at 50% 38%, rgba(230,0,0,0.35), transparent 35%),
-                    linear-gradient(150deg, #111, #272727 52%, #050505);
-        box-shadow: 0 0 80px rgba(255,255,255,0.18); transform: rotate(-1deg);
+        height: min(calc(clamp(220px, 42vw, 420px) * 1470 / 1053), calc(100vh - 200px));
+        width: auto;
       }
-      .rr-back-large-copy { position: absolute; inset: 0; display: grid; place-items: center; padding: 28px; text-align: center; font-family: var(--rr-pixel); }
-      .rr-back-large-copy span { display: block; margin-bottom: 16px; color: var(--rr-red); font-size: 12px; letter-spacing: 0.18em; }
-      .rr-back-large-copy strong { display: block; color: #fff; font-size: 36px; line-height: 0.95; letter-spacing: -0.04em; text-transform: uppercase; }
+      .rr-back-large img { height: 100%; width: auto; display: block; }
+      .rr-back-coming { font-family: var(--rr-pixel); font-size: 36px; font-weight: 700; letter-spacing: 0.18em; color: #fff; text-transform: uppercase; }
       @keyframes rrRiseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       @media (max-width: 1180px) {
         .rr-final-layout {
@@ -1659,11 +1657,11 @@
 
       <div class="rr-back-lightbox" id="rrBackLightbox" aria-label="Meme back preview">
         <button class="rr-back-close" id="rrBackCloseBtn" type="button" aria-label="Close">×</button>
-        <div class="rr-back-large">
-          <div class="rr-back-large-copy">
-            <span>ASSIGNED MEME BACK</span>
-            <strong>COMING<br>SOON</strong>
+        <div class="rr-back-wrap">
+          <div class="rr-back-large">
+            <img src="./Illustrationmemecard.png" alt="Assigned meme back" draggable="false">
           </div>
+          <span class="rr-back-coming">Coming soon</span>
         </div>
       </div>
     `;
