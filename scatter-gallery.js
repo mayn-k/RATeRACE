@@ -755,7 +755,7 @@
         font-family: "Pixelify Sans", monospace;
         font-size: 10px; letter-spacing: .14em; cursor: pointer;
       }
-      .rr-el-submit:hover { background: #edf53d; }
+      .rr-el-submit:hover { background: #b90000; color: #fff; }
       .rr-el-error {
         position: absolute; top: 318px; left: 0;
         width: 245px; text-align: center;
@@ -797,7 +797,7 @@
         font-family: "Pixelify Sans", monospace;
         font-size: 10px; letter-spacing: .14em; cursor: pointer;
       }
-      .rr-cf-next:hover { background: #edf53d; }
+      .rr-cf-next:hover { background: #b90000; color: #fff; }
       .rr-cf-back {
         position: absolute; top: 286px; left: 0;
         font-size: 8px; color: #555; cursor: pointer;
@@ -845,7 +845,7 @@
         cursor: pointer; opacity: .3; pointer-events: none;
       }
       .rr-uv-analyze.ready { opacity: 1; pointer-events: auto; }
-      .rr-uv-analyze.ready:hover { background: #edf53d; }
+      .rr-uv-analyze.ready:hover { background: #b90000; color: #fff; }
       .rr-uv-back {
         position: absolute; top: 328px; left: 0;
         font-size: 8px; color: #555; cursor: pointer;
@@ -1552,7 +1552,6 @@
 
       <div class="rr-bottom-hint">
         Hover over the card elements to see what they represent.
-        <span class="rr-return-hook">THIS CARD WILL UPDATE AS THE MARKET CHANGES. RETURN TOMORROW. YOUR JOB MIGHT NOT.</span>
       </div>
 
       <div class="rr-tooltip" id="rrTooltip" role="tooltip"></div>
