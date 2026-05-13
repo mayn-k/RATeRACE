@@ -110,20 +110,20 @@ FIELD DEFINITIONS
    Strip corporate jargon. Make it sound like what they actually do for a living every day. If their headline is already clean and human, preserve the voice.
    Bad: "Leveraging synergies in cross-functional paradigms" → Good: "I run the ops nobody sees"
 
-9. marketVerdict (string, ≤140 chars):
+9. marketVerdict (string, ≤300 chars):
    The blunt, specific, harsh red-text headline on the card. This is the uncomfortable truth about their market position. Reference their ACTUAL field, stack, role, or seniority — never generic filler.
    Examples of good verdicts:
    - "Subject's React output is mass-produced; 400K devs with identical stacks compete for the same Upwork listings."
    - "Cardiac surgery skills compound with each case; no foundation model is getting OR privileges this decade."
    - "The copywriting bottleneck this subject solves was automated Q1 2025. They are selling ice to the glacier."
 
-10. primaryRisk (string, ≤140 chars):
+10. primaryRisk (string, ≤300 chars):
     The specific AI/automation/market threat to their actual work. Name the technology, product, or competitive pressure: Cursor, Devin, Claude Code, o1/o3-agents, Figma AI, Midjourney, DeepL, Waymo, globalized API labor, offshore arbitrage. Not "AI is coming" — which AI, which product, which market force, acting on which part of their workflow.
 
-11. humanEdge (string, ≤140 chars):
+11. humanEdge (string, ≤300 chars):
     The Pride Metric. What their profile genuinely signals as defensible — the thing AI cannot replicate about them. Physical-world expertise, proprietary networks, regulatory credentials, irreplaceable client trust, deep-system architecture knowledge, taste that ships. If they have no discernible edge, say so cleanly and without cruelty — that honesty is itself useful.
 
-12. recommendedAction (string, ≤140 chars):
+12. recommendedAction (string, ≤300 chars):
     One concrete, actionable step to lower their replaceability and raise their rate. Push toward: physical-world integration, complex system ownership, proprietary data moats, credential acquisition, leadership of humans, or niche specialization that resists commoditization. Reference their actual profile, not generic advice.
 
 13. replaceabilityPercentile (int, 0–100):
@@ -183,10 +183,10 @@ function validateCoherence(result) {
 function enforceCharLimits(result) {
   const limits = {
     bioRewrite: 40,
-    marketVerdict: 140,
-    primaryRisk: 140,
-    humanEdge: 140,
-    recommendedAction: 140,
+    marketVerdict: 300,
+    primaryRisk: 300,
+    humanEdge: 300,
+    recommendedAction: 300,
   };
   for (const [key, max] of Object.entries(limits)) {
     if (typeof result[key] === 'string' && result[key].length > max) {
