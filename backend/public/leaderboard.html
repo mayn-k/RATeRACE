@@ -1,0 +1,1355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RATe RACE — Leaderboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #000;
+      --red: #e60000;
+      --green: #18d15f;
+      --yellow: #f3df2d;
+      --blue: #2d5fa9;
+      --white: #f4f1e8;
+      --muted: rgba(255,255,255,.56);
+      --faint: rgba(255,255,255,.14);
+      --line: rgba(255,255,255,.18);
+      --panel: rgba(4,4,4,.68);
+      --pixel: "Pixelify Sans", Helvetica Neue, Helvetica, Arial, sans-serif;
+      --mono: "IBM Plex Mono", Helvetica Neue, Helvetica, Arial, sans-serif;
+      --sans: Helvetica Neue, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      background: #000;
+      color: #fff;
+      font-family: var(--mono);
+      overflow: hidden;
+    }
+
+    button, input { font: inherit; }
+
+    .rr-page {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 38%, rgba(255,255,255,.075), rgba(255,255,255,.016) 30%, transparent 56%),
+        radial-gradient(circle at 72% 24%, rgba(230,0,0,.075), transparent 31%),
+        #000;
+      isolation: isolate;
+    }
+
+    .rr-page::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background-image:
+        linear-gradient(rgba(255,255,255,.042) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.042) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,.016) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.016) 1px, transparent 1px);
+      background-size: 48px 48px, 48px 48px, 12px 12px, 12px 12px;
+      opacity: .68;
+      pointer-events: none;
+    }
+
+    .rr-page::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(180deg, rgba(0,0,0,.74), transparent 18%, transparent 74%, rgba(0,0,0,.86));
+      pointer-events: none;
+    }
+
+    .rr-header {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 22px;
+      z-index: 20;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+      user-select: none;
+    }
+
+    .rr-back-btn {
+      position: absolute;
+      left: clamp(18px, 3vw, 40px);
+      top: 0;
+      border: 1px solid rgba(255,255,255,.28);
+      background: transparent;
+      color: rgba(255,255,255,.72);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 7px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: 160ms ease;
+    }
+
+    .rr-back-btn:hover { color: #fff; border-color: #fff; }
+
+    .rr-logo {
+      height: clamp(26px, 3vw, 42px);
+      width: auto;
+      display: block;
+    }
+
+    .rr-logo-text {
+      font-family: var(--pixel);
+      font-size: clamp(22px, 2.8vw, 38px);
+      line-height: 1;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .rr-clock {
+      position: absolute;
+      top: 28px;
+      right: clamp(24px, 3vw, 46px);
+      z-index: 22;
+      font-family: var(--mono);
+      color: rgba(255,255,255,.72);
+      font-size: clamp(11px, 1vw, 15px);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      user-select: none;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rr-shell {
+      position: relative;
+      z-index: 4;
+      width: min(92vw, 1380px);
+      height: 100vh;
+      margin: 0 auto;
+      padding: 106px 0 40px;
+      display: grid;
+      grid-template-rows: auto auto auto auto minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    /* ── Your standing strip ── */
+    .standing-strip {
+      width: 100%;
+      border: 1px solid rgba(230,0,0,.36);
+      background:
+        linear-gradient(90deg, rgba(230,0,0,.14), rgba(230,0,0,.045) 34%, rgba(255,255,255,.02)),
+        rgba(0,0,0,.58);
+      box-shadow: 0 0 42px rgba(230,0,0,.075);
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: 80px minmax(180px, 1fr) auto minmax(380px, 500px) 170px;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .your-avatar {
+      width: 72px;
+      height: 96px;
+      border: 1px solid rgba(255,255,255,.20);
+      background: rgba(255,255,255,.04);
+      overflow: hidden;
+      transform: rotate(1deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .your-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .your-avatar-placeholder {
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(circle at 50% 27%, #f1c5a2 0 18%, transparent 19%),
+        radial-gradient(circle at 50% 20%, var(--hat, #5c35d6) 0 22%, transparent 23%),
+        linear-gradient(180deg, transparent 0 43%, #1d2030 43% 72%, transparent 72%),
+        #eee8da;
+    }
+
+    .your-name {
+      display: block;
+      margin-bottom: 5px;
+      color: #fff;
+      font-family: var(--sans);
+      font-size: clamp(18px, 1.8vw, 28px);
+      line-height: 1;
+    }
+
+    .your-code {
+      display: block;
+      margin-bottom: 10px;
+      font-family: var(--pixel);
+      color: var(--red);
+      font-size: clamp(12px, 1.1vw, 18px);
+      letter-spacing: .12em;
+    }
+
+    .your-rank {
+      display: inline-block;
+      padding: 7px 13px 8px;
+      background: #fff;
+      color: #000;
+      font-family: var(--mono);
+      font-weight: 600;
+      font-size: clamp(11px, .95vw, 15px);
+      letter-spacing: .045em;
+      line-height: 1;
+      text-transform: uppercase;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .your-line {
+      color: rgba(255,255,255,.62);
+      font-family: var(--sans);
+      font-size: 13px;
+      line-height: 1.45;
+      max-width: 260px;
+    }
+
+    .your-line b { color: #fff; font-weight: 600; }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid rgba(255,255,255,.14);
+      border-left: 1px solid rgba(255,255,255,.14);
+    }
+
+    .metric {
+      padding: 11px 12px;
+      border-right: 1px solid rgba(255,255,255,.14);
+      border-bottom: 1px solid rgba(255,255,255,.14);
+      min-width: 0;
+    }
+
+    .metric span {
+      display: block;
+      margin-bottom: 6px;
+      color: rgba(255,255,255,.44);
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .metric b {
+      display: block;
+      font-family: var(--pixel);
+      color: #fff;
+      font-size: clamp(20px, 1.8vw, 30px);
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .metric b.red    { color: var(--red);    }
+    .metric b.green  { color: var(--green);  }
+    .metric b.blue   { color: var(--blue);   }
+    .metric b.yellow { color: var(--yellow); }
+
+    .post-btn {
+      width: 100%;
+      min-height: 50px;
+      border: 1px solid #fff;
+      background: #fff;
+      color: #000;
+      font-family: var(--pixel);
+      font-size: 14px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: 160ms ease;
+    }
+
+    .post-btn:hover {
+      background: var(--red);
+      color: #fff;
+      border-color: var(--red);
+      box-shadow: 0 0 24px rgba(230,0,0,.30);
+    }
+
+    /* ── no-card standing state ── */
+    .standing-no-card {
+      display: none;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.42);
+      padding: 18px 24px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .standing-no-card p {
+      margin: 0;
+      color: rgba(255,255,255,.56);
+      font-family: var(--sans);
+      font-size: 14px;
+    }
+
+    .standing-no-card p b { color: #fff; }
+
+    .create-btn {
+      flex-shrink: 0;
+      min-height: 46px;
+      border: 1px solid #fff;
+      background: #fff;
+      color: #000;
+      font-family: var(--pixel);
+      font-size: 13px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 0 20px;
+      cursor: pointer;
+      transition: 160ms ease;
+    }
+
+    .create-btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
+
+    /* ── Filters ── */
+    .filter-deck {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .filter-group {
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.34);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      min-height: 46px;
+    }
+
+    .filter-label {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      border-right: 1px solid rgba(255,255,255,.12);
+      color: rgba(255,255,255,.46);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .filter-options {
+      display: flex;
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .filter-options::-webkit-scrollbar { display: none; }
+
+    .filter-btn {
+      min-height: 45px;
+      border: 0;
+      border-right: 1px solid rgba(255,255,255,.10);
+      background: transparent;
+      color: rgba(255,255,255,.58);
+      padding: 0 14px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: 160ms ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .filter-btn:hover { color: #fff; background: rgba(255,255,255,.04); }
+
+    .filter-btn.is-active {
+      color: #fff;
+      background: rgba(255,255,255,.065);
+      box-shadow: inset 0 -2px 0 var(--accent, #fff);
+    }
+
+    .status-filter[data-filter="all"]        { --accent: #fff; }
+    .status-filter[data-filter="employed"]   { --accent: var(--green); }
+    .status-filter[data-filter="unemployed"] { --accent: var(--red); }
+    .status-filter[data-filter="retired"]    { --accent: var(--yellow); }
+    .status-filter[data-filter="intern"]     { --accent: var(--blue); }
+
+    .status-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      background: var(--dot-color, rgba(255,255,255,.5));
+      box-shadow: 0 0 10px var(--dot-color, rgba(255,255,255,.5));
+      flex: 0 0 auto;
+    }
+
+    .piece-filter {
+      font-family: var(--pixel);
+      font-size: 19px;
+      letter-spacing: .04em;
+      padding: 0 12px;
+    }
+
+    .piece-filter small {
+      margin-left: 5px;
+      font-family: var(--mono);
+      font-size: 9px;
+      color: rgba(255,255,255,.44);
+      letter-spacing: .12em;
+    }
+
+    /* ── Podium ── */
+    .podium {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .podium-card {
+      min-width: 0;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.48);
+      min-height: 100px;
+      padding: 13px;
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 12px;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 38px rgba(255,255,255,.035);
+      cursor: pointer;
+      transition: 160ms ease;
+    }
+
+    .podium-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,.38);
+      box-shadow: 0 0 44px rgba(255,255,255,.075);
+    }
+
+    .podium-card:first-child {
+      border-color: rgba(255,255,255,.38);
+      box-shadow: 0 0 44px rgba(255,255,255,.08);
+    }
+
+    .podium-card::after {
+      content: attr(data-rank);
+      position: absolute;
+      right: 10px;
+      top: 6px;
+      font-family: var(--pixel);
+      color: rgba(255,255,255,.08);
+      font-size: 54px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .podium-avatar {
+      width: 52px;
+      height: 68px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.04);
+      overflow: hidden;
+      transform: rotate(-1deg);
+      flex-shrink: 0;
+    }
+
+    .podium-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .podium-avatar-placeholder {
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(circle at 50% 27%, #f1c5a2 0 18%, transparent 19%),
+        radial-gradient(circle at 50% 20%, var(--hat, #5c35d6) 0 22%, transparent 23%),
+        linear-gradient(180deg, transparent 0 43%, #1d2030 43% 72%, transparent 72%),
+        #eee8da;
+    }
+
+    .podium-name {
+      display: block;
+      margin-bottom: 3px;
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .podium-role {
+      display: block;
+      margin-bottom: 8px;
+      color: rgba(255,255,255,.48);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .podium-score {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 7px;
+      font-family: var(--pixel);
+      color: var(--white);
+      font-size: 23px;
+      line-height: 1;
+    }
+
+    .podium-score small {
+      color: var(--red);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .employment-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: var(--dot-color, rgba(255,255,255,.5));
+      margin-right: 4px;
+      flex: 0 0 auto;
+    }
+
+    .empty-state {
+      min-height: 100px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.38);
+      display: none;
+      place-items: center;
+      text-align: center;
+      color: rgba(255,255,255,.48);
+      font-size: 12px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .empty-state.is-visible { display: grid; }
+
+    /* ── Board ── */
+    .board {
+      min-height: 0;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.42);
+      overflow: hidden;
+      box-shadow: 0 0 52px rgba(255,255,255,.035);
+    }
+
+    .board-body {
+      height: 100%;
+      overflow: auto;
+      scrollbar-color: rgba(255,255,255,.22) transparent;
+      scrollbar-width: thin;
+    }
+
+    .row {
+      min-height: 66px;
+      border-bottom: 1px solid rgba(255,255,255,.085);
+      display: grid;
+      grid-template-columns: 66px minmax(240px, 1fr) 100px 120px 145px 116px;
+      align-items: center;
+      transition: 150ms ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .row:hover { background: rgba(255,255,255,.045); }
+
+    .row.is-user {
+      background: linear-gradient(90deg, rgba(230,0,0,.17), rgba(230,0,0,.045), rgba(255,255,255,.02));
+      border-top: 1px solid rgba(230,0,0,.35);
+      border-bottom: 1px solid rgba(230,0,0,.35);
+    }
+
+    .row > div { padding: 0 14px; min-width: 0; }
+
+    .rank {
+      font-family: var(--pixel);
+      color: #fff;
+      font-size: 19px;
+    }
+
+    .identity {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 44px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.04);
+      overflow: hidden;
+      transform: rotate(var(--tilt, -1deg));
+      flex-shrink: 0;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .avatar-placeholder {
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(circle at 50% 27%, #f1c5a2 0 18%, transparent 19%),
+        radial-gradient(circle at 50% 20%, var(--hat, #5c35d6) 0 22%, transparent 23%),
+        linear-gradient(180deg, transparent 0 43%, #1d2030 43% 72%, transparent 72%),
+        #eee8da;
+    }
+
+    .name-stack { min-width: 0; }
+
+    .name {
+      display: block;
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .role {
+      display: block;
+      margin-top: 3px;
+      color: rgba(255,255,255,.48);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .score {
+      font-family: var(--pixel);
+      font-size: 24px;
+      line-height: 1;
+      color: #fff;
+    }
+
+    .score.red { color: var(--red); }
+
+    .piece-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border: 1px solid rgba(255,255,255,.20);
+      font-family: var(--pixel);
+      font-size: 18px;
+      line-height: 1;
+      background: rgba(255,255,255,.035);
+    }
+
+    .view-btn {
+      width: 100%;
+      height: 30px;
+      border: 1px solid rgba(255,255,255,.32);
+      background: transparent;
+      color: rgba(255,255,255,.78);
+      font-family: var(--pixel);
+      font-size: 11px;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: 150ms ease;
+    }
+
+    .row:hover .view-btn { color: #000; background: #fff; border-color: #fff; }
+
+    /* ── Loading / error states ── */
+    .board-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: rgba(255,255,255,.38);
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    /* ── Detail modal ── */
+    .detail {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      place-items: center;
+      background: rgba(0,0,0,.80);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .detail.is-open { display: grid; }
+
+    .detail-card {
+      position: relative;
+      width: min(720px, 92vw);
+      border: 1px solid rgba(255,255,255,.20);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.015)),
+        #050505;
+      box-shadow: 0 0 80px rgba(255,255,255,.08);
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 26px;
+    }
+
+    .detail-close {
+      position: absolute;
+      right: 14px;
+      top: 8px;
+      border: 0;
+      background: transparent;
+      color: var(--red);
+      font-size: 42px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .card-img-wrap {
+      width: 200px;
+      aspect-ratio: 1053 / 1470;
+      overflow: hidden;
+      transform: rotate(1deg);
+      box-shadow: 0 0 40px rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-img-placeholder {
+      color: rgba(255,255,255,.24);
+      font-family: var(--pixel);
+      font-size: 11px;
+      letter-spacing: .1em;
+      text-align: center;
+    }
+
+    .detail-info h2 {
+      margin: 0 44px 8px 0;
+      font-family: var(--sans);
+      font-weight: 500;
+      color: #fff;
+      font-size: clamp(22px, 2.4vw, 32px);
+      line-height: .98;
+      letter-spacing: -0.03em;
+    }
+
+    .detail-info p {
+      margin: 0 0 16px;
+      max-width: 380px;
+      color: rgba(255,255,255,.58);
+      font-family: var(--sans);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid rgba(255,255,255,.14);
+      border-left: 1px solid rgba(255,255,255,.14);
+      margin-bottom: 18px;
+    }
+
+    .detail-cell {
+      padding: 12px;
+      border-right: 1px solid rgba(255,255,255,.14);
+      border-bottom: 1px solid rgba(255,255,255,.14);
+    }
+
+    .detail-cell span {
+      display: block;
+      margin-bottom: 6px;
+      font-family: var(--mono);
+      color: rgba(255,255,255,.42);
+      font-size: 10px;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    .detail-cell b {
+      display: block;
+      font-family: var(--pixel);
+      color: #fff;
+      font-size: 20px;
+    }
+
+    .detail-cell b.red    { color: var(--red);    }
+    .detail-cell b.green  { color: var(--green);  }
+    .detail-cell b.blue   { color: var(--blue);   }
+    .detail-cell b.yellow { color: var(--yellow); }
+
+    .detail-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .detail-actions button {
+      min-height: 36px;
+      border: 1px solid rgba(255,255,255,.38);
+      background: transparent;
+      color: #fff;
+      font-family: var(--pixel);
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 0 16px;
+      cursor: pointer;
+      transition: 160ms ease;
+    }
+
+    .detail-actions button:hover { background: rgba(255,255,255,.06); }
+
+    .detail-actions button.primary {
+      border-color: #fff;
+      background: #fff;
+      color: #000;
+    }
+
+    .detail-actions button.primary:hover { background: var(--red); border-color: var(--red); color: #fff; }
+
+    /* ── Responsive ── */
+    @media (max-width: 1120px) {
+      html, body { overflow: auto; }
+      .rr-page { height: auto; min-height: 100vh; overflow: hidden; }
+      .rr-shell { height: auto; min-height: 100vh; padding-top: 96px; padding-bottom: 48px; }
+      .standing-strip {
+        grid-template-columns: 72px 1fr auto;
+        grid-template-areas:
+          "avatar identity button"
+          "line line line"
+          "metrics metrics metrics";
+      }
+      .your-avatar   { grid-area: avatar; }
+      .your-identity { grid-area: identity; }
+      .your-line     { grid-area: line; max-width: none; }
+      .metric-grid   { grid-area: metrics; }
+      .post-btn      { grid-area: button; width: 160px; }
+      .filter-deck   { grid-template-columns: 1fr; }
+      .board         { min-height: 480px; }
+    }
+
+    @media (max-width: 760px) {
+      .rr-clock { top: 72px; left: 0; right: 0; text-align: center; }
+      .rr-shell { width: min(92vw, 440px); padding-top: 110px; }
+      .standing-strip {
+        grid-template-columns: 1fr;
+        grid-template-areas: "avatar" "identity" "line" "metrics" "button";
+        justify-items: start;
+      }
+      .post-btn { width: 100%; }
+      .metric-grid { grid-template-columns: 1fr 1fr; width: 100%; }
+      .filter-group { grid-template-columns: 1fr; }
+      .filter-label { height: auto; min-height: 34px; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.10); }
+      .filter-btn { min-height: 40px; }
+      .podium { grid-template-columns: 1fr; }
+      .board { border: 0; background: transparent; box-shadow: none; min-height: 0; }
+      .board-body { overflow: visible; }
+      .row {
+        grid-template-columns: 44px 1fr 66px;
+        grid-template-areas:
+          "rank identity repl"
+          "rank identity rate"
+          "piece piece piece"
+          "view view view";
+        min-height: 120px;
+        margin-bottom: 10px;
+        border: 1px solid rgba(255,255,255,.14);
+        background: rgba(0,0,0,.50);
+      }
+      .cell-rank     { grid-area: rank; }
+      .cell-identity { grid-area: identity; }
+      .cell-rate     { grid-area: rate; text-align: right; }
+      .cell-repl     { grid-area: repl; text-align: right; align-self: end; }
+      .cell-piece    { grid-area: piece; }
+      .cell-view     { grid-area: view; }
+      .detail-card   { grid-template-columns: 1fr; place-items: center; }
+      .detail-info   { width: 100%; }
+      .detail-grid   { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="rr-page">
+    <header class="rr-header">
+      <button class="rr-back-btn" id="rrBackBtn" type="button">← GALLERY</button>
+      <!-- Replace adultmoney-header-logo.png with your leaderboard logo PNG -->
+      <img class="rr-logo" src="/adultmoney-header-logo.png" alt="RATe RACE"
+           onerror="this.style.display='none'; document.getElementById('rrLogoText').style.display='block'">
+      <span class="rr-logo-text" id="rrLogoText" style="display:none">RATe RACE</span>
+    </header>
+
+    <div class="rr-clock" id="rrClock">00:00:00</div>
+
+    <section class="rr-shell">
+
+      <!-- Your standing strip (shown when amCode is present) -->
+      <section class="standing-strip" id="standingStrip" style="display:none">
+        <div class="your-avatar" id="yourAvatar">
+          <div class="your-avatar-placeholder" id="yourAvatarPlaceholder"></div>
+        </div>
+        <div class="your-identity">
+          <span class="your-name" id="yourName">—</span>
+          <span class="your-code" id="yourCode">—</span>
+          <span class="your-rank" id="yourRank">RANK —</span>
+        </div>
+        <p class="your-line" id="yourMessage">Loading…</p>
+        <div class="metric-grid">
+          <div class="metric"><span>Rate</span><b id="yourRate">—</b></div>
+          <div class="metric"><span>Replaceability</span><b class="red" id="yourRepl">—</b></div>
+          <div class="metric"><span>Piece</span><b id="yourPiece">—</b></div>
+          <div class="metric"><span>Percentile</span><b class="green" id="yourPercentile">—</b></div>
+        </div>
+        <button class="post-btn" id="postMyCard">POST MY RANK</button>
+      </section>
+
+      <!-- No-card CTA (shown when no amCode) -->
+      <section class="standing-no-card" id="standingNoCard" style="display:none">
+        <p>You are watching the board. <b>Get scored to claim your rank.</b></p>
+        <button class="create-btn" id="createCardBtn">GET YOUR CARD</button>
+      </section>
+
+      <!-- Filters -->
+      <section class="filter-deck" aria-label="Leaderboard filters">
+        <div class="filter-group">
+          <div class="filter-label">Employment</div>
+          <div class="filter-options" id="employmentFilters">
+            <button class="filter-btn status-filter is-active" data-filter="all"        type="button"><span class="status-dot" style="--dot-color:#fff"></span>All</button>
+            <button class="filter-btn status-filter"           data-filter="employed"   type="button"><span class="status-dot" style="--dot-color:var(--green)"></span>Employed</button>
+            <button class="filter-btn status-filter"           data-filter="unemployed" type="button"><span class="status-dot" style="--dot-color:var(--red)"></span>Unemployed</button>
+            <button class="filter-btn status-filter"           data-filter="retired"    type="button"><span class="status-dot" style="--dot-color:var(--yellow)"></span>Retired</button>
+            <button class="filter-btn status-filter"           data-filter="intern"     type="button"><span class="status-dot" style="--dot-color:var(--blue)"></span>Intern / Fresher</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Piece</div>
+          <div class="filter-options" id="pieceFilters">
+            <button class="filter-btn piece-filter is-active" data-filter="all"    type="button">ALL</button>
+            <button class="filter-btn piece-filter"           data-filter="pawn"   type="button">♟<small>Pawn</small></button>
+            <button class="filter-btn piece-filter"           data-filter="knight" type="button">♞<small>Knight</small></button>
+            <button class="filter-btn piece-filter"           data-filter="bishop" type="button">♝<small>Bishop</small></button>
+            <button class="filter-btn piece-filter"           data-filter="rook"   type="button">♜<small>Rook</small></button>
+            <button class="filter-btn piece-filter"           data-filter="queen"  type="button">♛<small>Queen</small></button>
+            <button class="filter-btn piece-filter"           data-filter="king"   type="button">♚<small>King</small></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Podium (top 3) -->
+      <section class="podium" id="podium" aria-label="Top leaderboard cards"></section>
+      <section class="empty-state" id="emptyState">No market files in this filter yet.</section>
+
+      <!-- Full board -->
+      <section class="board" aria-label="Leaderboard">
+        <div class="board-body" id="leaderboardRows">
+          <div class="board-loading" id="boardLoading">LOADING MARKET FILES…</div>
+        </div>
+      </section>
+
+    </section>
+
+    <!-- Detail modal -->
+    <section class="detail" id="detailModal" aria-label="Card preview">
+      <div class="detail-card">
+        <button class="detail-close" id="detailClose" aria-label="Close">×</button>
+
+        <div class="card-img-wrap" id="detailCardWrap">
+          <div class="card-img-placeholder">LOADING…</div>
+        </div>
+
+        <div class="detail-info">
+          <h2 id="detailName">Market File</h2>
+          <p id="detailBio">On the public RATe RACE board.</p>
+
+          <div class="detail-grid">
+            <div class="detail-cell"><span>Role</span><b id="detailRole">—</b></div>
+            <div class="detail-cell"><span>Employment</span><b id="detailEmployment">—</b></div>
+            <div class="detail-cell"><span>Piece</span><b id="detailPiece">—</b></div>
+            <div class="detail-cell"><span>Rate</span><b id="detailRate">—</b></div>
+            <div class="detail-cell"><span>Replaceability</span><b class="red" id="detailRepl">—</b></div>
+          </div>
+
+          <div class="detail-actions">
+            <button class="primary" id="detailShare">Copy Card Link</button>
+            <button id="detailChallenge" style="display:none">Get Your Own Card</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const params          = new URLSearchParams(window.location.search);
+    const MY_AMCODE       = (params.get('amCode') || '').trim().toUpperCase();
+    const GALLERY_ORIGIN  = params.get('from') || window.location.origin;
+    const TOP_LIMIT       = 50;
+
+    let activeEmploymentFilter = 'all';
+    let activePieceFilter      = 'all';
+    let currentRows            = [];
+    let selectedRow            = null;
+    let currentUserRank        = null;
+    let currentUserRow         = null;
+    let currentTotalCount      = 0;
+
+    // ── Helpers ─────────────────────────────────────────────────────────────
+
+    function esc(v) {
+      return String(v ?? '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function boardScore(row) { return row.rate - row.repl; }
+
+    function employmentColor(s) {
+      return { employed: 'var(--green)', unemployed: 'var(--red)', retired: 'var(--yellow)', intern: 'var(--blue)' }[s] || 'rgba(255,255,255,.5)';
+    }
+
+    function employmentClass(s) {
+      return { employed: 'green', unemployed: 'red', retired: 'yellow', intern: 'blue' }[s] || '';
+    }
+
+    function employmentLabel(s) {
+      return { employed: 'Employed', unemployed: 'Unemployed', retired: 'Retired', intern: 'Intern / Fresher' }[s] || s;
+    }
+
+    function pieceSymbol(p) {
+      return { pawn: '♟', knight: '♞', bishop: '♝', rook: '♜', queen: '♛', king: '♚' }[p] || '♟';
+    }
+
+    function pieceLabel(p) {
+      return { pawn: 'Pawn', knight: 'Knight', bishop: 'Bishop', rook: 'Rook', queen: 'Queen', king: 'King' }[p] || p;
+    }
+
+    function avatarHTML(portraitUrl, cssClass, placeholderClass) {
+      if (portraitUrl) {
+        return `<img src="${esc(portraitUrl)}" alt="Portrait" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="${placeholderClass}" style="display:none"></div>`;
+      }
+      return `<div class="${placeholderClass}"></div>`;
+    }
+
+    // ── API ──────────────────────────────────────────────────────────────────
+
+    async function fetchBoard() {
+      const url = new URL('/api/leaderboard', window.location.origin);
+      url.searchParams.set('status', activeEmploymentFilter);
+      url.searchParams.set('piece',  activePieceFilter);
+      if (MY_AMCODE) url.searchParams.set('amCode', MY_AMCODE);
+
+      const res = await fetch(url.toString());
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+    // ── Render ───────────────────────────────────────────────────────────────
+
+    function renderPodium(rows) {
+      const podiumEl    = document.getElementById('podium');
+      const emptyEl     = document.getElementById('emptyState');
+      const top3        = rows.slice(0, 3);
+
+      podiumEl.style.display = top3.length ? 'grid' : 'none';
+      emptyEl.classList.toggle('is-visible', !top3.length);
+
+      podiumEl.innerHTML = top3.map((row, i) => `
+        <article class="podium-card" data-rank="#${i + 1}" data-code="${esc(row.amCode)}" style="--hat:#5c35d6">
+          <div class="podium-avatar">
+            ${avatarHTML(row.portraitUrl, 'podium-avatar', 'podium-avatar-placeholder')}
+          </div>
+          <div>
+            <span class="podium-name">${esc(row.name)}</span>
+            <span class="podium-role">
+              <span class="employment-dot" style="--dot-color:${employmentColor(row.employmentStatus)}"></span>
+              ${pieceSymbol(row.chessPiece)} ${esc(row.role || row.employmentStatus)}
+            </span>
+            <span class="podium-score">${boardScore(row)}<small>score</small></span>
+          </div>
+        </article>
+      `).join('');
+
+      podiumEl.querySelectorAll('.podium-card').forEach(card => {
+        card.addEventListener('click', () => openDetail(card.dataset.code));
+      });
+    }
+
+    function renderRows(rows) {
+      const rowsEl = document.getElementById('leaderboardRows');
+
+      if (!rows.length) {
+        rowsEl.innerHTML = '<div class="board-loading">NO ENTRIES FOR THIS FILTER</div>';
+        return;
+      }
+
+      rowsEl.innerHTML = rows.map((row, i) => {
+        const isUser = MY_AMCODE && row.amCode.replace(/\s/g, '') === MY_AMCODE.replace(/\s/g, '');
+        return `
+          <article class="row${isUser ? ' is-user' : ''}" data-code="${esc(row.amCode)}" style="--tilt:${i % 2 ? '1deg' : '-1deg'}">
+            <div class="cell-rank rank">#${String(i + 1).padStart(2, '0')}</div>
+            <div class="cell-identity identity">
+              <div class="avatar">
+                ${avatarHTML(row.portraitUrl, 'avatar', 'avatar-placeholder')}
+              </div>
+              <div class="name-stack">
+                <span class="name">${esc(row.name)}</span>
+                <span class="role">
+                  <span class="employment-dot" style="--dot-color:${employmentColor(row.employmentStatus)}"></span>
+                  ${esc(row.amCode)} / ${esc(row.role || employmentLabel(row.employmentStatus))}
+                </span>
+              </div>
+            </div>
+            <div class="cell-piece"><span class="piece-badge">${pieceSymbol(row.chessPiece)}</span></div>
+            <div class="cell-rate score">${row.rate}</div>
+            <div class="cell-repl score red">${row.repl}</div>
+            <div class="cell-view"><button class="view-btn" type="button">VIEW</button></div>
+          </article>
+        `;
+      }).join('');
+
+      rowsEl.querySelectorAll('.row').forEach(row => {
+        row.addEventListener('click', () => openDetail(row.dataset.code));
+      });
+    }
+
+    function renderStanding(userRow, userRank, totalCount) {
+      const strip   = document.getElementById('standingStrip');
+      const noCaed  = document.getElementById('standingNoCard');
+
+      if (!MY_AMCODE) {
+        strip.style.display  = 'none';
+        noCaed.style.display = 'flex';
+        return;
+      }
+
+      if (!userRow) {
+        strip.style.display  = 'none';
+        noCaed.style.display = 'none';
+        return;
+      }
+
+      strip.style.display  = '';
+      noCaed.style.display = 'none';
+
+      const belongsToFilter = userRow !== null;
+      const rank = userRank || 0;
+
+      document.getElementById('yourName').textContent  = userRow.name;
+      document.getElementById('yourCode').textContent  = userRow.amCode;
+      document.getElementById('yourRate').textContent  = userRow.rate;
+      document.getElementById('yourRepl').textContent  = userRow.repl;
+      document.getElementById('yourPiece').textContent = `${pieceSymbol(userRow.chessPiece)} ${pieceLabel(userRow.chessPiece)}`.toUpperCase();
+
+      const avatarEl      = document.getElementById('yourAvatar');
+      const placeholderEl = document.getElementById('yourAvatarPlaceholder');
+      if (userRow.portraitUrl) {
+        avatarEl.innerHTML = `<img src="${esc(userRow.portraitUrl)}" alt="Portrait"
+          onerror="this.style.display='none';document.getElementById('yourAvatarPlaceholder').style.display='block'">
+          <div class="your-avatar-placeholder" id="yourAvatarPlaceholder" style="display:none"></div>`;
+      }
+
+      if (!belongsToFilter || !rank) {
+        document.getElementById('yourRank').textContent       = '---------';
+        document.getElementById('yourPercentile').textContent = '---------';
+        document.getElementById('yourMessage').innerHTML      = 'This file does not belong to the selected board.';
+        return;
+      }
+
+      document.getElementById('yourRank').textContent = `RANK #${String(rank).padStart(3, '0')}`;
+
+      const percentile = Math.max(1, Math.round((1 - rank / Math.max(1, totalCount)) * 100));
+      document.getElementById('yourPercentile').textContent = `TOP ${percentile}%`;
+
+      document.getElementById('yourMessage').innerHTML = rank <= TOP_LIMIT
+        ? 'You are visible on the board. <b>Post the card before the market corrects.</b>'
+        : 'Below the cut. <b>The market needs a stronger signal.</b>';
+    }
+
+    // ── Load ─────────────────────────────────────────────────────────────────
+
+    async function loadBoard() {
+      document.getElementById('boardLoading').style.display = 'flex';
+
+      try {
+        const data = await fetchBoard();
+        currentRows       = data.rows       || [];
+        currentUserRank   = data.userRank   ?? null;
+        currentUserRow    = data.userRow    ?? null;
+        currentTotalCount = data.totalCount || 0;
+
+        document.getElementById('boardLoading').style.display = 'none';
+        renderPodium(currentRows);
+        renderRows(currentRows);
+        renderStanding(currentUserRow, currentUserRank, currentTotalCount);
+      } catch (err) {
+        document.getElementById('boardLoading').textContent = 'FAILED TO LOAD — RETRY?';
+        document.getElementById('boardLoading').style.cursor = 'pointer';
+        document.getElementById('boardLoading').onclick = loadBoard;
+      }
+    }
+
+    // ── Detail modal ─────────────────────────────────────────────────────────
+
+    function openDetail(amCode) {
+      const row = currentRows.find(r => r.amCode === amCode) ||
+                  (currentUserRow?.amCode === amCode ? currentUserRow : null);
+      if (!row) return;
+      selectedRow = row;
+
+      document.getElementById('detailName').textContent       = row.name;
+      document.getElementById('detailRole').textContent       = row.role || '—';
+      document.getElementById('detailEmployment').textContent = employmentLabel(row.employmentStatus);
+      document.getElementById('detailEmployment').className   = employmentClass(row.employmentStatus);
+      document.getElementById('detailPiece').textContent      = `${pieceSymbol(row.chessPiece)} ${pieceLabel(row.chessPiece)}`;
+      document.getElementById('detailRate').textContent       = row.rate;
+      document.getElementById('detailRepl').textContent       = row.repl;
+
+      const cardWrap = document.getElementById('detailCardWrap');
+      if (row.imageUrl) {
+        cardWrap.innerHTML = `<img src="${esc(row.imageUrl)}" alt="Rate Card" loading="lazy">`;
+      } else {
+        cardWrap.innerHTML = `<div class="card-img-placeholder">NO CARD IMAGE</div>`;
+      }
+
+      const challengeBtn = document.getElementById('detailChallenge');
+      challengeBtn.style.display = MY_AMCODE ? 'none' : '';
+
+      document.getElementById('detailModal').classList.add('is-open');
+    }
+
+    function closeDetail() {
+      document.getElementById('detailModal').classList.remove('is-open');
+      selectedRow = null;
+    }
+
+    // ── Filters ───────────────────────────────────────────────────────────────
+
+    function bindFilterRail(containerId, setter) {
+      document.getElementById(containerId).addEventListener('click', e => {
+        const btn = e.target.closest('.filter-btn');
+        if (!btn) return;
+        setter(btn.dataset.filter);
+        document.getElementById(containerId).querySelectorAll('.filter-btn').forEach(b => {
+          b.classList.toggle('is-active', b === btn);
+        });
+        loadBoard();
+      });
+    }
+
+    bindFilterRail('employmentFilters', v => { activeEmploymentFilter = v; });
+    bindFilterRail('pieceFilters',      v => { activePieceFilter = v; });
+
+    // ── Events ────────────────────────────────────────────────────────────────
+
+    document.getElementById('detailClose').addEventListener('click', closeDetail);
+    document.getElementById('detailModal').addEventListener('click', e => {
+      if (e.target.id === 'detailModal') closeDetail();
+    });
+    window.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+    document.getElementById('rrBackBtn').addEventListener('click', () => {
+      window.location.href = GALLERY_ORIGIN;
+    });
+
+    document.getElementById('postMyCard').addEventListener('click', async () => {
+      const btn = document.getElementById('postMyCard');
+      const url = window.location.origin + '/card/' + MY_AMCODE.replace(/\s/g, '');
+      try {
+        await navigator.clipboard.writeText(url);
+        btn.textContent = 'RANK COPIED';
+      } catch (_) {
+        btn.textContent = 'COPY FAILED';
+      }
+      setTimeout(() => { btn.textContent = 'POST MY RANK'; }, 1400);
+    });
+
+    document.getElementById('detailShare').addEventListener('click', async () => {
+      const btn = document.getElementById('detailShare');
+      const code = selectedRow?.amCode?.replace(/\s/g, '') || '';
+      const url  = window.location.origin + '/card/' + code;
+      try {
+        await navigator.clipboard.writeText(url);
+        btn.textContent = 'LINK COPIED';
+      } catch (_) {}
+      setTimeout(() => { btn.textContent = 'COPY CARD LINK'; }, 1400);
+    });
+
+    document.getElementById('detailChallenge').addEventListener('click', () => {
+      window.location.href = GALLERY_ORIGIN;
+    });
+
+    document.getElementById('createCardBtn').addEventListener('click', () => {
+      window.location.href = GALLERY_ORIGIN;
+    });
+
+    // ── Clock ─────────────────────────────────────────────────────────────────
+
+    function updateClock() {
+      document.getElementById('rrClock').textContent =
+        new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ── Boot ──────────────────────────────────────────────────────────────────
+    loadBoard();
+  </script>
+</body>
+</html>

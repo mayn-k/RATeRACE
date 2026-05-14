@@ -93,7 +93,13 @@
   let savedCamBeforeZoom = null;
   let zoomedIn           = false; // true once zoom-in animation completes; cleared on zoom-out
   let zoomedIdleTimer    = null;
-  const ZOOMED_IDLE_DELAY = 5000; // ms of no cursor/pan movement before auto zoom-out
+  const ZOOMED_IDLE_DELAY = 4000; // ms of no cursor/pan movement before auto zoom-out
+  let zoomedTarget       = null;  // the item currently zoomed into
+  let zoomFadeT          = 0;     // 0 = no fade, 1 = foreground images fully faded
+  let zoomFadeFrom       = 0;
+  let zoomFadeTo         = 0;
+  let zoomFadeStart      = 0;
+  const ZOOM_FADE_MS     = 400;
 
   let hovered = null;
   let selected = null;
@@ -104,7 +110,8 @@
   let hoverStartTime = 0;
   let expandedItem = null;
   let previewPinned = false;
-  let heroButtonHit = null;
+  let heroButtonHit  = null;
+  let headerBtnHit   = null; // { leaderboard: {x,y,w,h} } in canvas pixel coords
 
   const BACKEND_URL = (window.BACKEND_URL || 'http://localhost:3000').replace(/\/$/, '');
 
@@ -274,6 +281,7 @@
     const targetZoom = targetW / (it.baseW * projFactor * SCENE_VIEW_SCALE);
 
     if (!savedCamBeforeZoom) savedCamBeforeZoom = { x: cam.x, y: cam.y, zoom: cam.zoom };
+    zoomedTarget = it;
     autoReturn = null;
 
     hoverZoom = {
@@ -293,8 +301,11 @@
       cam.zoom = savedCamBeforeZoom.zoom;
       hoverZoom = null;
       savedCamBeforeZoom = null;
+      zoomedTarget = null;
+      zoomFadeFrom = zoomFadeT; zoomFadeTo = 0; zoomFadeStart = performance.now();
       return;
     }
+    zoomFadeFrom = zoomFadeT; zoomFadeTo = 0; zoomFadeStart = performance.now();
     hoverZoom = {
       from:      { x: cam.x, y: cam.y, zoom: cam.zoom },
       to:        { x: savedCamBeforeZoom.x, y: savedCamBeforeZoom.y, zoom: savedCamBeforeZoom.zoom },
@@ -1686,9 +1697,13 @@
     _modalEscHandler = e => { if (e.key === 'Escape') closeCardModal(); };
     window.addEventListener('keydown', _modalEscHandler);
 
-    // Header pill clicks — coming soon
+    // Header pill clicks
     overlay.querySelector('.rr-top-pill')?.addEventListener('click', () => showToast('Coming soon.'));
-    overlay.querySelector('.rr-leader-pill')?.addEventListener('click', () => showToast('Coming soon.'));
+    overlay.querySelector('.rr-leader-pill')?.addEventListener('click', () => {
+      const base = BACKEND_URL + '/leaderboard';
+      const url  = leadModal.amCode ? `${base}?amCode=${leadModal.amCode}` : base;
+      window.open(url, '_blank');
+    });
 
     // Fetch card data and populate meters + image
     fetch(`${BACKEND_URL}/api/card/view/${encodeURIComponent(amCode)}`)
@@ -2357,6 +2372,20 @@
     ctx.fillText('LEADERBOARD', leaderboardX + leaderboardW / 2, y + h / 2 + 1 * s);
 
     ctx.restore();
+
+    headerBtnHit = { leaderboard: { x: leaderboardX, y, w: leaderboardW, h } };
+  }
+
+  function clickHeaderButton(cx, cy) {
+    if (!headerBtnHit) return false;
+    const lb = headerBtnHit.leaderboard;
+    if (cx >= lb.x && cx <= lb.x + lb.w && cy >= lb.y && cy <= lb.y + lb.h) {
+      const base = BACKEND_URL + '/leaderboard';
+      const url  = leadModal.amCode ? `${base}?amCode=${leadModal.amCode}` : base;
+      window.open(url, '_blank');
+      return true;
+    }
+    return false;
   }
 
   function roundRectPath(x, y, w, h, r) {
@@ -2789,6 +2818,13 @@
           ? performance.now() - revealStartTime - delay
           : -1;
         drawOpacity *= clamp(elapsed / REVEAL_FADE, 0, 1);
+      }
+
+      // Fade out images that are in front of (blocking) the zoomed target
+      const _zft = zoomFadeFrom + (zoomFadeTo - zoomFadeFrom) * clamp((performance.now() - zoomFadeStart) / ZOOM_FADE_MS, 0, 1);
+      zoomFadeT = _zft;
+      if (_zft > 0 && zoomedTarget && it !== zoomedTarget && it.z < zoomedTarget.z) {
+        drawOpacity *= 1 - 0.9 * _zft;
       }
 
       ctx.save();
@@ -3435,6 +3471,11 @@
     const { sx, sy } = pointerPos(e);
 
     if (drag.moved < 6) {
+      const { sx: cx, sy: cy } = rawPointerPos(e);
+      if (clickHeaderButton(cx, cy)) {
+        drag = null;
+        return;
+      }
       if (!clickHeroButton(sx, sy)) {
         const hit = hitTest(sx, sy);
 
@@ -3621,7 +3662,9 @@
       if (hit) {
         openImagePreview(hit);
       } else if (drag.moved < 8) {
-        if (!clickHeroButton(pointer.x, pointer.y)) {
+        if (clickHeaderButton(pointer.x, pointer.y)) {
+          // handled
+        } else if (!clickHeroButton(pointer.x, pointer.y)) {
           clearPinnedPreview();
         }
       }
@@ -3761,10 +3804,11 @@
         if (hoverZoom.returning) {
           hoverZoom = null; savedCamBeforeZoom = null;
           zoomedIn = false; clearTimeout(zoomedIdleTimer);
-          expandedItem = null;
+          expandedItem = null; zoomedTarget = null;
         } else {
           hoverZoom = null;
           zoomedIn = true;
+          zoomFadeFrom = zoomFadeT; zoomFadeTo = 1; zoomFadeStart = performance.now();
           startZoomedIdleTimer();
         }
       }
