@@ -1264,9 +1264,10 @@
         100%  { transform: translateY(-10vh); opacity: 0; }
       }
       .rr-modal-close {
-        position: fixed; top: 22px; right: 28px; z-index: 10001;
+        position: fixed; top: 22px; left: 28px; z-index: 10001;
         border: 0; background: transparent; color: var(--rr-red);
-        font-size: 46px; line-height: 1; cursor: pointer; padding: 0;
+        font-size: 36px; line-height: 1; cursor: pointer; padding: 0;
+        font-family: var(--rr-pixel);
       }
       .rr-final-header {
         position: sticky; top: 0;
@@ -1546,7 +1547,7 @@
 
   function buildFinalModalHTML(amCode) {
     return `
-      <button class="rr-modal-close" id="rrModalCloseBtn" type="button" aria-label="Close">×</button>
+      <button class="rr-modal-close" id="rrModalCloseBtn" type="button" aria-label="Go back">←</button>
 
       <header class="rr-final-header">
         <div class="rr-top-pill">MANIFESTO</div>
@@ -1700,9 +1701,15 @@
     // Header pill clicks
     overlay.querySelector('.rr-top-pill')?.addEventListener('click', () => showToast('Coming soon.'));
     overlay.querySelector('.rr-leader-pill')?.addEventListener('click', () => {
-      const base = BACKEND_URL + '/leaderboard';
-      const url  = leadModal.amCode ? `${base}?amCode=${leadModal.amCode}` : base;
-      window.open(url, '_blank');
+      if (leadModal.token)    sessionStorage.setItem('rr_ret_token',    leadModal.token);
+      if (leadModal.amCode)   sessionStorage.setItem('rr_ret_amCode',   leadModal.amCode);
+      if (leadModal.cardId)   sessionStorage.setItem('rr_ret_cardId',   leadModal.cardId);
+      if (leadModal.imageUrl) sessionStorage.setItem('rr_ret_imageUrl', leadModal.imageUrl);
+      const returnUrl = window.location.origin + window.location.pathname + '?openModal=card';
+      const params = new URLSearchParams({ from: returnUrl });
+      if (leadModal.token)  params.set('token',  leadModal.token);
+      if (leadModal.amCode) params.set('amCode', leadModal.amCode);
+      window.location.href = BACKEND_URL + '/leaderboard?' + params.toString();
     });
 
     // Fetch card data and populate meters + image
@@ -2380,9 +2387,10 @@
     if (!headerBtnHit) return false;
     const lb = headerBtnHit.leaderboard;
     if (cx >= lb.x && cx <= lb.x + lb.w && cy >= lb.y && cy <= lb.y + lb.h) {
-      const base = BACKEND_URL + '/leaderboard';
-      const url  = leadModal.amCode ? `${base}?amCode=${leadModal.amCode}` : base;
-      window.open(url, '_blank');
+      const params = new URLSearchParams({ from: window.location.href });
+      if (leadModal.token)  params.set('token',  leadModal.token);
+      if (leadModal.amCode) params.set('amCode', leadModal.amCode);
+      window.location.href = BACKEND_URL + '/leaderboard?' + params.toString();
       return true;
     }
     return false;
@@ -3880,6 +3888,33 @@
     }
   }
 
-  // Hydrate saved session first, then handle any OAuth callback
-  hydrateAuthFromStorage().then(checkOAuthReturn);
+  // If returning from leaderboard, reopen the card modal
+  function checkReturnFromLeaderboard() {
+    const urlP = new URLSearchParams(window.location.search);
+    if (urlP.get('openModal') !== 'card') return;
+    history.replaceState(null, '', window.location.pathname);
+
+    const tok = sessionStorage.getItem('rr_ret_token');
+    const am  = sessionStorage.getItem('rr_ret_amCode');
+    const cid = sessionStorage.getItem('rr_ret_cardId');
+    const img = sessionStorage.getItem('rr_ret_imageUrl');
+    ['rr_ret_token','rr_ret_amCode','rr_ret_cardId','rr_ret_imageUrl']
+      .forEach(k => sessionStorage.removeItem(k));
+
+    if (!tok || !am) return;
+
+    leadModal.token    = tok;
+    leadModal.amCode   = am;
+    leadModal.cardId   = cid || null;
+    leadModal.imageUrl = img || null;
+
+    openLeadModal('card');
+    openCardModal(am);
+  }
+
+  // Hydrate saved session first, then handle any OAuth callback or leaderboard return
+  hydrateAuthFromStorage().then(() => {
+    checkOAuthReturn();
+    checkReturnFromLeaderboard();
+  });
 })();

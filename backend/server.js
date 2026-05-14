@@ -1,6 +1,7 @@
 'use strict';
 const express   = require('express');
 const path      = require('path');
+const fs        = require('fs');
 const cors      = require('cors');
 const config    = require('./config');
 const connectDB = require('./db/connect');
@@ -34,7 +35,11 @@ app.use('/_internal/template', express.static(path.join(__dirname, 'templates'))
 
 // Public pages
 app.get('/leaderboard', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'leaderboard.html'));
+  const html = fs.readFileSync(path.join(__dirname, 'public', 'leaderboard.html'), 'utf8');
+  const fe   = config.FRONTEND_ORIGIN && config.FRONTEND_ORIGIN !== '*' ? config.FRONTEND_ORIGIN : '';
+  if (!fe) { res.type('html').send(html); return; }
+  const inject = `<script>window.__RR_FRONTEND_ORIGIN=${JSON.stringify(fe)};</script>`;
+  res.type('html').send(html.replace('</head>', inject + '</head>'));
 });
 app.get('/card/:slug', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'card-view.html'));

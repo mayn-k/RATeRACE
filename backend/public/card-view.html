@@ -507,9 +507,24 @@
         _toastTimer = setTimeout(() => toastEl.classList.remove('is-visible'), duration || 2600);
       }
 
+      // URL params
+      const params    = new URLSearchParams(window.location.search);
+      const isEmbed    = params.has('embed');
+      const tokenParam = params.get('token');
+
       // Pill clicks
       document.getElementById('rrManifestoPill').addEventListener('click', () => showToast('Coming soon.'));
-      document.getElementById('rrLeaderPill').addEventListener('click', () => showToast('Coming soon.'));
+      document.getElementById('rrLeaderPill').addEventListener('click', () => {
+        const lbParams = new URLSearchParams({ from: FRONTEND_ORIGIN });
+        if (tokenParam)  lbParams.set('token',       tokenParam);
+        if (slug)        lbParams.set('highlighted',  slug);
+        window.location.href = window.location.origin + '/leaderboard?' + lbParams.toString();
+      });
+
+      // Embed mode: hide CTA (modal overlay provides its own ← close)
+      if (isEmbed) {
+        document.getElementById('rrCtaBtn').style.display = 'none';
+      }
 
       // CTA link + header logo (served from frontend origin)
       document.getElementById('rrCtaBtn').href = FRONTEND_ORIGIN;

@@ -77,7 +77,8 @@ async function me(req, res, next) {
     if (!user) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'User not found' } });
     }
-    res.json({ user });
+    const card = await Card.findOne({ userId: user._id }).select('amCode').lean();
+    res.json({ user, amCode: card?.amCode || null });
   } catch (err) {
     next(err);
   }
