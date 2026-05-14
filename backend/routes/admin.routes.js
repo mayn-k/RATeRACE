@@ -169,7 +169,7 @@ router.patch('/api/users/:id', async (req, res, next) => {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'Invalid id' });
     }
-    const allowed = ['name', 'email', 'bio', 'portfolioUrl', 'portraitUrl'];
+    const allowed = ['name', 'email', 'bio', 'portfolioUrl', 'portraitUrl', 'photoLocked'];
     const update  = {};
     for (const k of allowed) {
       if (req.body[k] !== undefined) update[k] = req.body[k] === '' ? null : req.body[k];

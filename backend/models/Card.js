@@ -50,6 +50,7 @@ const cardSchema = new mongoose.Schema(
     portraitUrl: { type: String, default: null },
 
     rawProfile: { type: mongoose.Schema.Types.Mixed, default: null },
+    resumeText: { type: String, default: null },
     imageUrl:   { type: String, default: null },
   },
   { timestamps: true }

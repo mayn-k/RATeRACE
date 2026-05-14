@@ -362,7 +362,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     width: 100%;
-    max-width: 520px;
+    max-width: 580px;
     max-height: 90vh;
     overflow-y: auto;
   }
@@ -538,12 +538,13 @@
                 <th>Email</th>
                 <th>Bio</th>
                 <th>Portfolio</th>
+                <th>Photo Lock</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody id="users-body">
-              <tr><td colspan="7" class="empty">Loading…</td></tr>
+              <tr><td colspan="8" class="empty">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -616,16 +617,23 @@
                 <th>User</th>
                 <th>Rate</th>
                 <th>Replace</th>
+                <th>%ile</th>
                 <th>Piece</th>
                 <th>Status</th>
                 <th>amCode</th>
+                <th>AI Bio</th>
+                <th>Verdict</th>
+                <th>Risk</th>
+                <th>Edge</th>
+                <th>Action</th>
                 <th>LinkedIn</th>
+                <th>Resume</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody id="cards-body">
-              <tr><td colspan="10" class="empty">Loading…</td></tr>
+              <tr><td colspan="17" class="empty">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -665,6 +673,15 @@
       <div class="field">
         <label>Portrait URL</label>
         <input type="url" id="edit-user-portraitUrl" placeholder="https://…">
+      </div>
+      <div class="field">
+        <label>LinkedIn Portrait URL <small style="color:var(--muted)">(read-only — original from OAuth)</small></label>
+        <input type="url" id="edit-user-linkedinPortraitUrl" placeholder="—" readonly style="opacity:.55;cursor:default">
+      </div>
+      <div class="field" style="display:flex;align-items:center;gap:10px;margin-top:4px">
+        <label style="margin:0;text-transform:none;font-size:13px;font-weight:500">Photo Locked</label>
+        <input type="checkbox" id="edit-user-photoLocked" style="width:auto;accent-color:var(--accent)">
+        <span style="font-size:11px;color:var(--muted)">Uncheck to allow user to re-upload photo</span>
       </div>
     </div>
     <div class="modal-footer">
@@ -732,6 +749,48 @@
       <div class="field">
         <label>Portrait URL</label>
         <input type="url" id="edit-card-portraitUrl" placeholder="https://…">
+      </div>
+
+      <div style="border-top:1px solid var(--border);margin:16px 0 14px;padding-top:14px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">LLM Analysis — read only</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Replaceability %ile</label>
+            <input type="text" id="edit-card-replaceabilityPercentile" readonly style="opacity:.55;cursor:default">
+          </div>
+          <div class="field">
+            <label>AI Bio (bioRewrite)</label>
+            <input type="text" id="edit-card-bioRewrite" readonly style="opacity:.55;cursor:default">
+          </div>
+        </div>
+        <div class="field">
+          <label>Market Verdict</label>
+          <textarea id="edit-card-marketVerdict" rows="2" readonly style="opacity:.55;cursor:default;resize:none"></textarea>
+        </div>
+        <div class="field">
+          <label>Primary Risk</label>
+          <textarea id="edit-card-primaryRisk" rows="2" readonly style="opacity:.55;cursor:default;resize:none"></textarea>
+        </div>
+        <div class="field">
+          <label>Human Edge</label>
+          <textarea id="edit-card-humanEdge" rows="2" readonly style="opacity:.55;cursor:default;resize:none"></textarea>
+        </div>
+        <div class="field">
+          <label>Recommended Action</label>
+          <textarea id="edit-card-recommendedAction" rows="2" readonly style="opacity:.55;cursor:default;resize:none"></textarea>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border);margin:4px 0 14px;padding-top:14px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Raw Data — read only</div>
+        <div class="field">
+          <label>Raw Profile (JSON)</label>
+          <textarea id="edit-card-rawProfile" rows="8" readonly style="opacity:.55;cursor:default;font-family:'SF Mono','Fira Code',monospace;font-size:11px;resize:vertical"></textarea>
+        </div>
+        <div class="field">
+          <label>Resume Text (extracted PDF text)</label>
+          <textarea id="edit-card-resumeText" rows="8" readonly style="opacity:.55;cursor:default;font-size:11px;resize:vertical"></textarea>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -906,14 +965,14 @@ async function loadUsers() {
     renderUsers(data);
   } catch (e) {
     document.getElementById('users-body').innerHTML =
-      `<tr><td colspan="7" class="empty">Error: ${esc(e.message)}</td></tr>`;
+      `<tr><td colspan="8" class="empty">Error: ${esc(e.message)}</td></tr>`;
   }
 }
 
 function renderUsers({ docs, total, page, pages }) {
   const tbody = document.getElementById('users-body');
   if (!docs.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty">No users found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">No users found.</td></tr>';
     renderPagination('users-pagination', page, pages, p => { usersState.page = p; loadUsers(); });
     return;
   }
@@ -934,6 +993,11 @@ function renderUsers({ docs, total, page, pages }) {
         ${u.portfolioUrl
           ? `<a href="${esc(u.portfolioUrl)}" target="_blank" style="color:var(--accent);text-decoration:none;font-size:11px">Link ↗</a>`
           : '<span style="opacity:.3">—</span>'}
+      </td>
+      <td>
+        ${u.photoLocked
+          ? `<span class="badge" style="background:#2d1a00;color:#f59e0b">Locked</span>`
+          : `<span class="badge" style="background:var(--s3);color:var(--muted)">Open</span>`}
       </td>
       <td><span class="mono">${fmtDate(u.createdAt)}</span></td>
       <td>
@@ -961,12 +1025,14 @@ document.getElementById('users-search').addEventListener('input', e => {
 async function openEditUser(id) {
   try {
     const u = await api('GET', `/api/users/${id}`);
-    document.getElementById('edit-user-id').value          = u._id;
-    document.getElementById('edit-user-name').value        = u.name || '';
-    document.getElementById('edit-user-email').value       = u.email || '';
-    document.getElementById('edit-user-bio').value         = u.bio || '';
-    document.getElementById('edit-user-portfolioUrl').value = u.portfolioUrl || '';
-    document.getElementById('edit-user-portraitUrl').value  = u.portraitUrl || '';
+    document.getElementById('edit-user-id').value                   = u._id;
+    document.getElementById('edit-user-name').value                 = u.name || '';
+    document.getElementById('edit-user-email').value                = u.email || '';
+    document.getElementById('edit-user-bio').value                  = u.bio || '';
+    document.getElementById('edit-user-portfolioUrl').value         = u.portfolioUrl || '';
+    document.getElementById('edit-user-portraitUrl').value          = u.portraitUrl || '';
+    document.getElementById('edit-user-linkedinPortraitUrl').value  = u.linkedinPortraitUrl || '';
+    document.getElementById('edit-user-photoLocked').checked        = !!u.photoLocked;
     document.getElementById('user-modal-overlay').classList.add('open');
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -979,6 +1045,7 @@ document.getElementById('save-user-btn').addEventListener('click', async () => {
     bio:          document.getElementById('edit-user-bio').value,
     portfolioUrl: document.getElementById('edit-user-portfolioUrl').value,
     portraitUrl:  document.getElementById('edit-user-portraitUrl').value,
+    photoLocked:  document.getElementById('edit-user-photoLocked').checked,
   };
   try {
     await api('PATCH', `/api/users/${id}`, body);
@@ -1018,14 +1085,20 @@ async function loadCards() {
     renderCards(data);
   } catch (e) {
     document.getElementById('cards-body').innerHTML =
-      `<tr><td colspan="9" class="empty">Error: ${esc(e.message)}</td></tr>`;
+      `<tr><td colspan="17" class="empty">Error: ${esc(e.message)}</td></tr>`;
   }
+}
+
+function trunc(s, n) {
+  if (!s) return '<span style="opacity:.3">—</span>';
+  const t = String(s);
+  return `<span class="truncate" title="${esc(t)}" style="max-width:${n || 120}px">${esc(t)}</span>`;
 }
 
 function renderCards({ docs, total, page, pages }) {
   const tbody = document.getElementById('cards-body');
   if (!docs.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="empty">No cards found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="17" class="empty">No cards found.</td></tr>';
     renderPagination('cards-pagination', page, pages, p => { cardsState.page = p; loadCards(); });
     return;
   }
@@ -1049,6 +1122,7 @@ function renderCards({ docs, total, page, pages }) {
         </td>
         <td><span class="rate-num">${c.rate ?? '—'}</span></td>
         <td><span class="rate-num" style="color:var(--muted)">${c.replaceability ?? '—'}</span></td>
+        <td><span class="mono" style="font-size:12px">${c.replaceabilityPercentile != null ? c.replaceabilityPercentile + '%' : '<span style="opacity:.3">—</span>'}</span></td>
         <td>${piece ? `<span class="badge badge-${piece}">${piece}</span>` : '<span style="opacity:.3">—</span>'}</td>
         <td>${status ? `<span class="badge badge-${status}">${status}</span>` : '<span style="opacity:.3">—</span>'}</td>
         <td>
@@ -1056,9 +1130,19 @@ function renderCards({ docs, total, page, pages }) {
             ? `<a href="${cardViewUrl}" target="_blank" class="mono" style="color:var(--accent);text-decoration:none">${esc(c.amCode)} ↗</a>`
             : '<span style="opacity:.3">—</span>'}
         </td>
+        <td>${trunc(c.bioRewrite, 120)}</td>
+        <td>${trunc(c.marketVerdict, 140)}</td>
+        <td>${trunc(c.primaryRisk, 140)}</td>
+        <td>${trunc(c.humanEdge, 140)}</td>
+        <td>${trunc(c.recommendedAction, 140)}</td>
         <td>
           ${c.linkedinUrl
             ? `<a href="${esc(c.linkedinUrl)}" target="_blank" style="color:var(--accent);text-decoration:none;font-size:11px">LinkedIn ↗</a>`
+            : '<span style="opacity:.3">—</span>'}
+        </td>
+        <td>
+          ${c.resumeText
+            ? `<span class="badge" style="background:#0d2d1a;color:var(--success)">✓</span>`
             : '<span style="opacity:.3">—</span>'}
         </td>
         <td><span class="mono">${fmtDate(c.createdAt)}</span></td>
@@ -1089,15 +1173,25 @@ document.getElementById('cards-search').addEventListener('input', e => {
 async function openEditCard(id) {
   try {
     const c = await api('GET', `/api/cards/${id}`);
-    document.getElementById('edit-card-id').value               = c._id;
-    document.getElementById('edit-card-rate').value             = c.rate ?? '';
-    document.getElementById('edit-card-replaceability').value   = c.replaceability ?? '';
-    document.getElementById('edit-card-chessPiece').value       = c.chessPiece || '';
-    document.getElementById('edit-card-employmentStatus').value = c.employmentStatus || '';
-    document.getElementById('edit-card-amCode').value           = c.amCode || '';
-    document.getElementById('edit-card-linkedinUrl').value      = c.linkedinUrl || '';
-    document.getElementById('edit-card-ctaUrl').value           = c.ctaUrl || '';
-    document.getElementById('edit-card-portraitUrl').value      = c.portraitUrl || '';
+    document.getElementById('edit-card-id').value                        = c._id;
+    document.getElementById('edit-card-rate').value                      = c.rate ?? '';
+    document.getElementById('edit-card-replaceability').value            = c.replaceability ?? '';
+    document.getElementById('edit-card-chessPiece').value                = c.chessPiece || '';
+    document.getElementById('edit-card-employmentStatus').value          = c.employmentStatus || '';
+    document.getElementById('edit-card-amCode').value                    = c.amCode || '';
+    document.getElementById('edit-card-linkedinUrl').value               = c.linkedinUrl || '';
+    document.getElementById('edit-card-ctaUrl').value                    = c.ctaUrl || '';
+    document.getElementById('edit-card-portraitUrl').value               = c.portraitUrl || '';
+    // Read-only LLM analysis fields
+    document.getElementById('edit-card-replaceabilityPercentile').value  = c.replaceabilityPercentile != null ? c.replaceabilityPercentile + '%' : '';
+    document.getElementById('edit-card-bioRewrite').value                = c.bioRewrite || '';
+    document.getElementById('edit-card-marketVerdict').value             = c.marketVerdict || '';
+    document.getElementById('edit-card-primaryRisk').value               = c.primaryRisk || '';
+    document.getElementById('edit-card-humanEdge').value                 = c.humanEdge || '';
+    document.getElementById('edit-card-recommendedAction').value         = c.recommendedAction || '';
+    // Read-only raw data
+    document.getElementById('edit-card-rawProfile').value                = c.rawProfile ? JSON.stringify(c.rawProfile, null, 2) : '';
+    document.getElementById('edit-card-resumeText').value                = c.resumeText || '';
     document.getElementById('card-modal-overlay').classList.add('open');
   } catch (e) { toast(e.message, 'error'); }
 }
