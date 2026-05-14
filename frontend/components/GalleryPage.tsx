@@ -6,6 +6,7 @@ import {
   CAROUSEL_IMAGES,
   GALLERY_CONFIG,
   RATE_CARD_CTA_URL,
+  SCATTER_IMAGES,
 } from '@/lib/config';
 import { TICKER_JOBS } from '@/lib/tickerJobs';
 import JobTicker from './JobTicker';
@@ -44,10 +45,18 @@ export default function GalleryPage() {
     window.GALLERY_IMAGE_FOLDER = GALLERY_CONFIG.folder;
     window.GALLERY_IMAGE_SCAN_LIMIT = GALLERY_CONFIG.scanLimit;
     window.GALLERY_IMAGE_EXTENSIONS = GALLERY_CONFIG.extensions;
-    window.GALLERY_IMAGES = GALLERY_CONFIG.images;
+    // Explicit CDN list bypasses the HTTP probe loop in scatter-gallery.js
+    window.GALLERY_IMAGES = SCATTER_IMAGES;
     window.RATE_CARD_CAROUSEL_IMAGES = CAROUSEL_IMAGES;
     window.RATE_CARD_CTA_URL = RATE_CARD_CTA_URL;
     window.RATE_RACE_TICKER_JOBS = TICKER_JOBS;
+
+    // Kick off all 50 image fetches in parallel immediately.
+    // By the time scatter-gallery.js requests them, the browser has them cached.
+    SCATTER_IMAGES.forEach(({ src }) => {
+      const img = new Image();
+      img.src = src;
+    });
 
     let cancelled = false;
 

@@ -38,18 +38,18 @@
   const priorityNumbers = new Set([7, 8, 12, 14, 15, 17, 18, 21]);
 
   const carouselSources = window.RATE_CARD_CAROUSEL_IMAGES || [
-    '/rate-card-carousel/rate-card-1.png',
-    '/rate-card-carousel/rate-card-2.png',
-    '/rate-card-carousel/rate-card-3.png'
+    'https://ik.imagekit.io/2pg1fp1lr/rate-card-carousel/rate-card-1.png',
+    'https://ik.imagekit.io/2pg1fp1lr/rate-card-carousel/rate-card-2.png',
+    'https://ik.imagekit.io/2pg1fp1lr/rate-card-carousel/rate-card-3.png'
   ];
 
   const carouselImages = [];
   const CAROUSEL_INTERVAL = 2400;
 
-  const HEADER_LOGO_SRC = '/adultmoney-header-logo.png';
-  const LINKEDIN_LOGO_SRC = '/linkedin-logo.png';
-  const DOWNLOAD_ICON_SRC = '/modal-download-icon.png';
-  const SHARE_ICON_SRC = '/modal-share-icon.png';
+  const HEADER_LOGO_SRC = 'https://ik.imagekit.io/2pg1fp1lr/adultmoney-header-logo.png';
+  const LINKEDIN_LOGO_SRC = 'https://ik.imagekit.io/2pg1fp1lr/linkedin-logo.png';
+  const DOWNLOAD_ICON_SRC = 'https://ik.imagekit.io/2pg1fp1lr/modal-download-icon.png';
+  const SHARE_ICON_SRC = 'https://ik.imagekit.io/2pg1fp1lr/modal-share-icon.png';
 
   const headerLogo = new Image();
   let headerLogoLoaded = false;
@@ -1768,7 +1768,7 @@
 
       <header class="rr-final-header">
         <div class="rr-top-pill">MANIFESTO</div>
-        <img class="rr-header-logo-img" src="/adultmoney-header-logo.png" alt="ADULTMONEY" />
+        <img class="rr-header-logo-img" src="https://ik.imagekit.io/2pg1fp1lr/adultmoney-header-logo.png" alt="ADULTMONEY" />
         <div class="rr-leader-pill">LEADERBOARD</div>
       </header>
 
@@ -1889,7 +1889,7 @@
         <button class="rr-back-close" id="rrBackCloseBtn" type="button" aria-label="Close">×</button>
         <div class="rr-back-wrap">
           <div class="rr-back-large">
-            <img src='/Illustrationmemecard.png' alt="Assigned meme back" draggable="false">
+            <img src='https://ik.imagekit.io/2pg1fp1lr/Illustrationmemecard.png' alt="Assigned meme back" draggable="false">
           </div>
           <span class="rr-back-coming">Coming soon</span>
         </div>
@@ -3699,8 +3699,28 @@
 
   async function preloadManifest() {
     let loadedCount = 0;
+    let revealStarted = false;
+    let relayoutTimer = null;
 
     const manual = Array.isArray(window.GALLERY_IMAGES) ? window.GALLERY_IMAGES : [];
+
+    // Called after every individual image load. Debounced at 80 ms so that a burst
+    // of near-simultaneous loads triggers one relayout instead of dozens.
+    const scheduleRelayout = () => {
+      clearTimeout(relayoutTimer);
+      relayoutTimer = setTimeout(() => {
+        relayoutItems();
+        if (!revealStarted && items.length >= 3) {
+          // First time we have enough images: start the reveal animation.
+          revealStarted = true;
+          startReveal();
+        } else if (revealStarted) {
+          // Reveal already running: only assign delays to newly placed items so
+          // already-visible images don't re-animate.
+          startRevealForNewItems();
+        }
+      }, 80);
+    };
 
     const manualLoads = manual.map(entry => new Promise(resolve => {
       if (!entry || !entry.src) {
@@ -3713,6 +3733,7 @@
       img.onload = () => {
         placeItem(img, entry.title || entry.src.split('/').pop() || 'image', entry.link || '');
         loadedCount++;
+        scheduleRelayout();
         resolve(true);
       };
 
@@ -3720,23 +3741,13 @@
       img.src = entry.src;
     }));
 
-    await Promise.all(manualLoads);
+    // Fire all manual loads concurrently WITHOUT awaiting here.
+    // scheduleRelayout kicks in as images arrive so the gallery appears
+    // after the first ~3 images load rather than after all 50.
+    const manualSettled = Promise.all(manualLoads);
 
-    const groups = imageCandidateGroups();
-
-    let earlyLayoutDone = false;
-    let earlyLayoutTimer = null;
-
-    const scheduleEarlyLayout = () => {
-      if (earlyLayoutDone) return;
-      clearTimeout(earlyLayoutTimer);
-      earlyLayoutTimer = setTimeout(() => {
-        if (!earlyLayoutDone && items.length >= 3) {
-          earlyLayoutDone = true;
-          relayoutItems();
-        }
-      }, 120);
-    };
+    // Skip folder probe when an explicit image list was provided — avoids duplicates.
+    const groups = manual.length > 0 ? [] : imageCandidateGroups();
 
     const autoLoads = groups.map(async group => {
       const result = await loadImageFromCandidates(group.candidates);
@@ -3744,20 +3755,28 @@
 
       placeItem(result.img, group.title, '');
       loadedCount++;
-      scheduleEarlyLayout();
+      scheduleRelayout();
       return true;
     });
 
-    await Promise.all(autoLoads);
+    await Promise.all([...autoLoads, manualSettled]);
+
+    // Final pass: clear any pending debounce and do one authoritative relayout
+    // now that every image is in place.
+    clearTimeout(relayoutTimer);
+    relayoutItems();
+
+    if (!revealStarted) {
+      startReveal();
+    } else {
+      startRevealForNewItems();
+    }
 
     if (!loadedCount) {
       console.warn('[RR SCATTER] No gallery images loaded. Expected names like ./scatter-images/image1.png.');
     } else {
       console.log(`[RR SCATTER] Loaded ${loadedCount} gallery images.`);
     }
-
-    relayoutItems();
-    startReveal();
   }
 
   function startReveal() {
@@ -3765,6 +3784,17 @@
     revealStartTime = performance.now();
     for (const it of items) {
       it.revealDelay = Math.random() * REVEAL_SPREAD;
+    }
+  }
+
+  // Assigns fade-in delays only to items that haven't been revealed yet.
+  // Used when new images arrive after startReveal() has already been called.
+  function startRevealForNewItems() {
+    const elapsed = revealStartTime > 0 ? performance.now() - revealStartTime : 0;
+    for (const it of items) {
+      if (it.revealDelay === Infinity) {
+        it.revealDelay = elapsed + Math.random() * 400;
+      }
     }
   }
 

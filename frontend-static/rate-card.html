@@ -389,12 +389,12 @@
   <script>
     /*
       Put your chess images here:
-      ./assets/chess/king.png
-      ./assets/chess/queen.png
-      ./assets/chess/rook.png
-      ./assets/chess/bishop.png
-      ./assets/chess/knight.png
-      ./assets/chess/pawn.png
+      https://ik.imagekit.io/2pg1fp1lr/assets/chess/king.png
+      https://ik.imagekit.io/2pg1fp1lr/assets/chess/queen.png
+      https://ik.imagekit.io/2pg1fp1lr/assets/chess/rook.png
+      https://ik.imagekit.io/2pg1fp1lr/assets/chess/bishop.png
+      https://ik.imagekit.io/2pg1fp1lr/assets/chess/knight.png
+      https://ik.imagekit.io/2pg1fp1lr/assets/chess/pawn.png
 
       Valid chessPiece values:
       "king", "queen", "rook", "bishop", "knight", "pawn"
@@ -404,12 +404,12 @@
     */
 
     const CHESS_PIECE_MAP = {
-      king: "../assets/chess/king.png",
-      queen: "../assets/chess/queen.png",
-      rook: "../assets/chess/rook.png",
-      bishop: "../assets/chess/bishop.png",
-      knight: "../assets/chess/knight.png",
-      pawn: "../assets/chess/pawn.png"
+      king: "https://ik.imagekit.io/2pg1fp1lr/assets/chess/king.png",
+      queen: "https://ik.imagekit.io/2pg1fp1lr/assets/chess/queen.png",
+      rook: "https://ik.imagekit.io/2pg1fp1lr/assets/chess/rook.png",
+      bishop: "https://ik.imagekit.io/2pg1fp1lr/assets/chess/bishop.png",
+      knight: "https://ik.imagekit.io/2pg1fp1lr/assets/chess/knight.png",
+      pawn: "https://ik.imagekit.io/2pg1fp1lr/assets/chess/pawn.png"
     };
 
     const fallbackCardData = {
@@ -419,7 +419,7 @@
       rate: 96,
       replaceability: 56,
 
-      portrait: "../assets/portraits/portrait.png",
+      portrait: "https://ik.imagekit.io/2pg1fp1lr/assets/portraits/portrait.png",
 
       code: "ABCD1234",
 
@@ -511,7 +511,7 @@
 
     function renderHourglass(cfg) {
       const frame = Math.min(10, Math.max(1, cfg?.frame ?? 1));
-      hourglassImg.src = `../assets/hourglass/hourglass-${frame}.png`;
+      hourglassImg.src = `https://ik.imagekit.io/2pg1fp1lr/assets/hourglass/hourglass-${frame}.png`;
     }
 
     function renderCard(data) {

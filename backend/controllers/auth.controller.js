@@ -124,7 +124,7 @@ function linkedinAuth(req, res) {
 }
 
 async function linkedinCallback(req, res) {
-  const frontendOrigin = config.FRONTEND_ORIGIN === '*' ? 'http://localhost:8000' : config.FRONTEND_ORIGIN;
+  const frontendOrigin = config.FRONTEND_ORIGIN === '*' ? 'http://localhost:3000' : config.FRONTEND_ORIGIN;
 
   try {
     const { code, state, error } = req.query;
@@ -211,7 +211,7 @@ async function linkedinCallback(req, res) {
     res.redirect(`${frontendOrigin}?oauth=${sessionCode}`);
   } catch (err) {
     logger.error(err, 'LinkedIn callback error');
-    const frontendFallback = config.FRONTEND_ORIGIN === '*' ? 'http://localhost:8000' : config.FRONTEND_ORIGIN;
+    const frontendFallback = config.FRONTEND_ORIGIN === '*' ? 'http://localhost:3000' : config.FRONTEND_ORIGIN;
     res.redirect(`${frontendFallback}?oauth_error=server`);
   }
 }
