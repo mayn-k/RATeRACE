@@ -33,12 +33,35 @@ async function exchangeCode(code) {
   return res.json();
 }
 
-async function getUserInfo(accessToken) {
-  const res = await fetch(USERINFO_URL, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!res.ok) throw new Error('LinkedIn userinfo fetch failed');
-  return res.json();
+async function getUserInfo(accessToken, idToken) {
+  // Prefer decoding the id_token payload locally — avoids an extra round-trip to api.linkedin.com
+  if (idToken) {
+    try {
+      const payload = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64url').toString());
+      if (payload.email) {
+        return {
+          sub:     payload.sub    || null,
+          email:   payload.email,
+          name:    payload.name   || `${payload.given_name || ''} ${payload.family_name || ''}`.trim() || null,
+          picture: payload.picture || null,
+        };
+      }
+    } catch (_) { /* fall through to network */ }
+  }
+
+  // Fallback: userinfo endpoint with a 10-second timeout
+  const ctrl  = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 10_000);
+  try {
+    const res = await fetch(USERINFO_URL, {
+      headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' },
+      signal:  ctrl.signal,
+    });
+    if (!res.ok) throw new Error(`LinkedIn userinfo fetch failed (${res.status})`);
+    return res.json();
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 module.exports = { buildAuthUrl, exchangeCode, getUserInfo };

@@ -150,7 +150,7 @@ async function linkedinCallback(req, res) {
     }
 
     const tokenData  = await exchangeCode(code);
-    const liProfile  = await getUserInfo(tokenData.access_token);
+    const liProfile  = await getUserInfo(tokenData.access_token, tokenData.id_token);
 
     const email = liProfile.email?.toLowerCase();
     if (!email) {
@@ -181,9 +181,11 @@ async function linkedinCallback(req, res) {
     if (rawPhoto && !user.photoLocked) {
       try {
         const upscaledUrl = await uploadLinkedInPortrait(rawPhoto, user._id.toString());
+        const portraitUpdate = { portraitUrl: upscaledUrl };
+        if (!user.linkedinPortraitUrl) portraitUpdate.linkedinPortraitUrl = upscaledUrl;
         user = await User.findByIdAndUpdate(
           user._id,
-          { $set: { portraitUrl: upscaledUrl } },
+          { $set: portraitUpdate },
           { new: true }
         );
       } catch (err) {

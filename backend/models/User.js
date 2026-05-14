@@ -8,8 +8,9 @@ const userSchema = new mongoose.Schema(
     name:         { type: String, required: true, trim: true },
     bio:          { type: String, maxlength: 80, default: null },
     portfolioUrl: { type: String, default: null },
-    portraitUrl:  { type: String, default: null },
-    photoLocked:  { type: Boolean, default: false },
+    portraitUrl:         { type: String, default: null },
+    linkedinPortraitUrl: { type: String, default: null },
+    photoLocked:         { type: Boolean, default: false },
   },
   { timestamps: true }
 );

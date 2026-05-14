@@ -44,6 +44,7 @@ const cardSchema = new mongoose.Schema(
     recommendedAction:         { type: String, default: null },
     replaceabilityPercentile:  { type: Number, min: 0, max: 100, default: null },
 
+    bioRewrite:  { type: String, default: null },
     ctaUrl:      { type: String, default: null },
     linkedinUrl: { type: String, default: null },
     portraitUrl: { type: String, default: null },

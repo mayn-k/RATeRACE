@@ -22,8 +22,8 @@ async function generate(req, res, next) {
       return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Score not generated yet — run POST /api/score/generate first' } });
     }
 
-    // New amCode on every generate (spec: regenerate on every card generation)
-    const amCode = generateAmCode();
+    // Keep existing amCode so shared URLs stay stable; only mint one on first generate
+    const amCode = card.amCode || generateAmCode();
     card.amCode  = amCode;
 
     // Resolve linkedinUrl: prefer rawProfile, fall back to portfolioUrl if it's LinkedIn
@@ -88,6 +88,7 @@ async function getCardByCode(req, res, next) {
         delta:            card.delta,
         educationOrg:     card.educationOrg,
         workOrg:          card.workOrg,
+        bioRewrite:               card.bioRewrite               ?? null,
         ctaUrl:                   card.ctaUrl,
         linkedinUrl:              card.linkedinUrl,
         portraitUrl:              card.portraitUrl,
@@ -99,8 +100,9 @@ async function getCardByCode(req, res, next) {
         replaceabilityPercentile: card.replaceabilityPercentile ?? null,
       },
       user: {
-        name: user?.name || null,
-        bio:  user?.bio  || null,
+        name:         user?.name         || null,
+        bio:          user?.bio          || null,
+        portfolioUrl: user?.portfolioUrl || null,
       },
     });
   } catch (err) {

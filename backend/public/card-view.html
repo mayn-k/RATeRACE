@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RATe RACE — Card</title>
   <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>@font-face { font-family: "RateDisplay"; src: url("/assets/fonts/rate-display.ttf") format("truetype"); font-display: swap; }</style>
   <style>
     :root {
       --rr-red:   #e60000;
@@ -21,8 +22,8 @@
       font-family: var(--rr-sans);
       color: #fff;
       background:
-        radial-gradient(circle at 50% 42%, rgba(255,255,255,0.09), rgba(255,255,255,0.02) 26%, transparent 46%),
-        radial-gradient(circle at 78% 50%, rgba(230,0,0,0.07), transparent 36%),
+        radial-gradient(circle at 50% 52%, rgba(255,255,255,0.105), rgba(255,255,255,0.025) 23%, transparent 44%),
+        radial-gradient(circle at 78% 50%, rgba(230,0,0,0.08), transparent 34%),
         #000;
       overflow-x: hidden;
     }
@@ -337,6 +338,57 @@
       .rr-meter-panel { grid-template-columns: 1fr; }
       .rr-meter-card { min-height: 162px; }
     }
+    /* RateDisplay — numbers only */
+    #rrRateScore, #rrReplaceabilityScore { font-family: "RateDisplay", monospace; }
+    #rrPercentileText { font-family: "RateDisplay", monospace; }
+    #rrEmployeeFile { font-family: "RateDisplay", monospace; }
+    /* Manifesto modal */
+    .rr-manifesto-overlay {
+      position: fixed; inset: 0; z-index: 10200;
+      background: rgba(0,0,0,0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .rr-manifesto-panel {
+      width: min(860px, 94vw); height: min(88vh, 820px);
+      overflow: hidden; position: relative;
+      border: 1px solid rgba(255,255,255,0.13);
+      background: linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.01)),#050505;
+      box-shadow: 0 0 120px rgba(0,0,0,0.98);
+      padding: clamp(28px,3.5vh,44px) clamp(20px,3vw,40px) clamp(20px,3vh,36px);
+      display: flex; flex-direction: column;
+    }
+    .rr-manifesto-close {
+      position: absolute; top: 14px; right: 22px; border: 0; background: transparent;
+      color: rgba(255,255,255,0.40); font-size: 36px; line-height: 1; cursor: pointer; padding: 0;
+      transition: color 120ms ease; font-family: sans-serif;
+    }
+    .rr-manifesto-close:hover { color: var(--rr-red); }
+    .rr-manifesto-cols {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: clamp(20px,3vw,40px); align-items: stretch;
+      flex: 1; min-height: 0;
+    }
+    .rr-manifesto-left {
+      border-right: 1px solid rgba(255,255,255,0.09);
+      padding-right: clamp(20px,3vw,40px);
+      display: flex; flex-direction: column; justify-content: space-between;
+      overflow: hidden;
+    }
+    .rr-manifesto-rr-logo { height: clamp(32px,3.5vw,48px); width: auto; display: block; margin-bottom: clamp(28px,3.5vh,44px); }
+    .rr-manifesto-rule { border: none; border-top: 1px solid rgba(255,255,255,0.18); margin: 0 0 16px; }
+    .rr-manifesto-am-footer { display: flex; justify-content: center; padding-top: 16px; flex-shrink: 0; }
+    .rr-manifesto-body {
+      font-family: var(--rr-sans); font-size: clamp(12px,1.05vw,14.5px);
+      line-height: 1.78; color: rgba(255,255,255,0.72); letter-spacing: 0.01em; overflow: hidden;
+    }
+    .rr-manifesto-body p { margin: 0 0 clamp(10px,1.2vh,16px); }
+    .rr-manifesto-body p:last-child { margin-bottom: 0; }
+    .rr-manifesto-left .rr-manifesto-body { color: #e60000; }
+    .rr-manifesto-cols > .rr-manifesto-body > p:last-child { color: #e60000; }
+    @media (max-width: 620px) {
+      .rr-manifesto-cols { grid-template-columns: 1fr; }
+      .rr-manifesto-left { border-right: none; padding-right: 0; border-bottom: 1px solid rgba(255,255,255,0.09); padding-bottom: 16px; }
+    }
   </style>
 </head>
 <body>
@@ -513,7 +565,7 @@
       const tokenParam = params.get('token');
 
       // Pill clicks
-      document.getElementById('rrManifestoPill').addEventListener('click', () => showToast('Coming soon.'));
+      document.getElementById('rrManifestoPill').addEventListener('click', openManifestoModal);
       document.getElementById('rrLeaderPill').addEventListener('click', () => {
         const lbParams = new URLSearchParams({ from: FRONTEND_ORIGIN });
         if (tokenParam)  lbParams.set('token',       tokenParam);
@@ -574,9 +626,10 @@
           if (pEl) pEl.textContent = `${card.replaceabilityPercentile}%`;
         }
 
-        // LinkedIn overlay link
-        const linkHref = card.linkedinUrl || card.ctaUrl || null;
+        // Click-me overlay — same priority as card image: portfolioUrl → ctaUrl → linkedinUrl
+        let linkHref = data.user?.portfolioUrl || card.ctaUrl || card.linkedinUrl || null;
         if (linkHref && linkHref !== '#') {
+          if (!/^https?:\/\//i.test(linkHref)) linkHref = 'https://' + linkHref;
           const a = document.createElement('a');
           a.className = 'rr-linkedin-overlay';
           a.href      = linkHref;
@@ -619,6 +672,52 @@
         .then(populateCard)
         .catch(() => {});
     })();
+
+    function openManifestoModal() {
+      const existing = document.getElementById('rrManifestoOverlay');
+      if (existing) { existing.remove(); return; }
+
+      const el = document.createElement('div');
+      el.className = 'rr-manifesto-overlay';
+      el.id        = 'rrManifestoOverlay';
+      el.innerHTML = `
+        <div class="rr-manifesto-panel">
+          <button class="rr-manifesto-close" id="rrManifestoClose" aria-label="Close">×</button>
+          <div class="rr-manifesto-cols">
+            <div class="rr-manifesto-left">
+              <div>
+                <img class="rr-manifesto-rr-logo" src="/rateracelogo.png" alt="RATeRACE">
+                <hr class="rr-manifesto-rule">
+                <div class="rr-manifesto-body">
+                  <p>Growing up is often the slow act of surrendering to circumstances, systems, people, and realities you can no longer afford to ignore.</p>
+                </div>
+              </div>
+              <div class="rr-manifesto-am-footer">
+                <img src="/adultmoneylogo.png" width="28" height="28" alt="AdultMoney">
+              </div>
+            </div>
+            <div class="rr-manifesto-body">
+              <p>RATeRACE is built as a provocation of that surrender.</p>
+              <p>It does not shame the race. It does not glorify it. It simply acknowledges how deeply the rat race has become the survival symbol of our generation.</p>
+              <p>At every stage of human civilization, the symbol of survival has changed. Today, survival is measured through resumes, skills, salaries, titles, networks, dashboards, and market value.</p>
+              <p>The project rates a person based on their current professional signal, market demand, role relevance, skill strength, and exposure to automation. The backend draws from job-market indicators such as Andrej Karpathy's job market visualizer, hiring trends, role demand, AI capability benchmarks, skill saturation, and automation risk across different kinds of work.</p>
+              <p>The RATE shows how strongly the market values your current profile.</p>
+              <p>The Replaceability Index estimates how exposed your current work is to automation and market compression — in simple terms, the closest visible measure of how much time your current version has before it needs to evolve.</p>
+              <p>RATeRACE is not here to define your worth.</p>
+              <p>It is here to remind you what you gave up to become a number on a dashboard.</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(el);
+
+      const close = () => { const o = document.getElementById('rrManifestoOverlay'); if (o) o.remove(); };
+      el.querySelector('#rrManifestoClose').addEventListener('click', close);
+      el.addEventListener('click', e => { if (e.target === el) close(); });
+      const escHandler = e => { if (e.key === 'Escape') { close(); window.removeEventListener('keydown', escHandler); } };
+      window.addEventListener('keydown', escHandler);
+    }
   </script>
 </body>
 </html>

@@ -895,12 +895,25 @@
         border: 1px solid #444; object-fit: cover;
         background: #1a1a1a; display: block;
       }
-      .rr-cf-bio-label   { position: absolute; top: 122px; left: 0; }
-      .rr-cf-bio   { position: absolute; top: 140px; left: 0; width: 245px; }
-      .rr-cf-port-label  { position: absolute; top: 182px; left: 0; }
-      .rr-cf-port  { position: absolute; top: 200px; left: 0; width: 245px; }
+      .rr-cf-disclaimer {
+        position: absolute; top: 116px; left: 0; width: 245px;
+        border: 1px solid rgba(255,255,255,0.12); padding: 7px 22px 7px 8px; box-sizing: border-box;
+      }
+      .rr-cf-disclaimer-text {
+        font-size: 9px; line-height: 1.5; color: rgba(255,255,255,0.36); letter-spacing: 0.03em;
+      }
+      .rr-cf-disclaimer-text strong { color: rgba(255,255,255,0.50); font-weight: 600; }
+      .rr-cf-disclaimer-close {
+        position: absolute; top: 5px; right: 6px; border: 0; background: transparent;
+        color: rgba(255,255,255,0.22); font-size: 14px; line-height: 1; cursor: pointer; padding: 0; font-family: sans-serif;
+      }
+      .rr-cf-disclaimer-close:hover { color: rgba(255,255,255,0.60); }
+      .rr-cf-bio-label   { position: absolute; top: 202px; left: 0; }
+      .rr-cf-bio   { position: absolute; top: 220px; left: 0; width: 245px; }
+      .rr-cf-port-label  { position: absolute; top: 262px; left: 0; }
+      .rr-cf-port  { position: absolute; top: 280px; left: 0; width: 245px; }
       .rr-cf-next {
-        position: absolute; top: 244px; left: 0;
+        position: absolute; top: 324px; left: 0;
         width: 245px; height: 32px;
         background: #fff; border: 0; color: #000;
         font-family: "Pixelify Sans", monospace;
@@ -908,7 +921,7 @@
       }
       .rr-cf-next:hover { background: #b90000; color: #fff; }
       .rr-cf-back {
-        position: absolute; top: 286px; left: 0;
+        position: absolute; top: 366px; left: 0;
         font-size: 8px; color: #555; cursor: pointer;
       }
       .rr-cf-back:hover { color: #fff; }
@@ -1193,6 +1206,13 @@
     }
   }
 
+  function ensureAbsoluteUrl(url) {
+    if (!url) return url;
+    url = url.trim();
+    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+    return url;
+  }
+
   function showToast(message, duration = 2500) {
     const prev = document.getElementById('rr-toast');
     if (prev) prev.remove();
@@ -1424,6 +1444,45 @@
       .rr-action-btn:hover { transform: translateY(-2px); border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.14); }
       .rr-action-btn.primary { border-color: #fff; background: #fff; color: #000; }
       .rr-action-btn.primary:hover { background: var(--rr-red); border-color: var(--rr-red); color: #fff; box-shadow: 0 0 24px rgba(230,0,0,0.35); }
+      .rr-action-btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+      /* Inline edit forms */
+      .rr-inline-form {
+        display: flex; flex-direction: column; gap: 14px;
+        width: min(100%, 360px); margin: 24px auto 0;
+      }
+      .rr-inline-form-title {
+        font-family: var(--rr-pixel); color: var(--rr-red);
+        font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+      }
+      .rr-if-field { display: flex; flex-direction: column; gap: 5px; }
+      .rr-if-label {
+        font-family: var(--rr-pixel); color: rgba(255,255,255,0.42);
+        font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+      }
+      .rr-if-input {
+        width: 100%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.18);
+        color: #fff; padding: 10px 12px; font-size: 13px; outline: none;
+        font-family: inherit; box-sizing: border-box;
+      }
+      .rr-if-input:focus { border-color: rgba(255,255,255,0.45); }
+      .rr-if-actions { display: flex; gap: 10px; }
+      .rr-if-msg { font-size: 11px; color: rgba(255,255,255,0.42); min-height: 16px; }
+      .rr-if-upload-area {
+        width: 100%; min-height: 120px; border: 1px dashed rgba(255,255,255,0.22);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        cursor: pointer; transition: 160ms ease; gap: 8px; padding: 16px; box-sizing: border-box;
+      }
+      .rr-if-upload-area:hover { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.04); }
+      .rr-if-upload-hint { font-family: var(--rr-pixel); font-size: 10px; letter-spacing: 0.1em; color: rgba(255,255,255,0.42); text-transform: uppercase; }
+      .rr-if-preview { width: 100%; max-height: 180px; object-fit: contain; display: none; border: 1px solid rgba(255,255,255,0.14); }
+      .rr-if-restore { font-family: var(--rr-pixel); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.32); background: none; border: none; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-align: left; }
+      .rr-if-restore:hover { color: rgba(255,255,255,0.65); }
+      .rr-if-linkedin-photo { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 10px; border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; background: rgba(255,255,255,0.03); }
+      .rr-if-linkedin-photo:hover { border-color: rgba(255,255,255,0.32); background: rgba(255,255,255,0.06); }
+      .rr-if-linkedin-photo.is-selected { border-color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.08); }
+      .rr-if-linkedin-thumb { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.18); flex-shrink: 0; }
+      .rr-if-linkedin-label { font-family: var(--rr-pixel); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+      .rr-if-preview.is-visible { display: block; }
       .rr-bottom-hint {
         position: relative; z-index: 4; padding: 16px 16px 32px;
         text-align: center; color: rgba(255,255,255,0.46); font-size: 10px; letter-spacing: 0.06em; line-height: 1.4; pointer-events: none;
@@ -1541,9 +1600,167 @@
         .rr-meter-panel { grid-template-columns: 1fr; }
         .rr-meter-card { min-height: 162px; }
       }
+
+      /* ── Share modal ── */
+      .rr-share-overlay {
+        position: fixed; inset: 0; z-index: 10100;
+        background: rgba(0,0,0,0.84); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        display: flex; align-items: center; justify-content: center; padding: 20px;
+      }
+      .rr-share-panel {
+        width: min(460px, 92vw); position: relative;
+        border: 1px solid rgba(255,255,255,0.20);
+        background: linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015)),#060606;
+        box-shadow: 0 0 80px rgba(0,0,0,0.92); padding: 36px 28px 28px;
+      }
+      .rr-share-close {
+        position: absolute; top: 10px; right: 16px;
+        border: 0; background: transparent; color: var(--rr-red);
+        font-size: 38px; line-height: 1; cursor: pointer; padding: 0;
+      }
+      .rr-share-preview {
+        width: 100%; max-width: 200px; aspect-ratio: 1053/1470; overflow: hidden;
+        margin: 0 auto 22px; background: rgba(255,255,255,0.04);
+        transform: rotate(0.6deg); box-shadow: 0 0 32px rgba(255,255,255,0.10);
+      }
+      .rr-share-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .rr-share-heading {
+        font-family: var(--rr-pixel); font-size: clamp(14px,1.4vw,18px); letter-spacing: 0.08em;
+        color: #fff; text-transform: uppercase; margin-bottom: 20px; text-align: center;
+      }
+      .rr-share-btns { display: flex; flex-direction: column; gap: 10px; }
+      .rr-share-btn {
+        width: 100%; min-height: 46px; border: 1px solid rgba(255,255,255,0.36);
+        background: transparent; color: #fff; font-family: var(--rr-pixel);
+        font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+        cursor: pointer; transition: 160ms ease;
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+      }
+      .rr-share-btn:hover { background: rgba(255,255,255,0.06); border-color: #fff; }
+      .rr-share-btn.primary { border-color: #fff; background: #fff; color: #000; }
+      .rr-share-btn.primary:hover { background: var(--rr-red); border-color: var(--rr-red); color: #fff; box-shadow: 0 0 24px rgba(230,0,0,0.30); }
+      .rr-share-btn.whatsapp:hover { background: rgba(37,211,102,0.10); border-color: #25D366; color: #25D366; }
+      .rr-share-url {
+        margin-top: 16px; padding: 9px 12px;
+        border: 1px solid rgba(255,255,255,0.10); background: rgba(255,255,255,0.03);
+        font-family: monospace; font-size: 10px; color: rgba(255,255,255,0.44);
+        word-break: break-all; text-align: center; letter-spacing: 0.04em;
+      }
+      /* RateDisplay — numbers only */
+      #rrRateScore, #rrReplaceabilityScore { font-family: "RateDisplay", monospace; }
+      #rrPercentileText { font-family: "RateDisplay", monospace; }
+      #rrEmployeeFile { font-family: "RateDisplay", monospace; }
+      .rr-card-code-value { font-family: "RateDisplay", monospace; }
     `;
     document.head.appendChild(el);
   }
+
+  // ── Manifesto modal ─────────────────────────────────────────────────────────
+
+  function injectManifestoStyles() {
+    if (document.getElementById('rr-manifesto-style')) return;
+    const el = document.createElement('style');
+    el.id = 'rr-manifesto-style';
+    el.textContent = `
+      .rr-manifesto-overlay {
+        position: fixed; inset: 0; z-index: 10200;
+        background: rgba(0,0,0,0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+        display: flex; align-items: center; justify-content: center; padding: 20px;
+      }
+      .rr-manifesto-panel {
+        width: min(860px, 94vw); height: min(88vh, 820px);
+        overflow: hidden; position: relative;
+        border: 1px solid rgba(255,255,255,0.13);
+        background: linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.01)),#050505;
+        box-shadow: 0 0 120px rgba(0,0,0,0.98);
+        padding: clamp(28px,3.5vh,44px) clamp(20px,3vw,40px) clamp(20px,3vh,36px);
+        display: flex; flex-direction: column;
+      }
+      .rr-manifesto-close {
+        position: absolute; top: 14px; right: 22px; border: 0; background: transparent;
+        color: rgba(255,255,255,0.40); font-size: 36px; line-height: 1; cursor: pointer; padding: 0;
+        transition: color 120ms ease; font-family: sans-serif;
+      }
+      .rr-manifesto-close:hover { color: #e60000; }
+      .rr-manifesto-cols {
+        display: grid; grid-template-columns: 1fr 1fr;
+        gap: clamp(20px,3vw,40px); align-items: stretch;
+        flex: 1; min-height: 0;
+      }
+      .rr-manifesto-left {
+        border-right: 1px solid rgba(255,255,255,0.09);
+        padding-right: clamp(20px,3vw,40px);
+        display: flex; flex-direction: column; justify-content: space-between;
+        overflow: hidden;
+      }
+      .rr-manifesto-rr-logo { height: clamp(32px,3.5vw,48px); width: auto; display: block; margin-bottom: clamp(28px,3.5vh,44px); }
+      .rr-manifesto-rule { border: none; border-top: 1px solid rgba(255,255,255,0.18); margin: 0 0 16px; }
+      .rr-manifesto-am-footer { display: flex; justify-content: center; padding-top: 16px; flex-shrink: 0; }
+      .rr-manifesto-body {
+        font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: clamp(12px,1.05vw,14.5px); line-height: 1.78;
+        color: rgba(255,255,255,0.72); letter-spacing: 0.01em; overflow: hidden;
+      }
+      .rr-manifesto-body p { margin: 0 0 clamp(10px,1.2vh,16px); }
+      .rr-manifesto-body p:last-child { margin-bottom: 0; }
+      .rr-manifesto-left .rr-manifesto-body { color: #e60000; }
+      .rr-manifesto-cols > .rr-manifesto-body > p:last-child { color: #e60000; }
+      @media (max-width: 620px) {
+        .rr-manifesto-cols { grid-template-columns: 1fr; }
+        .rr-manifesto-left { border-right: none; padding-right: 0; border-bottom: 1px solid rgba(255,255,255,0.09); padding-bottom: 16px; }
+      }
+    `;
+    document.head.appendChild(el);
+  }
+
+  function openManifestoModal() {
+    injectManifestoStyles();
+    const existing = document.getElementById('rrManifestoOverlay');
+    if (existing) { existing.remove(); return; }
+
+    const el = document.createElement('div');
+    el.className = 'rr-manifesto-overlay';
+    el.id        = 'rrManifestoOverlay';
+    el.innerHTML = `
+      <div class="rr-manifesto-panel">
+        <button class="rr-manifesto-close" id="rrManifestoClose" aria-label="Close">×</button>
+        <div class="rr-manifesto-cols">
+          <div class="rr-manifesto-left">
+            <div>
+              <img class="rr-manifesto-rr-logo" src="${BACKEND_URL}/rateracelogo.png" alt="RATeRACE">
+              <hr class="rr-manifesto-rule">
+              <div class="rr-manifesto-body">
+                <p>Growing up is often the slow act of surrendering to circumstances, systems, people, and realities you can no longer afford to ignore.</p>
+              </div>
+            </div>
+            <div class="rr-manifesto-am-footer">
+              <img src="${BACKEND_URL}/adultmoneylogo.png" width="28" height="28" alt="AdultMoney">
+            </div>
+          </div>
+          <div class="rr-manifesto-body">
+            <p>RATeRACE is built as a provocation of that surrender.</p>
+            <p>It does not shame the race. It does not glorify it. It simply acknowledges how deeply the rat race has become the survival symbol of our generation.</p>
+            <p>At every stage of human civilization, the symbol of survival has changed. Today, survival is measured through resumes, skills, salaries, titles, networks, dashboards, and market value.</p>
+            <p>The project rates a person based on their current professional signal, market demand, role relevance, skill strength, and exposure to automation. The backend draws from job-market indicators such as Andrej Karpathy's job market visualizer, hiring trends, role demand, AI capability benchmarks, skill saturation, and automation risk across different kinds of work.</p>
+            <p>The RATE shows how strongly the market values your current profile.</p>
+            <p>The Replaceability Index estimates how exposed your current work is to automation and market compression — in simple terms, the closest visible measure of how much time your current version has before it needs to evolve.</p>
+            <p>RATeRACE is not here to define your worth.</p>
+            <p>It is here to remind you what you gave up to become a number on a dashboard.</p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(el);
+
+    const close = () => { const o = document.getElementById('rrManifestoOverlay'); if (o) o.remove(); };
+    el.querySelector('#rrManifestoClose').addEventListener('click', close);
+    el.addEventListener('click', e => { if (e.target === el) close(); });
+    const escHandler = e => { if (e.key === 'Escape') { close(); window.removeEventListener('keydown', escHandler); } };
+    window.addEventListener('keydown', escHandler);
+  }
+
+  // ── end Manifesto modal ──────────────────────────────────────────────────────
 
   function buildFinalModalHTML(amCode) {
     return `
@@ -1596,6 +1813,7 @@
             <div class="rr-card-hotspot hotspot-ticker" data-title="TICKER" data-tooltip="Your career momentum. Tracks whether your professional growth has been trending up or down over the last 90 days."></div>
             <div class="rr-card-hotspot hotspot-edu-badge" data-title="EDUCATION BADGE" data-tooltip="Your highest qualification and the institution you attended."></div>
             <div class="rr-card-hotspot hotspot-work-badge" data-title="WORK BADGE" data-tooltip="Your current or most recent employer."></div>
+            <div class="rr-card-hotspot hotspot-portfolio" data-title="CLICK ME LINK" data-tooltip="Your portfolio, LinkedIn, or any link you want people to visit from your card."></div>
             <div class="rr-card-hotspot hotspot-chess" data-title="CHESS PIECE" data-tooltip="Your career archetype. The role you play in the professional world."></div>
             <div class="rr-card-hotspot hotspot-identity" data-title="NAME AND QUOTE" data-tooltip="Your identity on the RATe RACE system."></div>
             <div class="rr-card-hotspot hotspot-hourglass" data-title="HOURGLASS" data-tooltip="Time remaining before AI could significantly impact or replace your current role."></div>
@@ -1699,7 +1917,7 @@
     window.addEventListener('keydown', _modalEscHandler);
 
     // Header pill clicks
-    overlay.querySelector('.rr-top-pill')?.addEventListener('click', () => showToast('Coming soon.'));
+    overlay.querySelector('.rr-top-pill')?.addEventListener('click', openManifestoModal);
     overlay.querySelector('.rr-leader-pill')?.addEventListener('click', () => {
       if (leadModal.token)    sessionStorage.setItem('rr_ret_token',    leadModal.token);
       if (leadModal.amCode)   sessionStorage.setItem('rr_ret_amCode',   leadModal.amCode);
@@ -1725,9 +1943,10 @@
           if (img && wrap) { img.src = card.imageUrl; wrap.classList.add('has-card-image'); }
         }
 
-        // Portfolio / LinkedIn clickable overlay (same logic as card-view.html)
-        const linkHref = card.linkedinUrl || card.ctaUrl || null;
-        if (linkHref && linkHref !== '#') {
+        // Click-me overlay — same priority as card image: portfolioUrl → ctaUrl → linkedinUrl
+        const rawLinkHref = data.user?.portfolioUrl || card.ctaUrl || card.linkedinUrl || null;
+        const linkHref = rawLinkHref && rawLinkHref !== '#' ? ensureAbsoluteUrl(rawLinkHref) : null;
+        if (linkHref) {
           const wrap = overlay.querySelector('#rrCardWrap');
           if (wrap) {
             const a = document.createElement('a');
@@ -1771,19 +1990,317 @@
       })
       .catch(() => {});
 
-    // POST MY CARD — copy share URL
-    overlay.querySelector('#rrPostCardBtn').addEventListener('click', async () => {
-      const btn = overlay.querySelector('#rrPostCardBtn');
-      try { await navigator.clipboard.writeText(shareUrl); } catch (_) {}
-      btn.innerHTML = 'LINK<br>COPIED';
-      setTimeout(() => { btn.innerHTML = 'POST<br>MY CARD'; }, 2000);
-    });
+    // POST MY CARD — share card (mobile: Web Share API; desktop: share modal)
+    async function shareCard() {
+      const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const shareText = 'Checkout my Rating!';
+      const imageUrl  = leadModal.imageUrl;
 
-    // FIX PORTFOLIO
-    overlay.querySelector('#rrFixPortfolioBtn').addEventListener('click', () => showPortfolioPrompt());
+      if (isMobile && navigator.share) {
+        if (imageUrl && navigator.canShare) {
+          try {
+            const resp = await fetch(imageUrl);
+            const blob = await resp.blob();
+            const file = new File([blob], 'my-rate-card.png', { type: blob.type });
+            if (navigator.canShare({ files: [file] })) {
+              await navigator.share({ title: shareText, text: shareText, url: shareUrl, files: [file] });
+              return;
+            }
+          } catch (_) { /* fall through to URL-only share */ }
+        }
+        try { await navigator.share({ title: shareText, text: shareText, url: shareUrl }); return; } catch (_) {}
+      }
 
-    // CHANGE FACE — placeholder
-    overlay.querySelector('#rrChangeFaceBtn').addEventListener('click', () => showToast('Portrait update coming soon.'));
+      showShareModal(shareUrl, imageUrl, shareText);
+    }
+
+    function showShareModal(url, imageUrl, shareText) {
+      const existing = document.getElementById('rrShareOverlay');
+      if (existing) existing.remove();
+
+      const encodedUrl  = encodeURIComponent(url);
+      const encodedText = encodeURIComponent(shareText + '\n\n');
+      const twitterHref  = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodedUrl}`;
+      const whatsappHref = `https://wa.me/?text=${encodedText}${encodedUrl}`;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'rr-share-overlay';
+      overlay.id        = 'rrShareOverlay';
+      overlay.innerHTML = `
+        <div class="rr-share-panel">
+          <button class="rr-share-close" id="rrShareClose" aria-label="Close">×</button>
+          ${imageUrl ? `<div class="rr-share-preview"><img src="${imageUrl}" alt="Your Rate Card" loading="lazy"></div>` : ''}
+          <div class="rr-share-heading">Share Your Card</div>
+          <div class="rr-share-btns">
+            <button class="rr-share-btn primary" id="rrShareCopyLink">Copy Link</button>
+            <a class="rr-share-btn" href="${twitterHref}" target="_blank" rel="noopener noreferrer">Post on X (Twitter)</a>
+            <a class="rr-share-btn whatsapp" href="${whatsappHref}" target="_blank" rel="noopener noreferrer">Share on WhatsApp</a>
+          </div>
+          <div class="rr-share-url">${url}</div>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
+
+      overlay.querySelector('#rrShareClose').addEventListener('click', () => overlay.remove());
+      overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+      overlay.querySelector('#rrShareCopyLink').addEventListener('click', async function() {
+        try { await navigator.clipboard.writeText(url); } catch (_) {}
+        const orig = this.textContent;
+        this.textContent = 'Copied!';
+        setTimeout(() => { this.textContent = orig; }, 2000);
+      });
+    }
+
+    overlay.querySelector('#rrPostCardBtn').addEventListener('click', shareCard);
+
+    // ── Inline form helpers ──────────────────────────────────────────────────
+    function showCardStageForm(formEl) {
+      const stage = overlay.querySelector('.rr-card-stage');
+      stage.querySelector('.rr-verdict-line').style.visibility = 'hidden';
+      stage.querySelector('#rrCardWrap').style.display = 'none';
+      stage.querySelector('.rr-employee-file').style.display = 'none';
+      stage.querySelector('.rr-actions').style.display = 'none';
+      const old = stage.querySelector('.rr-inline-form');
+      if (old) old.remove();
+      stage.appendChild(formEl);
+    }
+
+    function hideCardStageForm() {
+      const stage = overlay.querySelector('.rr-card-stage');
+      const form  = stage.querySelector('.rr-inline-form');
+      if (form) form.remove();
+      stage.querySelector('.rr-verdict-line').style.visibility = '';
+      stage.querySelector('#rrCardWrap').style.display = '';
+      stage.querySelector('.rr-employee-file').style.display = '';
+      stage.querySelector('.rr-actions').style.display = '';
+    }
+
+    // ── FIX PORTFOLIO ────────────────────────────────────────────────────────
+    async function openFixPortfolioForm() {
+      if (!leadModal.token) { showToast('Sign in to edit your portfolio.'); return; }
+
+      const hdrs = { Authorization: `Bearer ${leadModal.token}` };
+      let currentBio = '', currentPortfolioUrl = '', defaultBio = '', defaultLink = '';
+      try {
+        const [meRes, cardRes] = await Promise.all([
+          fetch(`${BACKEND_URL}/api/auth/me`, { headers: hdrs }),
+          leadModal.amCode ? fetch(`${BACKEND_URL}/api/card/view/${leadModal.amCode}`) : Promise.resolve(null),
+        ]);
+        if (meRes.ok) {
+          const d = await meRes.json();
+          currentBio = d.user?.bio || '';
+          currentPortfolioUrl = d.user?.portfolioUrl || '';
+        }
+        if (cardRes?.ok) {
+          const cd = await cardRes.json();
+          defaultBio  = cd.card?.bioRewrite  || '';
+          defaultLink = cd.card?.linkedinUrl || '';
+        }
+      } catch (_) {}
+
+      const form = document.createElement('div');
+      form.className = 'rr-inline-form';
+      form.innerHTML = `
+        <div class="rr-inline-form-title">FIX PORTFOLIO</div>
+        <div class="rr-if-field">
+          <label class="rr-if-label">Bio (max 80 chars)</label>
+          <input class="rr-if-input" id="rr-fp-bio" type="text" maxlength="80" placeholder="What you do in one line" />
+          ${defaultBio ? `<button class="rr-if-restore" id="rr-fp-bio-restore" type="button">← restore AI bio</button>` : ''}
+        </div>
+        <div class="rr-if-field">
+          <label class="rr-if-label">Portfolio / Link</label>
+          <input class="rr-if-input" id="rr-fp-url" type="url" placeholder="https://your-link.com" />
+          ${defaultLink ? `<button class="rr-if-restore" id="rr-fp-url-restore" type="button">← restore LinkedIn link</button>` : ''}
+        </div>
+        <div class="rr-if-actions">
+          <button class="rr-action-btn primary" id="rr-fp-save" type="button">SAVE</button>
+          <button class="rr-action-btn" id="rr-fp-back" type="button">BACK</button>
+        </div>
+        <div class="rr-if-msg" id="rr-fp-msg"></div>
+      `;
+      showCardStageForm(form);
+      form.querySelector('#rr-fp-bio').value = currentBio;
+      form.querySelector('#rr-fp-url').value = currentPortfolioUrl;
+      if (defaultBio)  form.querySelector('#rr-fp-bio-restore')?.addEventListener('click', () => { form.querySelector('#rr-fp-bio').value = defaultBio; });
+      if (defaultLink) form.querySelector('#rr-fp-url-restore')?.addEventListener('click', () => { form.querySelector('#rr-fp-url').value = defaultLink; });
+
+      form.querySelector('#rr-fp-back').addEventListener('click', hideCardStageForm);
+      form.querySelector('#rr-fp-save').addEventListener('click', async () => {
+        const saveBtn = form.querySelector('#rr-fp-save');
+        const msgEl   = form.querySelector('#rr-fp-msg');
+        const bio     = form.querySelector('#rr-fp-bio').value.trim();
+        const url     = ensureAbsoluteUrl(form.querySelector('#rr-fp-url').value.trim());
+        saveBtn.textContent = 'SAVING…'; saveBtn.disabled = true;
+        msgEl.style.color = 'rgba(255,255,255,0.45)'; msgEl.textContent = 'Saving…';
+        try {
+          const hdrs = { 'Content-Type': 'application/json', Authorization: `Bearer ${leadModal.token}` };
+          const bioRes = await fetch(`${BACKEND_URL}/api/user/bio`, { method: 'POST', headers: hdrs, body: JSON.stringify({ bio, portfolioUrl: url }) });
+          if (!bioRes.ok) throw new Error();
+          msgEl.textContent = 'Regenerating card…';
+          const genRes = await fetch(`${BACKEND_URL}/api/card/generate`, { method: 'POST', headers: hdrs });
+          if (!genRes.ok) throw new Error();
+          const genData = await genRes.json();
+          if (genData.imageUrl) {
+            leadModal.imageUrl = genData.imageUrl;
+            const img  = overlay.querySelector('#rrFinalCardImage');
+            const wrap = overlay.querySelector('#rrCardWrap');
+            if (img)  img.src = genData.imageUrl + '?t=' + Date.now();
+            if (wrap) wrap.classList.add('has-card-image');
+          }
+          // amCode changes on every generate — keep leadModal in sync
+          if (genData.amCode) {
+            leadModal.amCode = genData.amCode;
+            const empFileEl = overlay.querySelector('#rrEmployeeFile');
+            if (empFileEl) empFileEl.textContent = genData.amCode;
+            if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = genData.amCode;
+          }
+          if (genData.cardId) leadModal.cardId = genData.cardId;
+          // Update the clickable portfolio overlay on the card
+          const existingOverlay = overlay.querySelector('.rr-linkedin-overlay');
+          if (existingOverlay) {
+            if (url) existingOverlay.href = url; else existingOverlay.remove();
+          } else if (url) {
+            const wrap2 = overlay.querySelector('#rrCardWrap');
+            if (wrap2) {
+              const a = document.createElement('a');
+              a.className = 'rr-linkedin-overlay'; a.href = url;
+              a.target = '_blank'; a.rel = 'noopener noreferrer';
+              a.setAttribute('aria-label', 'View portfolio');
+              wrap2.appendChild(a);
+            }
+          }
+          msgEl.style.color = '#00a331'; msgEl.textContent = 'Card updated!';
+          setTimeout(hideCardStageForm, 900);
+        } catch (_) {
+          msgEl.style.color = '#e60000'; msgEl.textContent = 'Error. Please try again.';
+          saveBtn.textContent = 'SAVE'; saveBtn.disabled = false;
+        }
+      });
+    }
+
+    // ── CHANGE FACE ──────────────────────────────────────────────────────────
+    async function openChangeFaceForm() {
+      if (!leadModal.token) { showToast('Sign in to change your face.'); return; }
+
+      let linkedinPortraitUrl = '';
+      try {
+        const r = await fetch(`${BACKEND_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${leadModal.token}` } });
+        if (r.ok) { const d = await r.json(); linkedinPortraitUrl = d.user?.linkedinPortraitUrl || ''; }
+      } catch (_) {}
+
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.style.display = 'none';
+      document.body.appendChild(fileInput);
+
+      const form = document.createElement('div');
+      form.className = 'rr-inline-form';
+      form.innerHTML = `
+        <div class="rr-inline-form-title">CHANGE FACE</div>
+        ${linkedinPortraitUrl ? `
+        <div class="rr-if-linkedin-photo" id="rr-cf-li-row">
+          <img class="rr-if-linkedin-thumb" src="${linkedinPortraitUrl}" alt="LinkedIn photo" />
+          <div class="rr-if-linkedin-label">← Use original LinkedIn photo</div>
+        </div>` : ''}
+        <div class="rr-if-upload-area" id="rr-cf-area">
+          <div class="rr-if-upload-hint">Click to upload a new photo</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.25);">JPG · PNG · WEBP</div>
+        </div>
+        <img class="rr-if-preview" id="rr-cf-preview" alt="Portrait preview" />
+        <div class="rr-if-actions">
+          <button class="rr-action-btn primary" id="rr-cf-save" type="button" disabled>SAVE</button>
+          <button class="rr-action-btn" id="rr-cf-back" type="button">BACK</button>
+        </div>
+        <div class="rr-if-msg" id="rr-cf-msg"></div>
+      `;
+      showCardStageForm(form);
+
+      let selectedFile = null;
+      let selectedMode = null; // 'file' | 'linkedin'
+      const uploadArea = form.querySelector('#rr-cf-area');
+      const preview    = form.querySelector('#rr-cf-preview');
+      const saveBtn    = form.querySelector('#rr-cf-save');
+      const msgEl      = form.querySelector('#rr-cf-msg');
+      const liRow      = form.querySelector('#rr-cf-li-row');
+
+      function selectLinkedin() {
+        selectedMode = 'linkedin'; selectedFile = null;
+        if (liRow) liRow.classList.add('is-selected');
+        uploadArea.style.display = 'none';
+        preview.src = linkedinPortraitUrl;
+        preview.classList.add('is-visible');
+        saveBtn.disabled = false;
+      }
+
+      if (liRow) liRow.addEventListener('click', selectLinkedin);
+
+      uploadArea.addEventListener('click', () => { fileInput.value = ''; fileInput.click(); });
+      fileInput.addEventListener('change', () => {
+        const f = fileInput.files[0];
+        if (!f) return;
+        selectedFile = f; selectedMode = 'file';
+        if (liRow) liRow.classList.remove('is-selected');
+        preview.src = URL.createObjectURL(f);
+        preview.classList.add('is-visible');
+        uploadArea.style.display = 'none';
+        saveBtn.disabled = false;
+      });
+
+      form.querySelector('#rr-cf-back').addEventListener('click', () => { fileInput.remove(); hideCardStageForm(); });
+
+      saveBtn.addEventListener('click', async () => {
+        if (!selectedMode) return;
+        saveBtn.textContent = 'UPLOADING…'; saveBtn.disabled = true;
+        msgEl.style.color = 'rgba(255,255,255,0.45)'; msgEl.textContent = 'Uploading portrait…';
+        try {
+          const authHdr = { Authorization: `Bearer ${leadModal.token}` };
+          let uploadRes;
+          if (selectedMode === 'file') {
+            const fd = new FormData();
+            fd.append('portrait', selectedFile);
+            uploadRes = await fetch(`${BACKEND_URL}/api/user/bio`, { method: 'POST', headers: authHdr, body: fd });
+          } else {
+            uploadRes = await fetch(`${BACKEND_URL}/api/user/bio`, {
+              method: 'POST',
+              headers: { ...authHdr, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ portraitUrl: linkedinPortraitUrl }),
+            });
+          }
+          if (!uploadRes.ok) throw new Error();
+          msgEl.textContent = 'Regenerating card…';
+          const genRes = await fetch(`${BACKEND_URL}/api/card/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...authHdr },
+          });
+          if (!genRes.ok) throw new Error();
+          const genData = await genRes.json();
+          if (genData.imageUrl) {
+            leadModal.imageUrl = genData.imageUrl;
+            const img  = overlay.querySelector('#rrFinalCardImage');
+            const wrap = overlay.querySelector('#rrCardWrap');
+            if (img)  img.src = genData.imageUrl + '?t=' + Date.now();
+            if (wrap) wrap.classList.add('has-card-image');
+          }
+          if (genData.amCode) {
+            leadModal.amCode = genData.amCode;
+            const empFileEl = overlay.querySelector('#rrEmployeeFile');
+            if (empFileEl) empFileEl.textContent = genData.amCode;
+            if (leadModal.cardCodeEl) leadModal.cardCodeEl.textContent = genData.amCode;
+          }
+          if (genData.cardId) leadModal.cardId = genData.cardId;
+          msgEl.style.color = '#00a331'; msgEl.textContent = 'Card updated!';
+          fileInput.remove();
+          setTimeout(hideCardStageForm, 900);
+        } catch (_) {
+          msgEl.style.color = '#e60000'; msgEl.textContent = 'Error. Please try again.';
+          saveBtn.textContent = 'SAVE'; saveBtn.disabled = false;
+        }
+      });
+    }
+
+    overlay.querySelector('#rrFixPortfolioBtn').addEventListener('click', openFixPortfolioForm);
+    overlay.querySelector('#rrChangeFaceBtn').addEventListener('click', openChangeFaceForm);
 
     // Card hotspot tooltips
     const tooltip = overlay.querySelector('#rrTooltip');
@@ -1823,59 +2340,6 @@
     document.documentElement.style.overflow = '';
   }
 
-  function showPortfolioPrompt() {
-    if (document.getElementById('rr-portfolio-prompt')) return;
-    const prompt = document.createElement('div');
-    prompt.id = 'rr-portfolio-prompt';
-    Object.assign(prompt.style, {
-      position: 'fixed', inset: '0', zIndex: '10003',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)',
-    });
-    prompt.innerHTML = `
-      <div style="background:#111;border:1px solid rgba(255,255,255,0.18);padding:28px 24px;width:min(380px,90vw);font-family:'Pixelify Sans',sans-serif;">
-        <div style="color:#e60000;font-size:13px;letter-spacing:0.14em;margin-bottom:8px;text-transform:uppercase;">FIX PORTFOLIO</div>
-        <div style="color:rgba(255,255,255,0.45);font-size:11px;margin-bottom:14px;letter-spacing:0.04em;">LinkedIn, Linktree, personal site, or any social link.</div>
-        <input id="rrPortfolioInput" type="url" placeholder="https://your-link.com"
-          style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:10px 12px;font-size:13px;outline:none;margin-bottom:14px;font-family:inherit;box-sizing:border-box;" />
-        <div style="display:flex;gap:10px;">
-          <button id="rrPortfolioSave"   style="flex:1;padding:10px;background:#fff;color:#000;border:none;font-family:inherit;font-size:12px;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;">Save</button>
-          <button id="rrPortfolioCancel" style="flex:1;padding:10px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.3);font-family:inherit;font-size:12px;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;">Cancel</button>
-        </div>
-        <div id="rrPortfolioMsg" style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.45);min-height:16px;"></div>
-      </div>
-    `;
-    document.body.appendChild(prompt);
-
-    const closePrompt = () => prompt.remove();
-    prompt.querySelector('#rrPortfolioCancel').addEventListener('click', closePrompt);
-    prompt.addEventListener('click', e => { if (e.target === prompt) closePrompt(); });
-
-    prompt.querySelector('#rrPortfolioSave').addEventListener('click', async () => {
-      const saveBtn = prompt.querySelector('#rrPortfolioSave');
-      const msgEl   = prompt.querySelector('#rrPortfolioMsg');
-      const url     = prompt.querySelector('#rrPortfolioInput').value.trim();
-      if (!url) { msgEl.textContent = 'Please enter a URL.'; return; }
-      saveBtn.textContent = 'Saving…';
-      saveBtn.disabled = true;
-      try {
-        const headers = { 'Content-Type': 'application/json' };
-        if (leadModal.token) headers['Authorization'] = `Bearer ${leadModal.token}`;
-        const res = await fetch(`${BACKEND_URL}/api/user/bio`, {
-          method: 'POST', headers, body: JSON.stringify({ portfolioUrl: url }),
-        });
-        if (!res.ok) throw new Error();
-        msgEl.style.color = '#00a331';
-        msgEl.textContent = 'Saved!';
-        setTimeout(closePrompt, 900);
-      } catch (_) {
-        msgEl.style.color = '#e60000';
-        msgEl.textContent = 'Error saving. Try again.';
-        saveBtn.textContent = 'Save';
-        saveBtn.disabled = false;
-      }
-    });
-  }
 
   async function handleShare() {
     const slug    = leadModal.amCode;
@@ -1939,6 +2403,10 @@
             <div class="rr-lead-label rr-cf-title">YOUR DETAILS</div>
             <div class="rr-cf-photo-wrap">
               <img class="rr-cf-photo" src="" alt="" onerror="this.style.display='none'">
+            </div>
+            <div class="rr-cf-disclaimer" id="rrCfDisclaimer">
+              <button class="rr-cf-disclaimer-close" aria-label="Dismiss">×</button>
+              <div class="rr-cf-disclaimer-text"><strong>You can create your card only once.</strong> Upload the resume that best represents your profile, achievements, and experience to receive the most accurate rating, feedback, and review.</div>
             </div>
             <div class="rr-lead-label rr-cf-bio-label">BIO (max 80 chars)</div>
             <input class="rr-lead-input rr-cf-bio" type="text" maxlength="80" placeholder="What you do in one line" />
@@ -2115,6 +2583,9 @@
     // Confirm
     overlay.querySelector('.rr-cf-next').addEventListener('click', handleConfirmSubmit);
     overlay.querySelector('.rr-cf-back-lnk').addEventListener('click', () => setLeadModalMode('entry'));
+    overlay.querySelector('.rr-cf-disclaimer-close').addEventListener('click', () => {
+      overlay.querySelector('.rr-cf-disclaimer').classList.add('rr-hidden');
+    });
 
     // Upload CV
     const uvArea    = overlay.querySelector('.rr-uv-area');
@@ -2187,6 +2658,10 @@
     const hideFooterModes = ['loading', 'card', 'entry', 'existing-login', 'confirm', 'upload-cv'];
     if (footer) footer.style.display = hideFooterModes.includes(mode) ? 'none' : '';
 
+    if (mode === 'confirm') {
+      const d = leadModal.el.querySelector('.rr-cf-disclaimer');
+      if (d) d.classList.remove('rr-hidden');
+    }
     if (mode === 'login') {
       if (leadModal.codeInput) leadModal.codeInput.value = '';
       if (leadModal.errorEl)   leadModal.errorEl.textContent = '';
@@ -2380,11 +2855,19 @@
 
     ctx.restore();
 
-    headerBtnHit = { leaderboard: { x: leaderboardX, y, w: leaderboardW, h } };
+    headerBtnHit = {
+      manifesto:   { x: manifestoX,   y, w: manifestoW,   h },
+      leaderboard: { x: leaderboardX, y, w: leaderboardW, h },
+    };
   }
 
   function clickHeaderButton(cx, cy) {
     if (!headerBtnHit) return false;
+    const mn = headerBtnHit.manifesto;
+    if (cx >= mn.x && cx <= mn.x + mn.w && cy >= mn.y && cy <= mn.y + mn.h) {
+      openManifestoModal();
+      return true;
+    }
     const lb = headerBtnHit.leaderboard;
     if (cx >= lb.x && cx <= lb.x + lb.w && cy >= lb.y && cy <= lb.y + lb.h) {
       const params = new URLSearchParams({ from: window.location.href });

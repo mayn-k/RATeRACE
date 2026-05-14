@@ -10,7 +10,11 @@ async function updateBio(req, res, next) {
     const update = {};
     if (name         !== undefined) update.name         = name;
     if (bio          !== undefined) update.bio          = bio;
-    if (portfolioUrl !== undefined) update.portfolioUrl = portfolioUrl;
+    if (portfolioUrl !== undefined) {
+      let pu = portfolioUrl.trim();
+      if (pu && !/^https?:\/\//i.test(pu)) pu = 'https://' + pu;
+      update.portfolioUrl = pu;
+    }
 
     if (req.file) {
       update.portraitUrl = await uploadPortrait(req.file.buffer, userId);

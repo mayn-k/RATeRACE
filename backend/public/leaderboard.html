@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RATe RACE — Leaderboard</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>@font-face { font-family: "RateDisplay"; src: url("/assets/fonts/rate-display.ttf") format("truetype"); font-display: swap; }</style>
   <style>
     :root {
       --bg: #000;
@@ -53,6 +54,10 @@
       cursor: pointer; padding: 4px 8px; transition: 160ms ease; line-height: 1;
     }
     .rr-back-btn:hover { color: #fff; }
+    /* RateDisplay — numbers only */
+    .rank, .podium-score, .cell-rate.score, .cell-repl.score { font-family: "RateDisplay", monospace; }
+    .podium-card::after { font-family: "RateDisplay", monospace; }
+    .your-code, #rrPercentileText { font-family: "RateDisplay", monospace; }
     .rr-logo-stack { display:flex; flex-direction:column; align-items:center; gap:6px; }
     .rr-logo  { height: clamp(20px,2.25vw,32px); width: auto; display: block; }
     .rr-logo2 { height: clamp(40px,4.5vw,64px);  width: auto; display: block; margin: 18px 0; }
@@ -151,6 +156,8 @@
 
     /* ── Board ── */
     .board { min-height:0; border:1px solid rgba(255,255,255,.16); background:rgba(0,0,0,.42); overflow:hidden; box-shadow:0 0 52px rgba(255,255,255,.035); }
+    .board-header { display:grid; grid-template-columns:66px minmax(240px,1fr) 100px 120px 145px; border-bottom:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.022); }
+    .board-header > div { padding:7px 14px; font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.32); }
     .board-body { height:100%; overflow:auto; scrollbar-color:rgba(255,255,255,.22) transparent; scrollbar-width:thin; }
     .row { min-height:66px; border-bottom:1px solid rgba(255,255,255,.085); display:grid; grid-template-columns:66px minmax(240px,1fr) 100px 120px 145px; align-items:center; transition:150ms ease; cursor:pointer; position:relative; }
     .row:hover { background:rgba(255,255,255,.045); }
@@ -242,6 +249,7 @@
       .filter-btn { min-height:40px; }
       .podium { grid-template-columns:1fr; }
       .board { border:0; background:transparent; box-shadow:none; min-height:0; }
+      .board-header { display:none; }
       .board-body { overflow:visible; }
       .row { grid-template-columns:44px 1fr 66px; grid-template-areas:"rank identity repl" "rank identity rate" "piece piece piece"; min-height:100px; margin-bottom:10px; border:1px solid rgba(255,255,255,.14); background:rgba(0,0,0,.50); }
       .cell-rank { grid-area:rank; } .cell-identity { grid-area:identity; } .cell-rate { grid-area:rate; text-align:right; } .cell-repl { grid-area:repl; text-align:right; align-self:end; } .cell-piece { grid-area:piece; }
@@ -323,6 +331,13 @@
       <section class="empty-state" id="emptyState">No market files in this filter yet.</section>
 
       <section class="board">
+        <div class="board-header">
+          <div>Rank</div>
+          <div>Name</div>
+          <div>Hierarchy</div>
+          <div>Rate</div>
+          <div>Replaceability</div>
+        </div>
         <div class="board-body" id="leaderboardRows">
           <div class="board-loading" id="boardLoading">LOADING MARKET FILES…</div>
         </div>
@@ -379,13 +394,14 @@
     let myAmCode   = URL_AM;
     let hlAmCode   = URL_HL;
 
-    let activeStatus = 'all';
-    let activePiece  = 'all';
-    let currentRows  = [];
-    let userRank     = null;
-    let userRow      = null;
-    let totalCount   = 0;
-    let selectedRow  = null;
+    let activeStatus     = 'all';
+    let activePiece      = 'all';
+    let currentRows      = [];
+    let userRank         = null;
+    let userRow          = null;
+    let totalCount       = 0;
+    let selectedRow      = null;
+    let standingRendered = false;
 
     // ── Helpers ──────────────────────────────────────────────────────────────
     const esc = v => String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
@@ -516,19 +532,22 @@
 
     // ── Load ──────────────────────────────────────────────────────────────────
     async function loadBoard() {
-      document.getElementById('boardLoading').style.display = 'flex';
+      const rowsEl = document.getElementById('leaderboardRows');
+      rowsEl.innerHTML = '<div class="board-loading">LOADING MARKET FILES…</div>';
       try {
         const data  = await fetchBoard();
         currentRows = data.rows       || [];
         userRank    = data.userRank   ?? null;
         userRow     = data.userRow    ?? null;
         totalCount  = data.totalCount || 0;
-        document.getElementById('boardLoading').style.display = 'none';
         renderPodium(currentRows);
         renderRows(currentRows);
-        if (authState === 'full') renderStanding(userRow, userRank, totalCount);
+        if (authState === 'full' && !standingRendered) {
+          renderStanding(userRow, userRank, totalCount);
+          standingRendered = true;
+        }
       } catch (_) {
-        document.getElementById('boardLoading').textContent = 'FAILED TO LOAD';
+        rowsEl.innerHTML = '<div class="board-loading">FAILED TO LOAD</div>';
       }
     }
 
@@ -608,15 +627,16 @@
         if (opening) dd.classList.add('is-open');
       });
 
-      menu.addEventListener('click', e => {
-        const item = e.target.closest('.filter-dd-item');
-        if (!item) return;
-        menu.querySelectorAll('.filter-dd-item').forEach(b => b.classList.remove('is-active'));
-        item.classList.add('is-active');
-        valueEl.textContent = item.dataset.label || item.textContent.trim();
-        dd.classList.remove('is-open');
-        setter(item.dataset.filter);
-        loadBoard();
+      menu.querySelectorAll('.filter-dd-item').forEach(item => {
+        item.addEventListener('click', e => {
+          e.stopPropagation();
+          menu.querySelectorAll('.filter-dd-item').forEach(b => b.classList.remove('is-active'));
+          item.classList.add('is-active');
+          valueEl.textContent = item.dataset.label || item.textContent.trim();
+          dd.classList.remove('is-open');
+          setter(item.dataset.filter);
+          loadBoard();
+        });
       });
     }
 
@@ -660,6 +680,7 @@
       // Always load the board (it renders behind the gate if gated)
       loadBoard();
     })();
+
   </script>
 </body>
 </html>

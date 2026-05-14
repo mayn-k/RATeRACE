@@ -31,6 +31,7 @@ async function generate(req, res, next) {
           delta:                    scored.delta,
           educationOrg:             scored.educationOrg,
           workOrg:                  scored.workOrg,
+          bioRewrite:               scored.bioRewrite               ?? null,
           marketVerdict:            scored.marketVerdict            ?? null,
           primaryRisk:              scored.primaryRisk              ?? null,
           humanEdge:                scored.humanEdge                ?? null,
