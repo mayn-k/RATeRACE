@@ -2,7 +2,7 @@
 const fs   = require('fs');
 const path = require('path');
 
-const ROOT      = path.join(__dirname, '..', '..');
+const ROOT      = path.join(__dirname, '..', '..', 'frontend-static');
 const TEMPLATES = path.join(__dirname, '..', 'templates');
 
 // Ensure templates/_render exists for Puppeteer temp files
