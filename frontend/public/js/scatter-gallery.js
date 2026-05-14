@@ -154,7 +154,7 @@
 
     return clamp(
       Math.min((root.clientWidth - 34) / totalW, (root.clientHeight - 80) / totalH, 1),
-      0.62,
+      0.50,
       1
     );
   }
@@ -1599,6 +1599,24 @@
         .rr-section-title { font-size: 34px; }
         .rr-meter-panel { grid-template-columns: 1fr; }
         .rr-meter-card { min-height: 162px; }
+      }
+
+      @media (max-width: 480px) {
+        .rr-final-modal { --rr-card-w: min(84vw, 290px); }
+        .rr-final-header { gap: 8px; padding-top: 12px; }
+        .rr-header-logo-img { height: 20px; }
+        .rr-top-pill, .rr-leader-pill { font-size: 12px; padding: 0.28em 0.5em 0.36em; }
+        .rr-final-layout { width: 96vw; padding-top: 10px; padding-bottom: 60px; }
+        .rr-section-title { font-size: 28px; margin-bottom: 18px; }
+        .rr-meter-svg { width: 200px; height: 112px; }
+        .rr-meter-score { font-size: 34px; top: 64px; }
+        .rr-meter-status { top: 124px; }
+        .rr-meter-card { min-height: 140px; }
+        .rr-employee-file { margin-top: 28px; font-size: clamp(13px, 3.8vw, 18px); }
+        .rr-actions { gap: 8px; }
+        .rr-action-btn { height: 46px; font-size: 13px; }
+        .rr-verdict-line { font-size: 11px; margin-bottom: 12px; }
+        .rr-rank-value { font-size: 18px; }
       }
 
       /* ── Share modal ── */

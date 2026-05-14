@@ -311,3 +311,35 @@ input[type="url"] {
     font-size: 11px;
   }
 }
+
+@media (max-width: 480px) {
+  :root {
+    --landing-header-top-gap: 12px;
+    --landing-header-height: 22px;
+    --landing-header-to-ticker-gap: 6px;
+    --job-ticker-height: 20px;
+    --ticker-fade-width: 54px;
+  }
+
+  .job-ticker__item {
+    gap: 6px;
+    margin-right: 40px;
+  }
+
+  .job-ticker__title {
+    font-size: 10px;
+  }
+
+  .job-ticker__score {
+    font-size: 9px;
+  }
+
+  .job-ticker__delta {
+    font-size: 10px;
+  }
+
+  .hint {
+    font-size: 9px;
+    bottom: 10px;
+  }
+}

@@ -183,6 +183,13 @@
     .hotspot-edu-badge      { left: 27%;  top: 68%;  width: 23%; height: 9%;  }
     /* Work badge — right logo box */
     .hotspot-work-badge     { left: 50%;  top: 68%;  width: 23%; height: 9%;  }
+    .hotspot-org-logo {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: contain; border-radius: 4px;
+      background: #fff; padding: 3px;
+      display: none; pointer-events: none;
+    }
+    .hotspot-org-logo.is-loaded { display: block; }
     /* Portfolio / Click me link — repositioned to actual link position (~80% from top) */
     .hotspot-portfolio      { left: 20%;  top: 79%;  width: 60%; height: 5%;  }
     /* Chess piece — bottom-left frame */
@@ -443,11 +450,17 @@
              data-title="TICKER"
              data-tooltip="Your career momentum. Tracks whether your professional growth has been trending up or down over the last 90 days."></div>
         <div class="rr-card-hotspot hotspot-edu-badge"
+             id="hotspotEduBadge"
              data-title="EDUCATION BADGE"
-             data-tooltip="Your highest qualification and the institution you attended."></div>
+             data-tooltip="Your highest qualification and the institution you attended.">
+          <img class="hotspot-org-logo" id="eduLogo" alt="">
+        </div>
         <div class="rr-card-hotspot hotspot-work-badge"
+             id="hotspotWorkBadge"
              data-title="WORK BADGE"
-             data-tooltip="Your current or most recent employer."></div>
+             data-tooltip="Your current or most recent employer.">
+          <img class="hotspot-org-logo" id="workLogo" alt="">
+        </div>
         <div class="rr-card-hotspot hotspot-chess"
              data-title="CHESS PIECE"
              data-tooltip="Your career archetype. The role you play in the professional world."></div>
@@ -625,6 +638,20 @@
           const pEl = document.getElementById('rrPercentileText');
           if (pEl) pEl.textContent = `${card.replaceabilityPercentile}%`;
         }
+
+        // Org logo overlays — rendered directly over the card at hotspot positions
+        const setOrgLogo = (imgId, hotspotId, org) => {
+          if (!org?.logoUrl) return;
+          const img     = document.getElementById(imgId);
+          const hotspot = document.getElementById(hotspotId);
+          if (!img || !hotspot) return;
+          img.alt = org.name || '';
+          img.onload = () => img.classList.add('is-loaded');
+          img.src = org.logoUrl;
+          if (org.name) hotspot.dataset.tooltip = org.name;
+        };
+        setOrgLogo('eduLogo',  'hotspotEduBadge',  card.educationOrg);
+        setOrgLogo('workLogo', 'hotspotWorkBadge', card.workOrg);
 
         // Click-me overlay — same priority as card image: portfolioUrl → ctaUrl → linkedinUrl
         let linkHref = data.user?.portfolioUrl || card.ctaUrl || card.linkedinUrl || null;
