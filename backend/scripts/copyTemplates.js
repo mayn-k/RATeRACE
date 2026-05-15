@@ -2,7 +2,10 @@
 const fs   = require('fs');
 const path = require('path');
 
-const ROOT      = path.join(__dirname, '..', '..', 'frontend', 'public');
+// FRONTEND_PUBLIC_PATH can be set in Docker builds where the repo layout differs
+const ROOT = process.env.FRONTEND_PUBLIC_PATH
+  ? path.resolve(process.env.FRONTEND_PUBLIC_PATH)
+  : path.join(__dirname, '..', '..', 'frontend', 'public');
 const TEMPLATES = path.join(__dirname, '..', 'templates');
 
 // Ensure templates/_render exists for Puppeteer temp files
