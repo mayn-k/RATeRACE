@@ -5,6 +5,7 @@ const jwt              = require('jsonwebtoken');
 const mongoose         = require('mongoose');
 const config           = require('../config');
 const adminAuth        = require('../middleware/adminAuth');
+const { authLimiter }  = require('../middleware/rateLimiter');
 const User             = require('../models/User');
 const Card             = require('../models/Card');
 const { buildCardData }    = require('../services/cardData');
@@ -20,7 +21,7 @@ router.get('/', (_req, res) => {
 });
 
 // ── Login ─────────────────────────────────────────────────────────────────────
-router.post('/api/auth', (req, res) => {
+router.post('/api/auth', authLimiter, (req, res) => {
   const { secret } = req.body;
   if (!secret || secret !== config.ADMIN_SECRET) {
     return res.status(401).json({ error: 'Invalid secret' });

@@ -153,9 +153,9 @@
     const totalW = 350;
 
     return clamp(
-      Math.min((root.clientWidth - 34) / totalW, (root.clientHeight - 80) / totalH, 1),
+      Math.min((root.clientWidth - 34) / totalW, (root.clientHeight - 80) / totalH, 1.25),
       0.50,
-      1
+      1.25
     );
   }
 

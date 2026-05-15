@@ -40,6 +40,17 @@ function loadScript(src: string): Promise<void> {
 }
 
 export default function GalleryPage() {
+  // Force a fresh load when browser restores this page from BFCache
+  // (happens after navigating to LinkedIn OAuth and pressing Back).
+  // Without this, scatter-gallery.js never re-executes and the canvas stays blank.
+  useEffect(() => {
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) window.location.reload();
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
+
   useEffect(() => {
     window.BACKEND_URL = BACKEND_URL;
     window.GALLERY_IMAGE_FOLDER = GALLERY_CONFIG.folder;

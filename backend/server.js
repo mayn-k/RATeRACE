@@ -3,6 +3,7 @@ const express   = require('express');
 const path      = require('path');
 const fs        = require('fs');
 const cors      = require('cors');
+const helmet    = require('helmet');
 const config    = require('./config');
 const connectDB = require('./db/connect');
 const logger    = require('./utils/logger');
@@ -10,6 +11,12 @@ const { initPuppeteer } = require('./services/puppeteer');
 const errorHandler      = require('./middleware/error');
 
 const app = express();
+
+// Security headers — CSP disabled until inline scripts are moved to external files
+app.use(helmet({
+  contentSecurityPolicy: false,
+  referrerPolicy: { policy: 'no-referrer' },
+}));
 
 app.use(cors({
   origin: config.FRONTEND_ORIGIN,
